@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Weight&amp;Activation on MLSys</title>
+    <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/</link>
+    <description>Recent content in Weight&amp;Activation on MLSys</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Sat, 14 Oct 2023 13:33:46 +0000</lastBuildDate>
+    <atom:link href="https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>(原理|实战)LLM.int8() &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/gptQuantizationInt8/gptQuantizationInt8/</link>
+      <pubDate>Thu, 12 Oct 2023 14:33:20 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/gptQuantizationInt8/gptQuantizationInt8/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;llmint8&#34;&gt;&#xA;  LLM.int8()&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#llmint8&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/LLM-int8-11dbfe21108480d0b6adc341aed9ec3d?pvs=4&#34;&gt;(原理|实战)LLM.int8()&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理)SmoothQuant &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/gptQuantizationSmoothQuant/gptQuantizationSmoothQuant/</link>
+      <pubDate>Sat, 14 Oct 2023 13:33:21 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/gptQuantizationSmoothQuant/gptQuantizationSmoothQuant/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;smoothquant&#34;&gt;&#xA;  SmoothQuant&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#smoothquant&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/SmoothQuant-11dbfe21108480fc83f8ea2a495092b7?pvs=4&#34;&gt;(原理)SmoothQuant&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理)FP8 &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/gptQuantizationFP8/gptQuantizationFP8/</link>
+      <pubDate>Sat, 14 Oct 2023 13:33:46 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/gptQuantizationFP8/gptQuantizationFP8/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;fp8&#34;&gt;&#xA;  FP8&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#fp8&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/FP8-12c3b58d744e43299dad0badc397f592?pvs=4&#34;&gt;(原理)FP8&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Inference on MLSys</title>
+    <link>https://www6v.github.io/www6vMLSys/categories/Inference/</link>
+    <description>Recent content in Inference on MLSys</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Fri, 15 Nov 2024 18:41:31 +0000</lastBuildDate>
+    <atom:link href="https://www6v.github.io/www6vMLSys/categories/Inference/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>DistServe &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/gptInferDistServe/</link>
+      <pubDate>Thu, 05 Oct 2023 22:43:07 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/gptInferDistServe/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;distserve&#34;&gt;&#xA;  DistServe&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#distserve&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/DistServe-dd4ae7040b78496f9a60c0291941922b?pvs=4&#34;&gt;DistServe&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Continuous Batching &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/Batch/gptInferContinuousBatching/</link>
+      <pubDate>Mon, 18 Sep 2023 18:32:11 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/Batch/gptInferContinuousBatching/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;continuous-batching&#34;&gt;&#xA;  Continuous Batching&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#continuous-batching&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/Continuous-batching-3ce74a6d992944fba6314e21b3c3ec22&#34;&gt;Continuous Batching&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理|实现) KV Cache &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/KVCache/gptInferKVCache/</link>
+      <pubDate>Thu, 01 Jun 2023 11:09:57 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/KVCache/gptInferKVCache/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;kv-cache&#34;&gt;&#xA;  KV Cache&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#kv-cache&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/KV-Cache-52168038d1874bce9d5cf68c5930f5c1?pvs=4&#34;&gt;(原理|实现) KV Cache&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理)推理-框架</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/gptInferFramework/</link>
+      <pubDate>Tue, 21 Mar 2023 22:18:17 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/gptInferFramework/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;推理-框架1&#34;&gt;&#xA;  推理 框架[1]&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e6%8e%a8%e7%90%86-%e6%a1%86%e6%9e%b61&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;img src=&#34;./images/inference.jpg&#34; alt=&#34;inference.jpg&#34; /&gt;&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;inference execute engine(server)&lt;br&gt;&#xA;vLLM，TensorRT， deepspeed&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;inference execute engine(pc/edge 移动端)&lt;br&gt;&#xA;llama.cpp&lt;br&gt;&#xA;mlc-llm&lt;br&gt;&#xA;ollama&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;inference Server&lt;br&gt;&#xA;Triton Server,  Ray&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;Chat Server [2]&lt;br&gt;&#xA;FastChat, XInference,  modelscope  SWIFT&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h1 id=&#34;参考&#34;&gt;&#xA;  参考&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e5%8f%82%e8%80%83&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://mp.weixin.qq.com/mp/appmsgalbum?action=getalbum&amp;amp;__biz=MzA5MTIxNTY4MQ==&amp;amp;scene=1&amp;amp;album_id=2959126655292211206&#34;&gt;探秘LLM应用开发&lt;/a&gt;   8-19&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://cloud.tencent.com/developer/article/2422454&#34;&gt;LLM 大模型学习必知必会系列(十二)：VLLM性能飞跃部署实践：从推理加速到高效部署的全方位优化[更多内容：XInference/FastChat等框架]&lt;/a&gt;&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;p&gt;1xx. &lt;a href=&#34;https://mp.weixin.qq.com/s?__biz=MzA5MTIxNTY4MQ==&amp;amp;mid=2461142079&amp;amp;idx=1&amp;amp;sn=07d9033203c0064408fe0af33d1f9414&#34;&gt;一文探秘LLM应用开发(18)-模型部署与推理(框架工具-Triton Server、RayLLM、OpenLLM)&lt;/a&gt;&lt;/p&gt;&#xA;&lt;p&gt;1xx. &lt;a href=&#34;https://mp.weixin.qq.com/s?__biz=MzA5MTIxNTY4MQ==&amp;amp;mid=2461142012&amp;amp;idx=1&amp;amp;sn=dafb0b676cdf6d41fd9bd54f9b6a82d3&#34;&gt;一文探秘LLM应用开发(16)-模型部署与推理(框架工具-TGI，vLLM，TensorRT-LLM，DS-MII) &lt;/a&gt;&lt;/p&gt;&#xA;&lt;p&gt;1xx. &lt;a href=&#34;https://zhuanlan.zhihu.com/p/659792625&#34;&gt;大模型推理框架概述&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(总结)推理优化</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/Overview/gptInference/</link>
+      <pubDate>Sun, 01 Jan 2023 22:58:43 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/Overview/gptInference/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;推理-优化&#34;&gt;&#xA;  推理 优化&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e6%8e%a8%e7%90%86-%e4%bc%98%e5%8c%96&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;h3 id=&#34;overview2&#34;&gt;&#xA;  overview[2]&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#overview2&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;p&gt;有几种方法可以在内存中&lt;strong&gt;降低推理成本&lt;/strong&gt;或/和&lt;strong&gt;加快推理速度&lt;/strong&gt;。&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;应用各种&lt;strong&gt;并行处理方式&lt;/strong&gt;，以在大量GPU上扩展模型。智能并行处理模型组件和数据使得运行拥有数万亿参数的模型成为可能。&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;内存卸载&lt;/strong&gt;，将临时未使用的数据卸载到CPU，并在以后需要时再读回。这有助于减少内存使用，但会导致更高的延迟。&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;智能批处理策略&lt;/strong&gt;；例如，EffectiveTransformer将连续的序列打包在一起，以消除批处理内的填充。&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;网络压缩技术&lt;/strong&gt;，如&lt;strong&gt;修剪、量化、蒸馏&lt;/strong&gt;。较小的模型，无论是参数数量还是位宽，应该需要更少的内存并且运行更快。&lt;/li&gt;&#xA;&lt;li&gt;针对目标模型架构的特定改进。许多&lt;strong&gt;架构变化&lt;/strong&gt;，特别是针对注意力层的变化，有助于提高Transformer解码速度。&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h3 id=&#34;模型压缩-1&#34;&gt;&#xA;  模型压缩 [1]&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e6%a8%a1%e5%9e%8b%e5%8e%8b%e7%bc%a9-1&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;p&gt;&lt;img src=&#34;./images/compress.png&#34; alt=&#34;compress.png&#34; /&gt;&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;剪枝（Pruning）&lt;/li&gt;&#xA;&lt;li&gt;知识蒸馏（Knowledge Distillation，KD）&lt;/li&gt;&#xA;&lt;li&gt;量化（Quantization）&lt;/li&gt;&#xA;&lt;li&gt;低秩分解（Low-Rank Factorization）&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h3 id=&#34;kv-cache&#34;&gt;&#xA;  KV Cache&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#kv-cache&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;h1 id=&#34;参考&#34;&gt;&#xA;  参考&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e5%8f%82%e8%80%83&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;h3 id=&#34;综述&#34;&gt;&#xA;  综述&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e7%bb%bc%e8%bf%b0&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://mp.weixin.qq.com/s/glPPSqHjsnDjC0DZSuuPzA&#34;&gt;一文探秘LLM应用开发(13)-模型部署与推理(优化理论) &lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://lilianweng.github.io/posts/2023-01-10-inference-optimization/&#34;&gt;Large Transformer Model Inference Optimization &lt;/a&gt;  lilianweng&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;p&gt;1xx. &lt;a href=&#34;https://zhuanlan.zhihu.com/p/642412124&#34;&gt;NLP（十八）：LLM 的推理优化技术纵览&lt;/a&gt; ***&lt;br&gt;&#xA;1xx. &lt;a href=&#34;https://zhuanlan.zhihu.com/p/656485997&#34;&gt;大语言模型推理性能优化综述&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理|实现)Mooncake &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/gptInferMooncake/</link>
+      <pubDate>Thu, 19 Oct 2023 12:02:53 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/gptInferMooncake/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xD;&#xA;&lt;!-- more --&gt;&#xD;&#xA;&lt;h1 id=&#34;mooncake&#34;&gt;&#xA;  Mooncake&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#mooncake&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/Mooncake-d7d1506860df44bca7a2f880a1352285?pvs=4&#34;&gt;Mooncake&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Chunked Prefill &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/Batch/gptInferChunkedPrefill/</link>
+      <pubDate>Mon, 18 Sep 2023 18:46:44 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/Batch/gptInferChunkedPrefill/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;chunked-prefill&#34;&gt;&#xA;  Chunked Prefill&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#chunked-prefill&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/chunked-prefill-102bfe21108480a7af99fee1f56fd5af?pvs=4&#34;&gt;Chunked Prefill&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理)KV Cache 优化 &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/KVCache/gptInferKVCacheOptimize/</link>
+      <pubDate>Sat, 02 Sep 2023 22:14:46 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/KVCache/gptInferKVCacheOptimize/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;kv-cache-优化&#34;&gt;&#xA;  KV Cache 优化&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#kv-cache-%e4%bc%98%e5%8c%96&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/KV-cache-bd0a35015c9845bd8e17d5c902dba152?pvs=4&#34;&gt;(原理)KV cache优化&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(综述)推理优化 &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/Overview/gptInferenceSurvey/</link>
+      <pubDate>Mon, 14 Aug 2023 13:23:31 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/Overview/gptInferenceSurvey/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;论文&#34;&gt;&#xA;  论文&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e8%ae%ba%e6%96%87&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/A-Survey-on-Efficient-Inference-for-Large-Language-Models-22145473188e437881bf566241492bea?pvs=4&#34;&gt;A Survey on Efficient Inference for Large Language Models&lt;/a&gt; 翻译&lt;/p&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/A-Survey-on-Efficient-Inference-for-Large-Language-Models-135bfe2110848034bf45ea8e5d1d2fdb?pvs=4&#34;&gt;A Survey on Efficient Inference for Large Language Models&lt;/a&gt; 总结&lt;/p&gt;&#xA;&lt;h1 id=&#34;inference-papers&#34;&gt;&#xA;  Inference Papers&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#inference-papers&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/Inference-Papers-bd22ef1d8c274d6f9951c394a95ff427?pvs=4&#34;&gt;Inference Papers&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(实战)推理-lmdeploy</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/gptInferFrameworkPractice/</link>
+      <pubDate>Thu, 02 Feb 2023 11:14:35 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/gptInferFrameworkPractice/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;lmdeploy-推理部署-10&#34;&gt;&#xA;  lmdeploy-推理部署 [10]&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#lmdeploy-%e6%8e%a8%e7%90%86%e9%83%a8%e7%bd%b2-10&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;h3 id=&#34;模型转换&#34;&gt;&#xA;  模型转换&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e6%a8%a1%e5%9e%8b%e8%bd%ac%e6%8d%a2&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;p&gt;&lt;img src=&#34;./images/convert.png&#34; alt=&#34;convert.png&#34; /&gt;&lt;/p&gt;&#xA;&lt;h3 id=&#34;turbomind-推理命令行本地对话&#34;&gt;&#xA;  TurboMind 推理+命令行本地对话&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#turbomind-%e6%8e%a8%e7%90%86%e5%91%bd%e4%bb%a4%e8%a1%8c%e6%9c%ac%e5%9c%b0%e5%af%b9%e8%af%9d&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;p&gt;&lt;img src=&#34;./images/infer.png&#34; alt=&#34;infer.png&#34; /&gt;&lt;/p&gt;&#xA;&lt;h3 id=&#34;turbomind推理api服务&#34;&gt;&#xA;  TurboMind推理+API服务&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#turbomind%e6%8e%a8%e7%90%86api%e6%9c%8d%e5%8a%a1&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;启动服务&#xA;&lt;img src=&#34;./images/infer-api.png&#34; alt=&#34;infer-api.png&#34; /&gt;&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;Client访问服务&#xA;&lt;img src=&#34;./images/infer-api-client.png&#34; alt=&#34;infer-api-client.png&#34; /&gt;&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h1 id=&#34;参考&#34;&gt;&#xA;  参考&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e5%8f%82%e8%80%83&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;ol start=&#34;10&#34;&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://github.com/InternLM/tutorial/blob/main/lmdeploy/lmdeploy.md&#34;&gt;lmdeploy 量化部署&lt;/a&gt;&lt;br&gt;&#xA;&lt;a href=&#34;https://www.bilibili.com/video/BV1iW4y1A77P/&#34;&gt;(5)LMDeploy 大模型量化部署实践&lt;/a&gt; V&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;p&gt;1xx. &lt;a href=&#34;https://github.com/www6v/llm-action/tree/main/inference&#34;&gt;llm-action  inference&lt;/a&gt; git&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(综述)推理优化 &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/Overview/gptInferenceSurvey1/</link>
+      <pubDate>Wed, 11 Sep 2024 17:40:04 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/Overview/gptInferenceSurvey1/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;论文&#34;&gt;&#xA;  论文&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e8%ae%ba%e6%96%87&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/Towards-Efficient-Generative-Large-Language-Model-Serving-A-Survey-from-Algorithms-to-Systems-c1914500c33f4446ac7fbe8848354d91?pvs=4&#34;&gt;Towards Efficient Generative Large Language Model Serving: A Survey from Algorithms to Systems&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理)Llumnix &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/gptInferLlumnix/</link>
+      <pubDate>Thu, 30 Nov 2023 16:45:15 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/gptInferLlumnix/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;llumnix&#34;&gt;&#xA;  Llumnix&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#llumnix&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/Llumnix-14407e4f4d2f4a908edcf73b6990b4f0?pvs=4&#34;&gt;(原理)Llumnix&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理|实现)Medusa &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/gptInferMedusa/</link>
+      <pubDate>Sun, 12 Nov 2023 06:46:10 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/gptInferMedusa/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;medusa&#34;&gt;&#xA;  Medusa&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#medusa&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/Medusa-31e27ea0a51d4c818c804a654a3c839a?pvs=4&#34;&gt;(原理|实现)Medusa&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理)KV Cache 量化 &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/KVCache/Compress/gptInferKVCacheQuantization/</link>
+      <pubDate>Sat, 02 Sep 2023 23:13:07 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/KVCache/Compress/gptInferKVCacheQuantization/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;kv-cache-量化&#34;&gt;&#xA;  KV Cache 量化&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#kv-cache-%e9%87%8f%e5%8c%96&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/Quantization-c6fa20cf425a4211af150b4987711f47?pvs=4&#34;&gt;KV Cache 量化&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理|实战) [vLLM]Prefix Cache &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInferKVCacheRadixAttention/</link>
+      <pubDate>Fri, 15 Nov 2024 18:41:31 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInferKVCacheRadixAttention/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;原理实战-vllmprefix-cache&#34;&gt;&#xA;  (原理|实战) [vLLM]Prefix Cache&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e5%8e%9f%e7%90%86%e5%ae%9e%e6%88%98-vllmprefix-cache&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/RadixAttention-105bfe211084807581eccf952ba3bb59?pvs=4&#34;&gt;(原理|实战) [vLLM]Prefix Cache&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>EAGLE &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/gptInferEagle/</link>
+      <pubDate>Sun, 12 Nov 2023 06:46:22 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/gptInferEagle/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;eagle&#34;&gt;&#xA;  EAGLE&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#eagle&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/EAGLE-126bfe2110848058aeb0ed8c2d06319b?pvs=4&#34;&gt;EAGLE&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理)Streaming LLM &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/Sparse-Attention/gptInferKVCacheStreamingLLM/</link>
+      <pubDate>Sat, 02 Sep 2023 23:07:02 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/Sparse-Attention/gptInferKVCacheStreamingLLM/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;streaming-llm&#34;&gt;&#xA;  Streaming LLM&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#streaming-llm&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/StreamingLLM-5141d463ddf84b4783c369459c71eec8?pvs=4&#34;&gt;Streaming LLM&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,15 @@
+{
+  "name": "MLSys",
+  "short_name": "MLSys",
+  "start_url": "/www6vMLSys/",
+  "scope": "/www6vMLSys/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "/www6vMLSys/favicon.svg",
+      "sizes": "512x512"
+    }
+  ]
+}
