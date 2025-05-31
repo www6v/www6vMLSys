@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>MaaS on MLSys</title>
+    <link>https://www6v.github.io/www6vMLSys/tags/MaaS/</link>
+    <description>Recent content in MaaS on MLSys</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Tue, 23 Apr 2024 21:54:43 +0000</lastBuildDate>
+    <atom:link href="https://www6v.github.io/www6vMLSys/tags/MaaS/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>MaaS 监控</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/LLMOps/MaaS/gptMaaSMonitor/</link>
+      <pubDate>Tue, 23 Apr 2024 21:54:43 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/LLMOps/MaaS/gptMaaSMonitor/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;maas-监控&#34;&gt;&#xA;  MaaS 监控&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#maas-%e7%9b%91%e6%8e%a7&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/MaaS-1d2bfe2110848079b06afffaea367fe9?pvs=4&#34;&gt;MaaS 监控&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

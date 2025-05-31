@@ -6,7 +6,7 @@
     <description>Recent content on MLSys</description>
     <generator>Hugo</generator>
     <language>en</language>
-    <lastBuildDate>Thu, 01 Feb 2024 22:29:42 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 23 Apr 2024 21:54:43 +0000</lastBuildDate>
     <atom:link href="https://www6v.github.io/www6vMLSys/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>(原理|实战)LLM.int8() &#43;</title>
@@ -42,6 +42,20 @@
       <pubDate>Sat, 14 Oct 2023 13:33:46 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/gptQuantizationFP8/gptQuantizationFP8/</guid>
       <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;fp8&#34;&gt;&#xA;  FP8&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#fp8&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/FP8-12c3b58d744e43299dad0badc397f592?pvs=4&#34;&gt;(原理)FP8&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>MaaS 监控</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/LLMOps/MaaS/gptMaaSMonitor/</link>
+      <pubDate>Tue, 23 Apr 2024 21:54:43 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/LLMOps/MaaS/gptMaaSMonitor/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;maas-监控&#34;&gt;&#xA;  MaaS 监控&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#maas-%e7%9b%91%e6%8e%a7&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/MaaS-1d2bfe2110848079b06afffaea367fe9?pvs=4&#34;&gt;MaaS 监控&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>LLM PaaS</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/LLMOps/MaaS/gptLLMOpsPaaS/</link>
+      <pubDate>Tue, 26 Sep 2023 23:18:45 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/LLMOps/MaaS/gptLLMOpsPaaS/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;llm-paas&#34;&gt;&#xA;  LLM PaaS&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#llm-paas&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/9ddf2032d70b4722ad34a48cb305d80b?pvs=4&#34;&gt;LLM PaaS&lt;/a&gt;&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>

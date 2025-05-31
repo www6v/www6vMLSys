@@ -23,6 +23,20 @@
       <description></description>
     </item>
     <item>
+      <title>MaaS</title>
+      <link>https://www6v.github.io/www6vMLSys/tags/MaaS/</link>
+      <pubDate>Tue, 23 Apr 2024 21:54:43 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/tags/MaaS/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>GPU</title>
+      <link>https://www6v.github.io/www6vMLSys/tags/GPU/</link>
+      <pubDate>Sat, 23 Mar 2024 12:43:50 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/tags/GPU/</guid>
+      <description></description>
+    </item>
+    <item>
       <title>量化</title>
       <link>https://www6v.github.io/www6vMLSys/tags/%E9%87%8F%E5%8C%96/</link>
       <pubDate>Fri, 22 Mar 2024 10:18:01 +0000</pubDate>
@@ -44,6 +58,13 @@
       <description></description>
     </item>
     <item>
+      <title>LLMOps</title>
+      <link>https://www6v.github.io/www6vMLSys/tags/LLMOps/</link>
+      <pubDate>Tue, 26 Sep 2023 23:18:45 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/tags/LLMOps/</guid>
+      <description></description>
+    </item>
+    <item>
       <title>低精度</title>
       <link>https://www6v.github.io/www6vMLSys/tags/%E4%BD%8E%E7%B2%BE%E5%BA%A6/</link>
       <pubDate>Wed, 16 Aug 2023 11:50:58 +0000</pubDate>
@@ -55,6 +76,13 @@
       <link>https://www6v.github.io/www6vMLSys/tags/FlashAttention/</link>
       <pubDate>Tue, 13 Jun 2023 09:41:12 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMLSys/tags/FlashAttention/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>LLamaFactory</title>
+      <link>https://www6v.github.io/www6vMLSys/tags/LLamaFactory/</link>
+      <pubDate>Wed, 24 May 2023 18:43:17 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/tags/LLamaFactory/</guid>
       <description></description>
     </item>
     <item>
