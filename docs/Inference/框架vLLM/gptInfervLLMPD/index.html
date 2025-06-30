@@ -6,25 +6,69 @@
 <meta name="description" content="
 
 
-  [vLLM]PD分离
+  PD disaggregation
   #
 
-[vLLM]PD分离">
+
+  What&rsquo;s Prefill and Decode
+  #
+
+
+prefill:
+
+process input prompt, generate KV cache
+
+
+decode:
+
+generate tokens based on the KV cache
+
+
+
+
+  Why PD disaggregation
+  #
+
+
+
+Prefill:
+
+attention — N tokens QKV — generate KV cache  takes a long time
+
+
+
+Decode:
+
+attention N KV, 1 Q — generate a new token  very fast
+
+
+
+initial logic
+prioritize prefill
+
+
+problem
+prefill will stop other request&rsquo;s decode">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
 <meta name="color-scheme" content="light dark"><meta property="og:url" content="https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMPD/">
   <meta property="og:site_name" content="MLSys">
-  <meta property="og:title" content="(实现)[vLLM]PD分离 &#43;">
-  <meta property="og:description" content="[vLLM]PD分离 # [vLLM]PD分离">
+  <meta property="og:title" content="(实现)[vLLM]PD分离 *">
+  <meta property="og:description" content="PD disaggregation # What’s Prefill and Decode # prefill: process input prompt, generate KV cache decode: generate tokens based on the KV cache Why PD disaggregation # Prefill:
+attention — N tokens QKV — generate KV cache takes a long time Decode:
+attention N KV, 1 Q — generate a new token very fast initial logic
+prioritize prefill
+problem
+prefill will stop other request’s decode">
   <meta property="og:locale" content="en">
   <meta property="og:type" content="website">
-<title>(实现)[vLLM]PD分离 &#43; | MLSys</title>
+<title>(实现)[vLLM]PD分离 * | MLSys</title>
 <link rel="icon" href="/www6vMLSys/favicon.png" >
 <link rel="manifest" href="/www6vMLSys/manifest.json">
 <link rel="canonical" href="https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMPD/">
 <link rel="stylesheet" href="/www6vMLSys/book.min.db33c4234812bafd370196f84f3ea6afccd85107940c9e8b8dedb1347b4c3e84.css" integrity="sha256-2zPEI0gSuv03AZb4Tz6mr8zYUQeUDJ6Lje2xNHtMPoQ=" crossorigin="anonymous">
   <script defer src="/www6vMLSys/fuse.min.js"></script>
-  <script defer src="/www6vMLSys/en.search.min.59a71f6cf9cffcb5caa256089ccc45e7be91b5236f22e6b8413eff62445d767c.js" integrity="sha256-WacfbPnP/LXKolYInMxF576RtSNvIua4QT7/YkRddnw=" crossorigin="anonymous"></script>
+  <script defer src="/www6vMLSys/en.search.min.825df0c4a3905bdda60be0ad409e40a77f35bebf33eca46aa4657fcb811a1cb8.js" integrity="sha256-gl3wxKOQW92mC&#43;CtQJ5Ap381vr8z7KRqpGV/y4EaHLg=" crossorigin="anonymous"></script>
 <link rel="alternate" type="application/rss+xml" href="https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMPD/index.xml" title="MLSys" />
 <!--
 Made with Book Theme
@@ -310,7 +354,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMDist/" class="">(实现)[vLLM]分布式 &#43;</a>
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMDist/" class="">(实现)[vLLM]分布式 *</a>
   
 
           
@@ -328,7 +372,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMPD/" class="active">(实现)[vLLM]PD分离 &#43;</a>
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMPD/" class="active">(实现)[vLLM]PD分离 *</a>
   
 
           
@@ -364,7 +408,25 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMPrefixCaching/" class="">(实现)[vLLM]Prefix Caching</a>
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMPrefixCaching/" class="">(实现)[vLLM]Prefix Caching &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMv1/" class="">(实现)[vLLM]V1 &#43;</a>
   
 
           
@@ -1876,7 +1938,7 @@ https://github.com/alex-shpak/hugo-book
     <img src="/www6vMLSys/svg/menu.svg" class="book-icon" alt="Menu" />
   </label>
 
-  <h3>(实现)[vLLM]PD分离 &#43;</h3>
+  <h3>(实现)[vLLM]PD分离 *</h3>
 
   <label for="toc-control">
     
@@ -1892,7 +1954,20 @@ https://github.com/alex-shpak/hugo-book
   
 <nav id="TableOfContents">
   <ul>
-    <li><a href="#vllmpd分离">[vLLM]PD分离</a></li>
+    <li><a href="#pd-disaggregation">PD disaggregation</a>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#whats-prefill-and-decode">What&rsquo;s Prefill and Decode</a></li>
+            <li><a href="#why-pd-disaggregation">Why PD disaggregation</a></li>
+            <li><a href="#how-to-extract-and-inject-kv-cache-from-to-vllm-">How to extract (and inject) KV cache from (to) vLLM *</a></li>
+            <li><a href="#when-to-send-the-request-to-p-and-d-node">When to send the request to P and D node</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#代码">代码</a></li>
+    <li><a href="#参考">参考</a></li>
   </ul>
 </nav>
 
@@ -1907,11 +1982,333 @@ https://github.com/alex-shpak/hugo-book
       
   <article class="markdown book-article"><p></p>
 <!-- more -->
-<h1 id="vllmpd分离">
-  [vLLM]PD分离
-  <a class="anchor" href="#vllmpd%e5%88%86%e7%a6%bb">#</a>
+<h1 id="pd-disaggregation">
+  PD disaggregation
+  <a class="anchor" href="#pd-disaggregation">#</a>
 </h1>
-<p><a href="https://candied-skunk-1ca.notion.site/vLLM-PD-1eebfe2110848068988ce3256fd665f9?pvs=4">[vLLM]PD分离</a></p>
+<h3 id="whats-prefill-and-decode">
+  What&rsquo;s Prefill and Decode
+  <a class="anchor" href="#whats-prefill-and-decode">#</a>
+</h3>
+<ul>
+<li>prefill:
+<ul>
+<li>process input prompt, generate KV cache</li>
+</ul>
+</li>
+<li>decode:
+<ul>
+<li>generate tokens based on the KV cache</li>
+</ul>
+</li>
+</ul>
+<h3 id="why-pd-disaggregation">
+  Why PD disaggregation
+  <a class="anchor" href="#why-pd-disaggregation">#</a>
+</h3>
+<ul>
+<li>
+<p>Prefill:</p>
+<ul>
+<li>attention — N tokens QKV — generate KV cache  takes a long time</li>
+</ul>
+</li>
+<li>
+<p>Decode:</p>
+<ul>
+<li>attention N KV, 1 Q — generate a new token  very fast</li>
+</ul>
+</li>
+<li>
+<p>initial logic</p>
+<p>prioritize prefill</p>
+</li>
+<li>
+<p>problem</p>
+<p><strong>prefill will stop other request&rsquo;s decode</strong></p>
+</li>
+<li>
+<p>solution</p>
+<p><strong>PD disaggregation</strong>,   chunked prefill</p>
+</li>
+</ul>
+<h3 id="how-to-extract-and-inject-kv-cache-from-to-vllm-">
+  How to extract (and inject) KV cache from (to) vLLM *
+  <a class="anchor" href="#how-to-extract-and-inject-kv-cache-from-to-vllm-">#</a>
+</h3>
+<ul>
+<li>
+<p>connector API</p>
+</li>
+<li>
+<p>called in model_runner</p>
+<ul>
+<li>
+<p><strong>before model forward</strong></p>
+<p>try receive KV cache (inject KV cache into vLLM&rsquo;s paged memory)</p>
+</li>
+<li>
+<p><strong>model forward</strong></p>
+</li>
+<li>
+<p><strong>after model forward</strong></p>
+<p>extract KV cache from vLLM&rsquo;s paged memory and send it to outside</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="when-to-send-the-request-to-p-and-d-node">
+  When to send the request to P and D node
+  <a class="anchor" href="#when-to-send-the-request-to-p-and-d-node">#</a>
+</h3>
+<ul>
+<li>first P then D</li>
+<li>first D then P</li>
+</ul>
+<h1 id="代码">
+  代码
+  <a class="anchor" href="#%e4%bb%a3%e7%a0%81">#</a>
+</h1>
+<p><a href="https://github.com/vllm-project/vllm/blob/main/vllm/worker/model_runner.py">https://github.com/vllm-project/vllm/blob/main/vllm/worker/model_runner.py</a></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>        <span style="color:#960050;background-color:#1e0010">【</span>inject KV cache into vLLM<span style="color:#e6db74">&#39;s   paged memory】</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># Receive KV cache in distributed KV cache transfer setting</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># In disagg prefill setting, it will also recv hidden states and bypass</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># model forwarding</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># In KV cache database setting, it will change the model input so that</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># we can skip prefilling on tokens that successfully received KV caches</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># NOTE: The receive operation is blocking</span>
+</span></span><span style="display:flex;"><span>        bypass_model_exec <span style="color:#f92672">=</span> <span style="color:#66d9ef">False</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>need_recv_kv(model_input, kv_caches):
+</span></span><span style="display:flex;"><span>            hidden_or_intermediate_states, bypass_model_exec, model_input <span style="color:#f92672">=</span> \\
+</span></span><span style="display:flex;"><span>                get_kv_transfer_group()<span style="color:#f92672">.</span>recv_kv_caches_and_hidden_states(
+</span></span><span style="display:flex;"><span>                    <span style="color:#75715e"># model is used to know which layer the current worker</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#75715e"># is working on, so that we can receive KV for only those</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#75715e"># layers.</span>
+</span></span><span style="display:flex;"><span>                    model_executable,
+</span></span><span style="display:flex;"><span>                    model_input,
+</span></span><span style="display:flex;"><span>                    kv_caches<span style="color:#f92672">=</span>kv_caches
+</span></span><span style="display:flex;"><span>                )
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        multi_modal_kwargs <span style="color:#f92672">=</span> model_input<span style="color:#f92672">.</span>multi_modal_kwargs <span style="color:#f92672">or</span> {}
+</span></span><span style="display:flex;"><span>        seqlen_agnostic_kwargs <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;finished_requests_ids&#34;</span>: model_input<span style="color:#f92672">.</span>finished_requests_ids,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;request_ids_to_seq_ids&#34;</span>: model_input<span style="color:#f92672">.</span>request_ids_to_seq_ids,
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>has_inner_state <span style="color:#66d9ef">else</span> {}
+</span></span><span style="display:flex;"><span>        model_kwargs <span style="color:#f92672">=</span> {}
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> previous_hidden_states <span style="color:#f92672">is</span> <span style="color:#f92672">not</span> <span style="color:#66d9ef">None</span>:
+</span></span><span style="display:flex;"><span>            model_kwargs[<span style="color:#e6db74">&#34;previous_hidden_states&#34;</span>] <span style="color:#f92672">=</span> previous_hidden_states
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (self<span style="color:#f92672">.</span>observability_config <span style="color:#f92672">is</span> <span style="color:#f92672">not</span> <span style="color:#66d9ef">None</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">and</span> self<span style="color:#f92672">.</span>observability_config<span style="color:#f92672">.</span>collect_model_forward_time):
+</span></span><span style="display:flex;"><span>            model_forward_start <span style="color:#f92672">=</span> torch<span style="color:#f92672">.</span>cuda<span style="color:#f92672">.</span>Event(enable_timing<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>)
+</span></span><span style="display:flex;"><span>            model_forward_end <span style="color:#f92672">=</span> torch<span style="color:#f92672">.</span>cuda<span style="color:#f92672">.</span>Event(enable_timing<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>)
+</span></span><span style="display:flex;"><span>            model_forward_start<span style="color:#f92672">.</span>record()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> bypass_model_exec:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">with</span> set_forward_context(model_input<span style="color:#f92672">.</span>attn_metadata,
+</span></span><span style="display:flex;"><span>                                     self<span style="color:#f92672">.</span>vllm_config, virtual_engine):
+</span></span><span style="display:flex;"><span>                hidden_or_intermediate_states <span style="color:#f92672">=</span> model_executable(
+</span></span><span style="display:flex;"><span>                    input_ids<span style="color:#f92672">=</span>model_input<span style="color:#f92672">.</span>input_tokens,
+</span></span><span style="display:flex;"><span>                    inputs_embeds<span style="color:#f92672">=</span>model_input<span style="color:#f92672">.</span>inputs_embeds,
+</span></span><span style="display:flex;"><span>                    positions<span style="color:#f92672">=</span>model_input<span style="color:#f92672">.</span>input_positions,
+</span></span><span style="display:flex;"><span>                    intermediate_tensors<span style="color:#f92672">=</span>intermediate_tensors,
+</span></span><span style="display:flex;"><span>                    <span style="color:#f92672">**</span>MultiModalKwargs<span style="color:#f92672">.</span>as_kwargs(multi_modal_kwargs,
+</span></span><span style="display:flex;"><span>                                                 device<span style="color:#f92672">=</span>self<span style="color:#f92672">.</span>device),
+</span></span><span style="display:flex;"><span>                    <span style="color:#f92672">**</span>seqlen_agnostic_kwargs,
+</span></span><span style="display:flex;"><span>                    <span style="color:#f92672">**</span>model_kwargs,
+</span></span><span style="display:flex;"><span>                )
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (self<span style="color:#f92672">.</span>observability_config <span style="color:#f92672">is</span> <span style="color:#f92672">not</span> <span style="color:#66d9ef">None</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">and</span> self<span style="color:#f92672">.</span>observability_config<span style="color:#f92672">.</span>collect_model_forward_time):
+</span></span><span style="display:flex;"><span>            model_forward_end<span style="color:#f92672">.</span>record()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#960050;background-color:#1e0010">【</span>extract KV cache <span style="color:#f92672">from</span> vLLM paged memory <span style="color:#f92672">and</span> send it to outside<span style="color:#960050;background-color:#1e0010">】</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># Sending KV cache in distributed KV cache transfer setting</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># NOTE: the send operation is non-blocking</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>need_send_kv(model_input, kv_caches):
+</span></span><span style="display:flex;"><span>            get_kv_transfer_group()<span style="color:#f92672">.</span>send_kv_caches_and_hidden_states(
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e"># model_executable is used to know which layer the current</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e"># worker is working on, so that we can send KV for only those</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e"># layers.</span>
+</span></span><span style="display:flex;"><span>                model_executable,
+</span></span><span style="display:flex;"><span>                model_input,
+</span></span><span style="display:flex;"><span>                kv_caches,
+</span></span><span style="display:flex;"><span>                hidden_or_intermediate_states,
+</span></span><span style="display:flex;"><span>            )
+</span></span></code></pre></div><p><a href="https://github.com/vllm-project/vllm/blob/main/vllm/distributed/kv_transfer/kv_connector/simple_connector.py">https://github.com/vllm-project/vllm/blob/main/vllm/distributed/kv_transfer/kv_connector/simple_connector.py</a></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">send_kv_caches_and_hidden_states</span>(
+</span></span><span style="display:flex;"><span>        self,
+</span></span><span style="display:flex;"><span>        model_executable: torch<span style="color:#f92672">.</span>nn<span style="color:#f92672">.</span>Module,
+</span></span><span style="display:flex;"><span>        model_input: <span style="color:#e6db74">&#34;ModelInputForGPUWithSamplingMetadata&#34;</span>,
+</span></span><span style="display:flex;"><span>        kv_caches: List[torch<span style="color:#f92672">.</span>Tensor],
+</span></span><span style="display:flex;"><span>        hidden_or_intermediate_states: Union[torch<span style="color:#f92672">.</span>Tensor,
+</span></span><span style="display:flex;"><span>                                             IntermediateTensors],
+</span></span><span style="display:flex;"><span>    ) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">None</span>:
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        input_tokens_tensor <span style="color:#f92672">=</span> model_input<span style="color:#f92672">.</span>input_tokens
+</span></span><span style="display:flex;"><span>        seq_lens <span style="color:#f92672">=</span> model_input<span style="color:#f92672">.</span>attn_metadata<span style="color:#f92672">.</span>seq_lens
+</span></span><span style="display:flex;"><span>        slot_mapping_flat <span style="color:#f92672">=</span> model_input<span style="color:#f92672">.</span>attn_metadata<span style="color:#f92672">.</span>slot_mapping<span style="color:#f92672">.</span>flatten()
+</span></span><span style="display:flex;"><span>        num_prefill_tokens <span style="color:#f92672">=</span> model_input<span style="color:#f92672">.</span>attn_metadata<span style="color:#f92672">.</span>num_prefill_tokens
+</span></span><span style="display:flex;"><span>        start_layer <span style="color:#f92672">=</span> model_executable<span style="color:#f92672">.</span>model<span style="color:#f92672">.</span>start_layer
+</span></span><span style="display:flex;"><span>        end_layer <span style="color:#f92672">=</span> model_executable<span style="color:#f92672">.</span>model<span style="color:#f92672">.</span>end_layer
+</span></span><span style="display:flex;"><span>        num_heads, head_size <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>kv_helper<span style="color:#f92672">.</span>get_model_args(model_executable)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># query_lens contains new KV caches that are added to vLLM.</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># so we will send them to decode instance</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># FIXME(Kuntai): This assume that all requests are prefill.</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> idx, slen <span style="color:#f92672">in</span> enumerate(seq_lens):
+</span></span><span style="display:flex;"><span>            start_pos <span style="color:#f92672">=</span> sum(seq_lens[:idx])
+</span></span><span style="display:flex;"><span>            end_pos <span style="color:#f92672">=</span> start_pos <span style="color:#f92672">+</span> slen
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> start_pos <span style="color:#f92672">&gt;=</span> num_prefill_tokens:
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e"># vllm/worker/model_runner.py::_prepare_model_input_tensors:</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e"># - input_tokens[:num_prefill_tokens] contains prefill tokens.</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e"># - input_tokens[num_prefill_tokens:] contains decode tokens.</span>
+</span></span><span style="display:flex;"><span>                logger<span style="color:#f92672">.</span>warning(<span style="color:#e6db74">&#34;You have some decode requests while using &#34;</span>
+</span></span><span style="display:flex;"><span>                               <span style="color:#e6db74">&#34;SimpleConnector. Their KVCache won&#39;t be sent.&#34;</span>)
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">break</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            current_tokens <span style="color:#f92672">=</span> input_tokens_tensor[start_pos:end_pos]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            keys, values <span style="color:#f92672">=</span> [], []
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> layer_id <span style="color:#f92672">in</span> range(start_layer, end_layer):
+</span></span><span style="display:flex;"><span>                kv_cache <span style="color:#f92672">=</span> kv_caches[layer_id <span style="color:#f92672">-</span> start_layer]
+</span></span><span style="display:flex;"><span>                key_cache, value_cache <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>kv_helper<span style="color:#f92672">.</span>get_kv_from_cache(
+</span></span><span style="display:flex;"><span>                    kv_cache, num_heads, head_size)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                current_slot_mapping <span style="color:#f92672">=</span> slot_mapping_flat[start_pos:end_pos]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                keys<span style="color:#f92672">.</span>append(key_cache[current_slot_mapping]<span style="color:#f92672">.</span>unsqueeze(<span style="color:#ae81ff">0</span>))
+</span></span><span style="display:flex;"><span>                values<span style="color:#f92672">.</span>append(value_cache[current_slot_mapping]<span style="color:#f92672">.</span>unsqueeze(<span style="color:#ae81ff">0</span>))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            keys <span style="color:#f92672">=</span> torch<span style="color:#f92672">.</span>cat(keys, dim<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>            values <span style="color:#f92672">=</span> torch<span style="color:#f92672">.</span>cat(values, dim<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            self<span style="color:#f92672">.</span>insert(current_tokens,
+</span></span><span style="display:flex;"><span>                        torch<span style="color:#f92672">.</span>ones_like(current_tokens,
+</span></span><span style="display:flex;"><span>                                        dtype<span style="color:#f92672">=</span>bool), keys, values,
+</span></span><span style="display:flex;"><span>                        hidden_or_intermediate_states[start_pos:end_pos])
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        logger<span style="color:#f92672">.</span>debug(<span style="color:#e6db74">&#34;[rank</span><span style="color:#e6db74">%d</span><span style="color:#e6db74">]: KV send DONE.&#34;</span>, torch<span style="color:#f92672">.</span>distributed<span style="color:#f92672">.</span>get_rank())
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">recv_kv_caches_and_hidden_states</span>(
+</span></span><span style="display:flex;"><span>        self, model_executable: torch<span style="color:#f92672">.</span>nn<span style="color:#f92672">.</span>Module,
+</span></span><span style="display:flex;"><span>        model_input: <span style="color:#e6db74">&#34;ModelInputForGPUWithSamplingMetadata&#34;</span>,
+</span></span><span style="display:flex;"><span>        kv_caches: List[torch<span style="color:#f92672">.</span>Tensor]
+</span></span><span style="display:flex;"><span>    ) <span style="color:#f92672">-&gt;</span> Tuple[Union[torch<span style="color:#f92672">.</span>Tensor, IntermediateTensors], bool,
+</span></span><span style="display:flex;"><span>               <span style="color:#e6db74">&#34;ModelInputForGPUWithSamplingMetadata&#34;</span>]:
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># When bypass_model_exec is set to False, it means that at least for one</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># request its corresponding KV cache or hidden state is missing.</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># In this case we need to do prefilling to recompute missing KV cache</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># and hidden states.</span>
+</span></span><span style="display:flex;"><span>        bypass_model_exec <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        input_tokens_tensor <span style="color:#f92672">=</span> model_input<span style="color:#f92672">.</span>input_tokens
+</span></span><span style="display:flex;"><span>        seq_lens <span style="color:#f92672">=</span> model_input<span style="color:#f92672">.</span>attn_metadata<span style="color:#f92672">.</span>seq_lens
+</span></span><span style="display:flex;"><span>        num_prefill_tokens <span style="color:#f92672">=</span> model_input<span style="color:#f92672">.</span>attn_metadata<span style="color:#f92672">.</span>num_prefill_tokens
+</span></span><span style="display:flex;"><span>        slot_mapping <span style="color:#f92672">=</span> model_input<span style="color:#f92672">.</span>attn_metadata<span style="color:#f92672">.</span>slot_mapping<span style="color:#f92672">.</span>flatten()
+</span></span><span style="display:flex;"><span>        start_layer <span style="color:#f92672">=</span> model_executable<span style="color:#f92672">.</span>model<span style="color:#f92672">.</span>start_layer
+</span></span><span style="display:flex;"><span>        end_layer <span style="color:#f92672">=</span> model_executable<span style="color:#f92672">.</span>model<span style="color:#f92672">.</span>end_layer
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        hidden_or_intermediate_states_for_one_req <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        input_tokens_list <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>        num_computed_tokens_list <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>        start_pos_list <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># enumerate different requests</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># FIXME(Kuntai): This impl assumes that all requests are prefill.</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> idx, slen <span style="color:#f92672">in</span> enumerate(seq_lens):
+</span></span><span style="display:flex;"><span>            start_pos <span style="color:#f92672">=</span> sum(seq_lens[:idx])
+</span></span><span style="display:flex;"><span>            end_pos <span style="color:#f92672">=</span> start_pos <span style="color:#f92672">+</span> slen
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> start_pos <span style="color:#f92672">&gt;=</span> num_prefill_tokens:
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e"># This can happen during inflight batching. See:</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e"># vllm/worker/model_runner.py::_prepare_model_input_tensors:</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e"># - input_tokens[:num_prefill_tokens] contains prefill tokens.</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e"># - input_tokens[num_prefill_tokens:] contains decode tokens.</span>
+</span></span><span style="display:flex;"><span>                logger<span style="color:#f92672">.</span>warning(<span style="color:#e6db74">&#34;You should set --enable_chunked_prefill=False &#34;</span>
+</span></span><span style="display:flex;"><span>                               <span style="color:#e6db74">&#34;and --max_num_batched_tokens &#34;</span>
+</span></span><span style="display:flex;"><span>                               <span style="color:#e6db74">&#34;should be equal to --max_seq_len_to_capture&#34;</span>)
+</span></span><span style="display:flex;"><span>                bypass_model_exec <span style="color:#f92672">=</span> <span style="color:#66d9ef">False</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">assert</span> start_pos <span style="color:#f92672">==</span> num_prefill_tokens
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">break</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            current_tokens <span style="color:#f92672">=</span> input_tokens_tensor[start_pos:end_pos]
+</span></span><span style="display:flex;"><span>            num_tokens <span style="color:#f92672">=</span> slen
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># collecting data for rebuilding the input</span>
+</span></span><span style="display:flex;"><span>            input_tokens_list<span style="color:#f92672">.</span>append(current_tokens)
+</span></span><span style="display:flex;"><span>            start_pos_list<span style="color:#f92672">.</span>append(start_pos)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            ret <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>select(current_tokens,
+</span></span><span style="display:flex;"><span>                              torch<span style="color:#f92672">.</span>ones_like(current_tokens, dtype<span style="color:#f92672">=</span>bool))
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> ret[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">is</span> <span style="color:#66d9ef">None</span>:
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e"># didn&#39;t find any match.</span>
+</span></span><span style="display:flex;"><span>                bypass_model_exec <span style="color:#f92672">=</span> <span style="color:#66d9ef">False</span>
+</span></span><span style="display:flex;"><span>                num_computed_tokens_list<span style="color:#f92672">.</span>append(<span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">continue</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            roi: torch<span style="color:#f92672">.</span>Tensor <span style="color:#f92672">=</span> ret[<span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span>            keys: torch<span style="color:#f92672">.</span>Tensor <span style="color:#f92672">=</span> ret[<span style="color:#ae81ff">2</span>]
+</span></span><span style="display:flex;"><span>            values: torch<span style="color:#f92672">.</span>Tensor <span style="color:#f92672">=</span> ret[<span style="color:#ae81ff">3</span>]
+</span></span><span style="display:flex;"><span>            hidden: torch<span style="color:#f92672">.</span>Tensor <span style="color:#f92672">=</span> ret[<span style="color:#ae81ff">4</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            num_computed_tokens <span style="color:#f92672">=</span> roi<span style="color:#f92672">.</span>shape[<span style="color:#ae81ff">0</span>]
+</span></span><span style="display:flex;"><span>            num_computed_tokens_list<span style="color:#f92672">.</span>append(num_computed_tokens)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># check if both KV cache and the hidden states are received</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># If not, need to redo the forwarding to compute missing states</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> all([(num_computed_tokens <span style="color:#f92672">==</span> num_tokens), hidden <span style="color:#f92672">is</span> <span style="color:#f92672">not</span> <span style="color:#66d9ef">None</span>
+</span></span><span style="display:flex;"><span>                        ]):
+</span></span><span style="display:flex;"><span>                bypass_model_exec <span style="color:#f92672">=</span> <span style="color:#66d9ef">False</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># update the end position based on how many tokens are cached.</span>
+</span></span><span style="display:flex;"><span>            end_pos <span style="color:#f92672">=</span> start_pos <span style="color:#f92672">+</span> num_computed_tokens
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#960050;background-color:#1e0010">【</span>KV caches  塞到paged memory 中<span style="color:#960050;background-color:#1e0010">】</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># put received KV caches into paged memory</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> cur_layer <span style="color:#f92672">in</span> range(start_layer, end_layer):
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                layer_id <span style="color:#f92672">=</span> cur_layer <span style="color:#f92672">-</span> start_layer
+</span></span><span style="display:flex;"><span>                kv_cache <span style="color:#f92672">=</span> kv_caches[layer_id]
+</span></span><span style="display:flex;"><span>                layer <span style="color:#f92672">=</span> model_executable<span style="color:#f92672">.</span>model<span style="color:#f92672">.</span>layers[cur_layer]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e"># get remote kvcache</span>
+</span></span><span style="display:flex;"><span>                remote_k, remote_v <span style="color:#f92672">=</span> keys[layer_id], values[layer_id]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                self<span style="color:#f92672">.</span>kv_helper<span style="color:#f92672">.</span>put_kv_to_cache(model_executable, remote_k,
+</span></span><span style="display:flex;"><span>                                               remote_v, layer, kv_cache,
+</span></span><span style="display:flex;"><span>                                               slot_mapping, start_pos,
+</span></span><span style="display:flex;"><span>                                               end_pos)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            hidden_or_intermediate_states_for_one_req<span style="color:#f92672">.</span>append(hidden)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> bypass_model_exec:
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># Some of the KV cache is not retrieved</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># Here we will fall back to normal model forwarding</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># But optionally you can adjust model_input so that you only do</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># prefilling on those tokens that are missing KV caches.</span>
+</span></span><span style="display:flex;"><span>            logger<span style="color:#f92672">.</span>warning(
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;[rank</span><span style="color:#e6db74">%d</span><span style="color:#e6db74">]: Failed to receive all KVs and hidden &#34;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;states, redo model forwarding.&#34;</span>, torch<span style="color:#f92672">.</span>distributed<span style="color:#f92672">.</span>get_rank())
+</span></span><span style="display:flex;"><span>            hidden_or_intermediate_states <span style="color:#f92672">=</span> <span style="color:#66d9ef">None</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>            logger<span style="color:#f92672">.</span>debug(
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;[rank</span><span style="color:#e6db74">%d</span><span style="color:#e6db74">]: Successfully received all KVs and hidden &#34;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;states, skip model forwarding.&#34;</span>, torch<span style="color:#f92672">.</span>distributed<span style="color:#f92672">.</span>get_rank())
+</span></span><span style="display:flex;"><span>            hidden_or_intermediate_states <span style="color:#f92672">=</span> torch<span style="color:#f92672">.</span>cat(
+</span></span><span style="display:flex;"><span>                hidden_or_intermediate_states_for_one_req, dim<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> hidden_or_intermediate_states, bypass_model_exec, model_input
+</span></span></code></pre></div><h1 id="参考">
+  参考
+  <a class="anchor" href="#%e5%8f%82%e8%80%83">#</a>
+</h1>
+<p><a href="https://www.notion.so/EP03-vllm-PD-1e7bfe211084801fa9ebc0b0cec1c861?pvs=21">[EP03] 大模型推理，从vllm看PD分离</a></p>
+<p><a href="https://mp.weixin.qq.com/s/Ra-Dysm4rjTP1shkkgWPpQ">vLLM PD分离方案浅析</a></p>
 </article>
  
       
@@ -1953,7 +2350,20 @@ https://github.com/alex-shpak/hugo-book
   
 <nav id="TableOfContents">
   <ul>
-    <li><a href="#vllmpd分离">[vLLM]PD分离</a></li>
+    <li><a href="#pd-disaggregation">PD disaggregation</a>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#whats-prefill-and-decode">What&rsquo;s Prefill and Decode</a></li>
+            <li><a href="#why-pd-disaggregation">Why PD disaggregation</a></li>
+            <li><a href="#how-to-extract-and-inject-kv-cache-from-to-vllm-">How to extract (and inject) KV cache from (to) vLLM *</a></li>
+            <li><a href="#when-to-send-the-request-to-p-and-d-node">When to send the request to P and D node</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#代码">代码</a></li>
+    <li><a href="#参考">参考</a></li>
   </ul>
 </nav>
 

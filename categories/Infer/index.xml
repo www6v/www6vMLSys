@@ -93,18 +93,18 @@
       <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;vllm&#34;&gt;&#xA;  vLLM&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#vllm&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/vLLM-10bbfe2110848006b1f9d51397008e89?pvs=4&#34;&gt;(实现)[vLLM]整体架构&lt;/a&gt;&lt;/p&gt;</description>
     </item>
     <item>
-      <title>(实现)[vLLM]分布式 &#43;</title>
+      <title>(实现)[vLLM]分布式 *</title>
       <link>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMDist/</link>
       <pubDate>Tue, 14 May 2024 19:51:55 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMDist/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;vllm分布式&#34;&gt;&#xA;  [vLLM]分布式&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#vllm%e5%88%86%e5%b8%83%e5%bc%8f&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/vLLM-1f4bfe211084807fb94fdc9dd9a95aee?pvs=4&#34;&gt;[vLLM]分布式&lt;/a&gt;&#xA;DP, TP, PP, EP&lt;/p&gt;</description>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h2 id=&#34;feature&#34;&gt;&#xA;  Feature&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#feature&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h2&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;Distributed Inference&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;Why distributed inference?&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;Infra-side&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;Communication device:&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;NVLink: direct communication between GPUs&lt;/li&gt;&#xA;&lt;li&gt;Infinity Band: High-speed connection between nodes&lt;/li&gt;&#xA;&lt;li&gt;RDMA: Remote direct memory access&#xA;&lt;ul&gt;&#xA;&lt;li&gt;RDMA NIC&lt;/li&gt;&#xA;&lt;li&gt;Software solution&lt;/li&gt;&#xA;&lt;li&gt;Key advantage: bypass operating system / zero copy&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;Communication library:&lt;/p&gt;&#xA;&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;dlms/distributed/device_communicators&#xA;&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;&#xA;&lt;li&gt;PyDCL: communication for NVIDIA&lt;/li&gt;&#xA;&lt;li&gt;shared memory : OS&lt;/li&gt;&#xA;&lt;li&gt;custom allreduce - A kernel jsut for all reduce operation&#xA;&lt;ul&gt;&#xA;&lt;li&gt;Before:&#xA;&lt;ul&gt;&#xA;&lt;li&gt;0 machine: [0]&lt;/li&gt;&#xA;&lt;li&gt;1 machine: [1]&lt;/li&gt;&#xA;&lt;li&gt;2 machine: [2]&lt;/li&gt;&#xA;&lt;li&gt;3 machine: [3]&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;After:&#xA;&lt;ul&gt;&#xA;&lt;li&gt;0 machine: [0,1,2,3]&lt;/li&gt;&#xA;&lt;li&gt;1 machine: [0,1,2,3]&lt;/li&gt;&#xA;&lt;li&gt;2 machine: [0,1,2,3]&lt;/li&gt;&#xA;&lt;li&gt;3 machine: [0,1,2,3]&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;torch.distributed : provide wide support to a list of communication library&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;GroupCoordinator&lt;/p&gt;</description>
     </item>
     <item>
-      <title>(实现)[vLLM]PD分离 &#43;</title>
+      <title>(实现)[vLLM]PD分离 *</title>
       <link>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMPD/</link>
       <pubDate>Tue, 14 May 2024 19:52:38 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMPD/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;vllmpd分离&#34;&gt;&#xA;  [vLLM]PD分离&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#vllmpd%e5%88%86%e7%a6%bb&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/vLLM-PD-1eebfe2110848068988ce3256fd665f9?pvs=4&#34;&gt;[vLLM]PD分离&lt;/a&gt;&lt;/p&gt;</description>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;pd-disaggregation&#34;&gt;&#xA;  PD disaggregation&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#pd-disaggregation&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;h3 id=&#34;whats-prefill-and-decode&#34;&gt;&#xA;  What&amp;rsquo;s Prefill and Decode&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#whats-prefill-and-decode&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;prefill:&#xA;&lt;ul&gt;&#xA;&lt;li&gt;process input prompt, generate KV cache&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;decode:&#xA;&lt;ul&gt;&#xA;&lt;li&gt;generate tokens based on the KV cache&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h3 id=&#34;why-pd-disaggregation&#34;&gt;&#xA;  Why PD disaggregation&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#why-pd-disaggregation&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;Prefill:&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;attention — N tokens QKV — generate KV cache  takes a long time&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;Decode:&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;attention N KV, 1 Q — generate a new token  very fast&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;initial logic&lt;/p&gt;&#xA;&lt;p&gt;prioritize prefill&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;problem&lt;/p&gt;&#xA;&lt;p&gt;&lt;strong&gt;prefill will stop other request&amp;rsquo;s decode&lt;/strong&gt;&lt;/p&gt;</description>
     </item>
     <item>
       <title>(实现)[vLLM]投机解码 &#43;</title>
@@ -114,11 +114,18 @@
       <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;vllm投机解码&#34;&gt;&#xA;  [vLLM]投机解码&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#vllm%e6%8a%95%e6%9c%ba%e8%a7%a3%e7%a0%81&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/vLLM-1f4bfe211084804eb2a4e399bae5a91d?pvs=4&#34;&gt;[vLLM]投机解码&lt;/a&gt;&lt;/p&gt;</description>
     </item>
     <item>
-      <title>(实现)[vLLM]Prefix Caching</title>
+      <title>(实现)[vLLM]Prefix Caching &#43;</title>
       <link>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMPrefixCaching/</link>
       <pubDate>Wed, 14 May 2025 19:53:42 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMPrefixCaching/</guid>
       <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;prefix-caching&#34;&gt;&#xA;  Prefix Caching&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#prefix-caching&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/vLLM-Prefix-Caching-209bfe21108480daa475c5434cd4cde1?source=copy_link&#34;&gt;Prefix Caching&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(实现)[vLLM]V1 &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMv1/</link>
+      <pubDate>Tue, 14 May 2024 19:53:42 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMv1/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;vllm-v1&#34;&gt;&#xA;  vLLM V1&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#vllm-v1&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/vLLM-V1-21bbfe21108480e697c8c4fdc1550ddc?source=copy_link&#34;&gt;(实现)[vLLM]V1&lt;/a&gt;&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>
