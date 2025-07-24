@@ -9,11 +9,11 @@
     <lastBuildDate>Thu, 23 Mar 2023 09:48:55 +0000</lastBuildDate>
     <atom:link href="https://www6v.github.io/www6vMLSys/categories/Zero/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>(原理) Deepspeed Zero</title>
-      <link>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/gptTrainZeroDeepspeed/</link>
+      <title>(原理) Deepspeed Zero &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainZeroDeepspeed/</link>
       <pubDate>Thu, 23 Mar 2023 09:48:55 +0000</pubDate>
-      <guid>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/gptTrainZeroDeepspeed/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;deepspeed-zero&#34;&gt;&#xA;  Deepspeed Zero&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#deepspeed-zero&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/Zero-Deepspeed-85c9344a27624649a36b66f3e2e4c4d1?pvs=74&#34;&gt;(原理) Deepspeed Zero&lt;/a&gt;&lt;/p&gt;</description>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainZeroDeepspeed/</guid>
+      <description>Deepspeed Zero # (原理) Deepspeed Zero</description>
     </item>
   </channel>
 </rss>

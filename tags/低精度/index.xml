@@ -10,10 +10,10 @@
     <atom:link href="https://www6v.github.io/www6vMLSys/tags/%E4%BD%8E%E7%B2%BE%E5%BA%A6/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>低精度训练 &#43;</title>
-      <link>https://www6v.github.io/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/gptLowPrecision/gptLowPrecision/</link>
+      <link>https://www6v.github.io/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/LowPrecision/gptLowPrecision/</link>
       <pubDate>Wed, 16 Aug 2023 11:50:58 +0000</pubDate>
-      <guid>https://www6v.github.io/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/gptLowPrecision/gptLowPrecision/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;低精度训练&#34;&gt;&#xA;  低精度训练&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e4%bd%8e%e7%b2%be%e5%ba%a6%e8%ae%ad%e7%bb%83&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/cb067e2d0bc545d898cd43dd1091c8b3?pvs=4&#34;&gt;低精度训练&lt;/a&gt;&lt;/p&gt;</description>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/LowPrecision/gptLowPrecision/</guid>
+      <description>低精度训练 # 低精度训练</description>
     </item>
   </channel>
 </rss>

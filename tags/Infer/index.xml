@@ -13,119 +13,119 @@
       <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/gptInferSpeculativeDecoding/</link>
       <pubDate>Fri, 06 Oct 2023 17:40:58 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/gptInferSpeculativeDecoding/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;speculative-decoding&#34;&gt;&#xA;  Speculative Decoding&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#speculative-decoding&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/Speculative-Decoding-117bfe2110848060a00efd475a0abbac?pvs=4&#34;&gt;Speculative Decoding&lt;/a&gt;&lt;/p&gt;</description>
+      <description>Speculative Decoding # Speculative Decoding</description>
     </item>
     <item>
       <title>(原理) vLLM  &#43;</title>
       <link>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLM/</link>
       <pubDate>Wed, 31 May 2023 22:24:07 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLM/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;vllm&#34;&gt;&#xA;  vLLM&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#vllm&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/vLLM-ccb00d32fef14f92b0f7ab4c1c1db390?pvs=4&#34;&gt;(原理) vLLM&lt;/a&gt;&lt;/p&gt;</description>
+      <description>vLLM # (原理) vLLM</description>
     </item>
     <item>
       <title>(原理)FlashAttention2 &#43;</title>
       <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/FlashAttention/gptInferFlashAttention2/</link>
       <pubDate>Wed, 15 Nov 2023 18:55:42 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/FlashAttention/gptInferFlashAttention2/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;flash-attention2&#34;&gt;&#xA;  Flash Attention2&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#flash-attention2&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/Flash-Attention2-110bfe21108480f782fcc7258d860ccc?pvs=4&#34;&gt;(原理)Flash Attention2&lt;/a&gt;&lt;/p&gt;</description>
+      <description>Flash Attention2 # (原理)Flash Attention2</description>
     </item>
     <item>
       <title>(Survey)Speculative Decoding &#43;</title>
       <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/gptInferSpeculativeDecodingSurvey/</link>
       <pubDate>Sat, 21 Oct 2023 21:12:51 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/gptInferSpeculativeDecodingSurvey/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;&#xD;&#xA;&lt;!-- more --&gt;&#xD;&#xA;&lt;h1 id=&#34;speculative-decoding&#34;&gt;&#xA;  Speculative Decoding&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#speculative-decoding&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/Unlocking-Efficiency-in-Large-Language-Model-Inference-A-Comprehensive-Survey-of-Speculative-Decodi-117bfe2110848059977ece3df3f9791d?pvs=4&#34;&gt;(Survey)Speculative Decoding &lt;/a&gt;&lt;/p&gt;</description>
+      <description>&#xA;Speculative Decoding # (Survey)Speculative Decoding </description>
     </item>
     <item>
       <title>(实战) vLLM &#43;</title>
       <link>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMPractice/</link>
       <pubDate>Mon, 12 Jun 2023 14:19:45 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMPractice/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;vllm-实战&#34;&gt;&#xA;  vLLM 实战&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#vllm-%e5%ae%9e%e6%88%98&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/vllm-a35a50c4cd2c4875a8de173575275217?pvs=4&#34;&gt;(实战) vLLM&lt;/a&gt;&lt;/p&gt;</description>
+      <description>vLLM 实战 # (实战) vLLM</description>
     </item>
     <item>
       <title>(实战)[vLLM]投机解码 &#43;</title>
       <link>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInferSpeculativeDecodingvLLM/</link>
       <pubDate>Sat, 18 Nov 2023 16:28:40 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInferSpeculativeDecodingvLLM/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;实战vllm投机解码&#34;&gt;&#xA;  (实战)[vLLM]投机解码&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e5%ae%9e%e6%88%98vllm%e6%8a%95%e6%9c%ba%e8%a7%a3%e7%a0%81&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/vLLM-Speculative-Decoding-81c9a87ab53947c19c7ba22bcaee5125?pvs=4&#34;&gt;(实战)[vLLM]投机解码&lt;/a&gt;&lt;/p&gt;</description>
+      <description>(实战)[vLLM]投机解码 # (实战)[vLLM]投机解码</description>
     </item>
     <item>
       <title>(原理)Flash Decoding &#43;</title>
       <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/FlashAttention/gptInferFlashDecoding/</link>
       <pubDate>Fri, 06 Oct 2023 17:52:36 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/FlashAttention/gptInferFlashDecoding/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;flash-decoding&#34;&gt;&#xA;  Flash Decoding&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#flash-decoding&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/Flash-Decoding-110bfe2110848085aa6dde60217c486a?pvs=4&#34;&gt;(原理)Flash Decoding&lt;/a&gt;&lt;/p&gt;</description>
+      <description>Flash Decoding # (原理)Flash Decoding</description>
     </item>
     <item>
       <title>(原理|实战) TensorRT-LLM &#43;</title>
       <link>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/gptInferTensorRT/</link>
       <pubDate>Fri, 02 Jun 2023 21:59:23 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/gptInferTensorRT/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;tensorrt-llm&#34;&gt;&#xA;  TensorRT-LLM&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#tensorrt-llm&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/TensorRT-LLM-11dbfe2110848030b7d5f27b9e9bda76?pvs=4&#34;&gt;(原理|实战) TensorRT-LLM&lt;/a&gt;&lt;/p&gt;</description>
+      <description>TensorRT-LLM # (原理|实战) TensorRT-LLM</description>
     </item>
     <item>
       <title>(原理)推理 Ray</title>
       <link>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/gptInferRay/</link>
       <pubDate>Sun, 11 Jun 2023 09:16:45 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/gptInferRay/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;architecture-overview&#34;&gt;&#xA;  Architecture Overview&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#architecture-overview&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;h3 id=&#34;application-concepts-1&#34;&gt;&#xA;  Application concepts [1]&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#application-concepts-1&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;Task - A remote function invocation.&lt;/li&gt;&#xA;&lt;li&gt;Object - An application value.&lt;/li&gt;&#xA;&lt;li&gt;Actor - a stateful worker process (an instance of a &lt;code&gt;@ray.remote&lt;/code&gt; class).&lt;/li&gt;&#xA;&lt;li&gt;Driver - The program root, or the “main” program.&lt;/li&gt;&#xA;&lt;li&gt;Job - The collection of tasks, objects, and actors originating (recursively) from the same driver, and their runtime environment.&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h3 id=&#34;design-1&#34;&gt;&#xA;  Design [1]&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#design-1&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;Components&#xA;&lt;ul&gt;&#xA;&lt;li&gt;One or more worker processes&lt;/li&gt;&#xA;&lt;li&gt;A raylet.&#xA;&lt;ul&gt;&#xA;&lt;li&gt;scheduler&lt;/li&gt;&#xA;&lt;li&gt;object store&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;head node&#xA;&lt;ul&gt;&#xA;&lt;li&gt;Global Control Service (GCS)&lt;/li&gt;&#xA;&lt;li&gt;driver process(es)&lt;/li&gt;&#xA;&lt;li&gt;cluster-level services&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h1 id=&#34;spark-vs-ray10&#34;&gt;&#xA;  Spark vs. Ray[10]&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#spark-vs-ray10&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;总的来说，Ray和Spark的主要差别在于他们的&lt;strong&gt;抽象层次&lt;/strong&gt;。&lt;strong&gt;Spark&lt;/strong&gt;对并行进行抽象和限制，不允许用户编写真正并行的应用，从而使框架有更多的控制权。&lt;strong&gt;Ray&lt;/strong&gt;的层次要低得多，虽然给用户提供了更多灵活性，但更难编程。可以说，&lt;strong&gt;Ray揭示和暴露了并行，而Spark抽象和隐藏了并行&lt;/strong&gt;。&lt;/p&gt;</description>
+      <description>Architecture Overview # Application concepts [1] # Task - A remote function invocation. Object - An application value. Actor - a stateful worker process (an instance of a @ray.remote class). Driver - The program root, or the “main” program. Job - The collection of tasks, objects, and actors originating (recursively) from the same driver, and their runtime environment. Design [1] # Components One or more worker processes A raylet. scheduler object store head node Global Control Service (GCS) driver process(es) cluster-level services Spark vs.</description>
     </item>
     <item>
       <title>SpecInfer &#43;</title>
       <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/gptInferSpecInfer/</link>
       <pubDate>Sun, 12 Nov 2023 06:58:14 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/gptInferSpecInfer/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;specinfer&#34;&gt;&#xA;  SpecInfer&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#specinfer&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/SpecInfer-8b75821e44384cecba4541f7aa758adb?pvs=4&#34;&gt;SpecInfer&lt;/a&gt;&lt;/p&gt;</description>
+      <description>SpecInfer # SpecInfer</description>
     </item>
     <item>
       <title>(实战)推理 Ray</title>
       <link>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/gptInferRayPractice/</link>
       <pubDate>Fri, 16 Jun 2023 16:17:44 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/gptInferRayPractice/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;实战&#34;&gt;&#xA;  实战&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e5%ae%9e%e6%88%98&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;h3 id=&#34;环境&#34;&gt;&#xA;  环境&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e7%8e%af%e5%a2%83&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;p&gt;modelscope  GPU&lt;/p&gt;&#xA;&lt;h3 id=&#34;实战1&#34;&gt;&#xA;  实战1&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e5%ae%9e%e6%88%981&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;脚本[1]&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;遇到的异常[2]&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h3 id=&#34;实战2&#34;&gt;&#xA;  实战2&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e5%ae%9e%e6%88%982&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;脚本&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;### 变更模型名字&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;### import &amp;#39;modelscope&amp;#39; package&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;&#xA;&lt;li&gt;异常[11]&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h3 id=&#34;实战320&#34;&gt;&#xA;  实战3[20]&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e5%ae%9e%e6%88%98320&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;脚本&lt;br&gt;&#xA;vllm   0.2.3 -&amp;gt; 报异常&lt;br&gt;&#xA;vllm  0.3.3 -&amp;gt; 报另一个异常&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h3 id=&#34;实战4&#34;&gt;&#xA;  实战4&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e5%ae%9e%e6%88%984&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;脚本 [30]&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;异常 [31]&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;# 运行这个命令报异常&#xA;python -m vllm.entrypoints.openai.api_server --trust-remote-code --served-model-name gpt-4 --model mistralai/Mixtral-8x7B-Instruct-v0.1 --gpu-memory-utilization 1 --tensor-parallel-size 8 --port 8000&#xA;&lt;/code&gt;&lt;/pre&gt;&lt;h1 id=&#34;monitor40&#34;&gt;&#xA;  monitor[40]&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#monitor40&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;h3 id=&#34;ray-dashboard41&#34;&gt;&#xA;  Ray Dashboard[41]&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#ray-dashboard41&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;h3 id=&#34;ray-logging&#34;&gt;&#xA;  Ray logging&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#ray-logging&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;p&gt;Loki  grafana&lt;/p&gt;</description>
+      <description>实战 # 环境 # modelscope GPU&#xA;实战1 # 脚本[1]&#xA;遇到的异常[2]&#xA;实战2 # 脚本 ### 变更模型名字 ### import &amp;#39;modelscope&amp;#39; package 异常[11] 实战3[20] # 脚本&#xA;vllm 0.2.3 -&amp;gt; 报异常&#xA;vllm 0.3.3 -&amp;gt; 报另一个异常 实战4 # 脚本 [30]&#xA;异常 [31]&#xA;# 运行这个命令报异常 python -m vllm.entrypoints.openai.api_server --trust-remote-code --served-model-name gpt-4 --model mistralai/Mixtral-8x7B-Instruct-v0.1 --gpu-memory-utilization 1 --tensor-parallel-size 8 --port 8000 monitor[40] # Ray Dashboard[41] # Ray logging # Loki grafana&#xA;Built-in Ray Serve metrics # Prometheus</description>
     </item>
     <item>
       <title>(实现)[vLLM]整体架构 &#43;</title>
       <link>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMCode/</link>
       <pubDate>Sat, 02 Dec 2023 15:09:52 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMCode/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;vllm&#34;&gt;&#xA;  vLLM&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#vllm&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/vLLM-10bbfe2110848006b1f9d51397008e89?pvs=4&#34;&gt;(实现)[vLLM]整体架构&lt;/a&gt;&lt;/p&gt;</description>
+      <description>vLLM # (实现)[vLLM]整体架构</description>
     </item>
     <item>
       <title>(实现)[vLLM]分布式 *</title>
       <link>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMDist/</link>
       <pubDate>Tue, 14 May 2024 19:51:55 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMDist/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h2 id=&#34;feature&#34;&gt;&#xA;  Feature&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#feature&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h2&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;Distributed Inference&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;Why distributed inference?&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;Infra-side&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;Communication device:&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;NVLink: direct communication between GPUs&lt;/li&gt;&#xA;&lt;li&gt;Infinity Band: High-speed connection between nodes&lt;/li&gt;&#xA;&lt;li&gt;RDMA: Remote direct memory access&#xA;&lt;ul&gt;&#xA;&lt;li&gt;RDMA NIC&lt;/li&gt;&#xA;&lt;li&gt;Software solution&lt;/li&gt;&#xA;&lt;li&gt;Key advantage: bypass operating system / zero copy&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;Communication library:&lt;/p&gt;&#xA;&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;dlms/distributed/device_communicators&#xA;&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;&#xA;&lt;li&gt;PyDCL: communication for NVIDIA&lt;/li&gt;&#xA;&lt;li&gt;shared memory : OS&lt;/li&gt;&#xA;&lt;li&gt;custom allreduce - A kernel jsut for all reduce operation&#xA;&lt;ul&gt;&#xA;&lt;li&gt;Before:&#xA;&lt;ul&gt;&#xA;&lt;li&gt;0 machine: [0]&lt;/li&gt;&#xA;&lt;li&gt;1 machine: [1]&lt;/li&gt;&#xA;&lt;li&gt;2 machine: [2]&lt;/li&gt;&#xA;&lt;li&gt;3 machine: [3]&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;After:&#xA;&lt;ul&gt;&#xA;&lt;li&gt;0 machine: [0,1,2,3]&lt;/li&gt;&#xA;&lt;li&gt;1 machine: [0,1,2,3]&lt;/li&gt;&#xA;&lt;li&gt;2 machine: [0,1,2,3]&lt;/li&gt;&#xA;&lt;li&gt;3 machine: [0,1,2,3]&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;torch.distributed : provide wide support to a list of communication library&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;GroupCoordinator&lt;/p&gt;</description>
+      <description>Feature # Distributed Inference&#xA;Why distributed inference?&#xA;Infra-side&#xA;Communication device:&#xA;NVLink: direct communication between GPUs Infinity Band: High-speed connection between nodes RDMA: Remote direct memory access RDMA NIC Software solution Key advantage: bypass operating system / zero copy Communication library:&#xA;dlms/distributed/device_communicators PyDCL: communication for NVIDIA shared memory : OS custom allreduce - A kernel jsut for all reduce operation Before: 0 machine: [0] 1 machine: [1] 2 machine: [2] 3 machine: [3] After: 0 machine: [0,1,2,3] 1 machine: [0,1,2,3] 2 machine: [0,1,2,3] 3 machine: [0,1,2,3] torch.</description>
     </item>
     <item>
       <title>(实现)[vLLM]PD分离 *</title>
       <link>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMPD/</link>
       <pubDate>Tue, 14 May 2024 19:52:38 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMPD/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;pd-disaggregation&#34;&gt;&#xA;  PD disaggregation&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#pd-disaggregation&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;h3 id=&#34;whats-prefill-and-decode&#34;&gt;&#xA;  What&amp;rsquo;s Prefill and Decode&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#whats-prefill-and-decode&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;prefill:&#xA;&lt;ul&gt;&#xA;&lt;li&gt;process input prompt, generate KV cache&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;decode:&#xA;&lt;ul&gt;&#xA;&lt;li&gt;generate tokens based on the KV cache&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h3 id=&#34;why-pd-disaggregation&#34;&gt;&#xA;  Why PD disaggregation&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#why-pd-disaggregation&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;Prefill:&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;attention — N tokens QKV — generate KV cache  takes a long time&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;Decode:&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;attention N KV, 1 Q — generate a new token  very fast&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;initial logic&lt;/p&gt;&#xA;&lt;p&gt;prioritize prefill&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;problem&lt;/p&gt;&#xA;&lt;p&gt;&lt;strong&gt;prefill will stop other request&amp;rsquo;s decode&lt;/strong&gt;&lt;/p&gt;</description>
+      <description>PD disaggregation # What&amp;rsquo;s Prefill and Decode # prefill: process input prompt, generate KV cache decode: generate tokens based on the KV cache Why PD disaggregation # Prefill:&#xA;attention — N tokens QKV — generate KV cache takes a long time Decode:&#xA;attention N KV, 1 Q — generate a new token very fast initial logic&#xA;prioritize prefill&#xA;problem&#xA;prefill will stop other request&amp;rsquo;s decode&#xA;solution&#xA;PD disaggregation, chunked prefill</description>
     </item>
     <item>
       <title>(实现)[vLLM]投机解码 &#43;</title>
       <link>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMSpeculativeDecode/</link>
       <pubDate>Tue, 14 May 2024 19:53:12 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMSpeculativeDecode/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;vllm投机解码&#34;&gt;&#xA;  [vLLM]投机解码&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#vllm%e6%8a%95%e6%9c%ba%e8%a7%a3%e7%a0%81&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/vLLM-1f4bfe211084804eb2a4e399bae5a91d?pvs=4&#34;&gt;[vLLM]投机解码&lt;/a&gt;&lt;/p&gt;</description>
+      <description>[vLLM]投机解码 # [vLLM]投机解码</description>
     </item>
     <item>
       <title>(实现)[vLLM]Prefix Caching &#43;</title>
       <link>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMPrefixCaching/</link>
       <pubDate>Wed, 14 May 2025 19:53:42 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMPrefixCaching/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;prefix-caching&#34;&gt;&#xA;  Prefix Caching&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#prefix-caching&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/vLLM-Prefix-Caching-209bfe21108480daa475c5434cd4cde1?source=copy_link&#34;&gt;Prefix Caching&lt;/a&gt;&lt;/p&gt;</description>
+      <description>Prefix Caching # Prefix Caching</description>
     </item>
     <item>
       <title>(实现)[vLLM]V1 &#43;</title>
       <link>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMv1/</link>
       <pubDate>Tue, 14 May 2024 19:53:42 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMv1/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;vllm-v1&#34;&gt;&#xA;  vLLM V1&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#vllm-v1&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/vLLM-V1-21bbfe21108480e697c8c4fdc1550ddc?source=copy_link&#34;&gt;(实现)[vLLM]V1&lt;/a&gt;&lt;/p&gt;</description>
+      <description>vLLM V1 # (实现)[vLLM]V1</description>
     </item>
   </channel>
 </rss>
