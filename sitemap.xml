@@ -17,7 +17,7 @@
     <loc>https://www6v.github.io/www6vMLSys/docs/LLMOps/GPU/GPUk8s/</loc>
     <lastmod>2024-03-23T12:43:50+00:00</lastmod>
   </url><url>
-    <loc>https://www6v.github.io/www6vMLSys/docs/LLMOps/AI%E7%BD%91%E5%85%B3/LiteLLM/</loc>
+    <loc>https://www6v.github.io/www6vMLSys/docs/LLMOps/AI%E5%B9%B3%E5%8F%B0/AI%E7%BD%91%E5%85%B3/LiteLLM/</loc>
     <lastmod>2024-03-23T12:43:50+00:00</lastmod>
   </url><url>
     <loc>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/Practice/gptQuantizationPractice/</loc>
@@ -94,6 +94,8 @@
   </url><url>
     <loc>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/Overview/gptInference/</loc>
     <lastmod>2023-01-01T22:58:43+00:00</lastmod>
+  </url><url>
+    <loc>https://www6v.github.io/www6vMLSys/docs/LLMOps/AI%E5%B9%B3%E5%8F%B0/aiPlatform/</loc>
   </url><url>
     <loc>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/</loc>
     <lastmod>2025-05-14T19:53:42+00:00</lastmod>
@@ -257,7 +259,10 @@
     <loc>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/gptInferRayPractice/</loc>
     <lastmod>2023-06-16T16:17:44+00:00</lastmod>
   </url><url>
-    <loc>https://www6v.github.io/www6vMLSys/docs/LLMOps/AI%E7%BD%91%E5%85%B3/</loc>
+    <loc>https://www6v.github.io/www6vMLSys/docs/LLMOps/AI%E5%B9%B3%E5%8F%B0/AI%E7%BD%91%E5%85%B3/</loc>
+    <lastmod>2024-03-23T12:43:50+00:00</lastmod>
+  </url><url>
+    <loc>https://www6v.github.io/www6vMLSys/docs/LLMOps/AI%E5%B9%B3%E5%8F%B0/</loc>
     <lastmod>2024-03-23T12:43:50+00:00</lastmod>
   </url><url>
     <loc>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMCode/</loc>

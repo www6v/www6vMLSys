@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>AI平台 on MLSys</title>
+    <link>https://www6v.github.io/www6vMLSys/docs/LLMOps/AI%E5%B9%B3%E5%8F%B0/</link>
+    <description>Recent content in AI平台 on MLSys</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate></lastBuildDate>
+    <atom:link href="https://www6v.github.io/www6vMLSys/docs/LLMOps/AI%E5%B9%B3%E5%8F%B0/index.xml" rel="self" type="application/rss+xml" />
+  </channel>
+</rss>
