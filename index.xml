@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>MLSys</title>
+    <link>https://www6v.github.io/www6vMLSys/</link>
+    <description>Recent content on MLSys</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Tue, 23 Apr 2024 21:54:43 +0000</lastBuildDate>
+    <atom:link href="https://www6v.github.io/www6vMLSys/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>(原理|实战)LLM.int8() &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/gptQuantizationInt8/gptQuantizationInt8/</link>
+      <pubDate>Thu, 12 Oct 2023 14:33:20 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/gptQuantizationInt8/gptQuantizationInt8/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;llmint8&#34;&gt;&#xA;  LLM.int8()&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#llmint8&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/LLM-int8-11dbfe21108480d0b6adc341aed9ec3d?pvs=4&#34;&gt;(原理|实战)LLM.int8()&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>低精度训练 &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/LowPrecision/gptLowPrecision/</link>
+      <pubDate>Wed, 16 Aug 2023 11:50:58 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/LowPrecision/gptLowPrecision/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;低精度训练&#34;&gt;&#xA;  低精度训练&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e4%bd%8e%e7%b2%be%e5%ba%a6%e8%ae%ad%e7%bb%83&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/cb067e2d0bc545d898cd43dd1091c8b3?pvs=4&#34;&gt;低精度训练&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理|实战)混合精度 &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/Precision/gptPrecision/</link>
+      <pubDate>Thu, 01 Feb 2024 22:29:42 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/Precision/gptPrecision/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;混合精度&#34;&gt;&#xA;  混合精度&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e6%b7%b7%e5%90%88%e7%b2%be%e5%ba%a6&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/d27bdf000e7c42eabd288f9d036ea5e7?pvs=4&#34;&gt;(原理|实战)混合精度&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理)SmoothQuant &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/gptQuantizationSmoothQuant/gptQuantizationSmoothQuant/</link>
+      <pubDate>Sat, 14 Oct 2023 13:33:21 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/gptQuantizationSmoothQuant/gptQuantizationSmoothQuant/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;smoothquant&#34;&gt;&#xA;  SmoothQuant&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#smoothquant&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/SmoothQuant-11dbfe21108480fc83f8ea2a495092b7?pvs=4&#34;&gt;(原理)SmoothQuant&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理)FP8 &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/gptQuantizationFP8/gptQuantizationFP8/</link>
+      <pubDate>Sat, 14 Oct 2023 13:33:46 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/gptQuantizationFP8/gptQuantizationFP8/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;fp8&#34;&gt;&#xA;  FP8&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#fp8&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/FP8-12c3b58d744e43299dad0badc397f592?pvs=4&#34;&gt;(原理)FP8&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>MaaS 监控</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/LLMOps/MaaS/gptMaaSMonitor/</link>
+      <pubDate>Tue, 23 Apr 2024 21:54:43 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/LLMOps/MaaS/gptMaaSMonitor/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;maas-监控&#34;&gt;&#xA;  MaaS 监控&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#maas-%e7%9b%91%e6%8e%a7&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/MaaS-1d2bfe2110848079b06afffaea367fe9?pvs=4&#34;&gt;MaaS 监控&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>LLM PaaS</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/LLMOps/MaaS/gptLLMOpsPaaS/</link>
+      <pubDate>Tue, 26 Sep 2023 23:18:45 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/LLMOps/MaaS/gptLLMOpsPaaS/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;llm-paas&#34;&gt;&#xA;  LLM PaaS&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#llm-paas&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/9ddf2032d70b4722ad34a48cb305d80b?pvs=4&#34;&gt;LLM PaaS&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

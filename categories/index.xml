@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Categories on MLSys</title>
+    <link>https://www6v.github.io/www6vMLSys/categories/</link>
+    <description>Recent content in Categories on MLSys</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Wed, 14 May 2025 19:53:42 +0000</lastBuildDate>
+    <atom:link href="https://www6v.github.io/www6vMLSys/categories/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>AIGC</title>
+      <link>https://www6v.github.io/www6vMLSys/categories/AIGC/</link>
+      <pubDate>Wed, 14 May 2025 19:53:42 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/categories/AIGC/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Infer</title>
+      <link>https://www6v.github.io/www6vMLSys/categories/Infer/</link>
+      <pubDate>Wed, 14 May 2025 19:53:42 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/categories/Infer/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Inference</title>
+      <link>https://www6v.github.io/www6vMLSys/categories/Inference/</link>
+      <pubDate>Fri, 15 Nov 2024 18:41:31 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/categories/Inference/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>MaaS</title>
+      <link>https://www6v.github.io/www6vMLSys/categories/MaaS/</link>
+      <pubDate>Tue, 23 Apr 2024 21:54:43 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/categories/MaaS/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>GPU</title>
+      <link>https://www6v.github.io/www6vMLSys/categories/GPU/</link>
+      <pubDate>Sat, 23 Mar 2024 12:43:50 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/categories/GPU/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>量化</title>
+      <link>https://www6v.github.io/www6vMLSys/categories/%E9%87%8F%E5%8C%96/</link>
+      <pubDate>Fri, 22 Mar 2024 10:18:01 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/categories/%E9%87%8F%E5%8C%96/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Precision</title>
+      <link>https://www6v.github.io/www6vMLSys/categories/Precision/</link>
+      <pubDate>Thu, 01 Feb 2024 22:29:42 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/categories/Precision/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Train</title>
+      <link>https://www6v.github.io/www6vMLSys/categories/train/</link>
+      <pubDate>Sun, 26 Nov 2023 23:29:08 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/categories/train/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>LLMOps</title>
+      <link>https://www6v.github.io/www6vMLSys/categories/LLMOps/</link>
+      <pubDate>Tue, 26 Sep 2023 23:18:45 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/categories/LLMOps/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>低精度</title>
+      <link>https://www6v.github.io/www6vMLSys/categories/%E4%BD%8E%E7%B2%BE%E5%BA%A6/</link>
+      <pubDate>Wed, 16 Aug 2023 11:50:58 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/categories/%E4%BD%8E%E7%B2%BE%E5%BA%A6/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>FlashAttention</title>
+      <link>https://www6v.github.io/www6vMLSys/categories/FlashAttention/</link>
+      <pubDate>Tue, 13 Jun 2023 09:41:12 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/categories/FlashAttention/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>LLamaFactory</title>
+      <link>https://www6v.github.io/www6vMLSys/categories/LLamaFactory/</link>
+      <pubDate>Wed, 24 May 2023 18:43:17 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/categories/LLamaFactory/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Temperature</title>
+      <link>https://www6v.github.io/www6vMLSys/categories/Temperature/</link>
+      <pubDate>Thu, 30 Mar 2023 23:25:05 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/categories/Temperature/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Deepspeed</title>
+      <link>https://www6v.github.io/www6vMLSys/categories/Deepspeed/</link>
+      <pubDate>Sat, 25 Mar 2023 15:55:48 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/categories/Deepspeed/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Zero</title>
+      <link>https://www6v.github.io/www6vMLSys/categories/Zero/</link>
+      <pubDate>Thu, 23 Mar 2023 09:48:55 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/categories/Zero/</guid>
+      <description></description>
+    </item>
+  </channel>
+</rss>

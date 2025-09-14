@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Zero on MLSys</title>
+    <link>https://www6v.github.io/www6vMLSys/categories/Zero/</link>
+    <description>Recent content in Zero on MLSys</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Thu, 23 Mar 2023 09:48:55 +0000</lastBuildDate>
+    <atom:link href="https://www6v.github.io/www6vMLSys/categories/Zero/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>(原理) Deepspeed Zero &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainZeroDeepspeed/</link>
+      <pubDate>Thu, 23 Mar 2023 09:48:55 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainZeroDeepspeed/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;deepspeed-zero&#34;&gt;&#xA;  Deepspeed Zero&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#deepspeed-zero&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/Zero-Deepspeed-85c9344a27624649a36b66f3e2e4c4d1?pvs=74&#34;&gt;(原理) Deepspeed Zero&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

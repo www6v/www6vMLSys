@@ -1,0 +1,460 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>AIGC on MLSys</title>
+    <link>https://www6v.github.io/www6vMLSys/categories/AIGC/</link>
+    <description>Recent content in AIGC on MLSys</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Wed, 14 May 2025 19:53:42 +0000</lastBuildDate>
+    <atom:link href="https://www6v.github.io/www6vMLSys/categories/AIGC/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>(实战)K8s部署GPU</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/LLMOps/GPU/GPUk8s/</link>
+      <pubDate>Sat, 23 Mar 2024 12:43:50 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/LLMOps/GPU/GPUk8s/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;k8s部署gpu&#34;&gt;&#xA;  K8s部署GPU&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#k8s%e9%83%a8%e7%bd%b2gpu&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/K8s-GPU-1bfbfe211084802c8b27ee5d8168665b?pvs=4&#34;&gt;(实战)K8s部署GPU&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(实战)量化 &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/Practice/gptQuantizationPractice/</link>
+      <pubDate>Fri, 22 Mar 2024 10:18:01 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/Practice/gptQuantizationPractice/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;量化实战&#34;&gt;&#xA;  量化实战&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e9%87%8f%e5%8c%96%e5%ae%9e%e6%88%98&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/1213172a99a949ceba7e8e2164710a77?pvs=4&#34;&gt;(实战)量化-推理&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理)Megatron &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/%E6%B7%B7%E5%90%88%E5%B9%B6%E8%A1%8C/TrainMegatron/</link>
+      <pubDate>Sun, 26 Nov 2023 23:03:23 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/%E6%B7%B7%E5%90%88%E5%B9%B6%E8%A1%8C/TrainMegatron/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;megatron&#34;&gt;&#xA;  Megatron&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#megatron&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/Megatron-10bbfe21108480a3890ae6388bcdf834?pvs=4&#34;&gt;(原理)Megatron&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(Survey)Quantization &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/Overview/gptQuantizationSurvey/</link>
+      <pubDate>Sat, 21 Oct 2023 21:26:07 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/Overview/gptQuantizationSurvey/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xD;&#xA;&lt;!-- more --&gt;&#xD;&#xA;&lt;h1 id=&#34;quantization&#34;&gt;&#xA;  Quantization&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#quantization&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/A-Survey-of-Low-bit-Large-Language-Models-Basics-Systems-and-Algorithms-116bfe2110848045b3e0c165318ec16b?pvs=4&#34;&gt;A Survey of Low-bit Large Language Models: Basics, Systems, and Algorithms&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理|实战|实现)GPTQ &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/Weight-Only/gptQuantizationGPTQ/</link>
+      <pubDate>Thu, 12 Oct 2023 14:33:48 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/Weight-Only/gptQuantizationGPTQ/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;gptq&#34;&gt;&#xA;  GPTQ&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#gptq&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/GPTQ-11dbfe21108480cb8510ed7d85a64371?pvs=4&#34;&gt;(原理|实战|实现)GPTQ&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理|实战)LLM.int8() &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/gptQuantizationInt8/gptQuantizationInt8/</link>
+      <pubDate>Thu, 12 Oct 2023 14:33:20 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/gptQuantizationInt8/gptQuantizationInt8/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;llmint8&#34;&gt;&#xA;  LLM.int8()&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#llmint8&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/LLM-int8-11dbfe21108480d0b6adc341aed9ec3d?pvs=4&#34;&gt;(原理|实战)LLM.int8()&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Speculative Decoding &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/gptInferSpeculativeDecoding/</link>
+      <pubDate>Fri, 06 Oct 2023 17:40:58 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/gptInferSpeculativeDecoding/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;speculative-decoding&#34;&gt;&#xA;  Speculative Decoding&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#speculative-decoding&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/Speculative-Decoding-117bfe2110848060a00efd475a0abbac?pvs=4&#34;&gt;Speculative Decoding&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>DistServe &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/gptInferDistServe/</link>
+      <pubDate>Thu, 05 Oct 2023 22:43:07 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/gptInferDistServe/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;distserve&#34;&gt;&#xA;  DistServe&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#distserve&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/DistServe-dd4ae7040b78496f9a60c0291941922b?pvs=4&#34;&gt;DistServe&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Continuous Batching &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/Batch/gptInferContinuousBatching/</link>
+      <pubDate>Mon, 18 Sep 2023 18:32:11 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/Batch/gptInferContinuousBatching/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;continuous-batching&#34;&gt;&#xA;  Continuous Batching&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#continuous-batching&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/Continuous-batching-3ce74a6d992944fba6314e21b3c3ec22&#34;&gt;Continuous Batching&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>低精度训练 &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/LowPrecision/gptLowPrecision/</link>
+      <pubDate>Wed, 16 Aug 2023 11:50:58 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/LowPrecision/gptLowPrecision/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;低精度训练&#34;&gt;&#xA;  低精度训练&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e4%bd%8e%e7%b2%be%e5%ba%a6%e8%ae%ad%e7%bb%83&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/cb067e2d0bc545d898cd43dd1091c8b3?pvs=4&#34;&gt;低精度训练&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理)Flash Attention &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/FlashAttention/gptFlashAttention/</link>
+      <pubDate>Tue, 13 Jun 2023 09:41:12 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/FlashAttention/gptFlashAttention/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;flash-attention&#34;&gt;&#xA;  Flash Attention&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#flash-attention&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/Flash-Attention-2e424082ae3a46b8b1ddd24ead847dd9?pvs=4&#34;&gt;(原理)Flash Attention&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理|实现) KV Cache &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/KVCache/gptInferKVCache/</link>
+      <pubDate>Thu, 01 Jun 2023 11:09:57 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/KVCache/gptInferKVCache/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;kv-cache&#34;&gt;&#xA;  KV Cache&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#kv-cache&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/KV-Cache-52168038d1874bce9d5cf68c5930f5c1?pvs=4&#34;&gt;(原理|实现) KV Cache&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理) vLLM  &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLM/</link>
+      <pubDate>Wed, 31 May 2023 22:24:07 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLM/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;vllm&#34;&gt;&#xA;  vLLM&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#vllm&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/vLLM-ccb00d32fef14f92b0f7ab4c1c1db390?pvs=4&#34;&gt;(原理) vLLM&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理)PTQ-Weight Only &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/gptQuantizationWeight/</link>
+      <pubDate>Sun, 26 Mar 2023 11:42:49 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/gptQuantizationWeight/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;weight-only&#34;&gt;&#xA;  Weight Only&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#weight-only&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/Weight-Only-ab8e3953cef144a3aef44716d4068216?pvs=4&#34;&gt;Weight Only&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理) Deepspeed Zero &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainZeroDeepspeed/</link>
+      <pubDate>Thu, 23 Mar 2023 09:48:55 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainZeroDeepspeed/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;deepspeed-zero&#34;&gt;&#xA;  Deepspeed Zero&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#deepspeed-zero&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/Zero-Deepspeed-85c9344a27624649a36b66f3e2e4c4d1?pvs=74&#34;&gt;(原理) Deepspeed Zero&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理)推理-框架</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/gptInferFramework/</link>
+      <pubDate>Tue, 21 Mar 2023 22:18:17 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/gptInferFramework/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;推理-框架1&#34;&gt;&#xA;  推理 框架[1]&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e6%8e%a8%e7%90%86-%e6%a1%86%e6%9e%b61&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;img src=&#34;./images/inference.jpg&#34; alt=&#34;inference.jpg&#34; /&gt;&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;inference execute engine(server)&lt;br&gt;&#xA;vLLM，TensorRT， deepspeed&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;inference execute engine(pc/edge 移动端)&lt;br&gt;&#xA;llama.cpp&lt;br&gt;&#xA;mlc-llm&lt;br&gt;&#xA;ollama&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;inference Server&lt;br&gt;&#xA;Triton Server,  Ray&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;Chat Server [2]&lt;br&gt;&#xA;FastChat, XInference,  modelscope  SWIFT&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h1 id=&#34;参考&#34;&gt;&#xA;  参考&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e5%8f%82%e8%80%83&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://mp.weixin.qq.com/mp/appmsgalbum?action=getalbum&amp;amp;__biz=MzA5MTIxNTY4MQ==&amp;amp;scene=1&amp;amp;album_id=2959126655292211206&#34;&gt;探秘LLM应用开发&lt;/a&gt;   8-19&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://cloud.tencent.com/developer/article/2422454&#34;&gt;LLM 大模型学习必知必会系列(十二)：VLLM性能飞跃部署实践：从推理加速到高效部署的全方位优化[更多内容：XInference/FastChat等框架]&lt;/a&gt;&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;p&gt;1xx. &lt;a href=&#34;https://mp.weixin.qq.com/s?__biz=MzA5MTIxNTY4MQ==&amp;amp;mid=2461142079&amp;amp;idx=1&amp;amp;sn=07d9033203c0064408fe0af33d1f9414&#34;&gt;一文探秘LLM应用开发(18)-模型部署与推理(框架工具-Triton Server、RayLLM、OpenLLM)&lt;/a&gt;&lt;/p&gt;&#xA;&lt;p&gt;1xx. &lt;a href=&#34;https://mp.weixin.qq.com/s?__biz=MzA5MTIxNTY4MQ==&amp;amp;mid=2461142012&amp;amp;idx=1&amp;amp;sn=dafb0b676cdf6d41fd9bd54f9b6a82d3&#34;&gt;一文探秘LLM应用开发(16)-模型部署与推理(框架工具-TGI，vLLM，TensorRT-LLM，DS-MII) &lt;/a&gt;&lt;/p&gt;&#xA;&lt;p&gt;1xx. &lt;a href=&#34;https://zhuanlan.zhihu.com/p/659792625&#34;&gt;大模型推理框架概述&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(总结)推理优化</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/Overview/gptInference/</link>
+      <pubDate>Sun, 01 Jan 2023 22:58:43 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/Overview/gptInference/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;推理-优化&#34;&gt;&#xA;  推理 优化&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e6%8e%a8%e7%90%86-%e4%bc%98%e5%8c%96&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;h3 id=&#34;overview2&#34;&gt;&#xA;  overview[2]&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#overview2&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;p&gt;有几种方法可以在内存中&lt;strong&gt;降低推理成本&lt;/strong&gt;或/和&lt;strong&gt;加快推理速度&lt;/strong&gt;。&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;应用各种&lt;strong&gt;并行处理方式&lt;/strong&gt;，以在大量GPU上扩展模型。智能并行处理模型组件和数据使得运行拥有数万亿参数的模型成为可能。&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;内存卸载&lt;/strong&gt;，将临时未使用的数据卸载到CPU，并在以后需要时再读回。这有助于减少内存使用，但会导致更高的延迟。&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;智能批处理策略&lt;/strong&gt;；例如，EffectiveTransformer将连续的序列打包在一起，以消除批处理内的填充。&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;网络压缩技术&lt;/strong&gt;，如&lt;strong&gt;修剪、量化、蒸馏&lt;/strong&gt;。较小的模型，无论是参数数量还是位宽，应该需要更少的内存并且运行更快。&lt;/li&gt;&#xA;&lt;li&gt;针对目标模型架构的特定改进。许多&lt;strong&gt;架构变化&lt;/strong&gt;，特别是针对注意力层的变化，有助于提高Transformer解码速度。&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h3 id=&#34;模型压缩-1&#34;&gt;&#xA;  模型压缩 [1]&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e6%a8%a1%e5%9e%8b%e5%8e%8b%e7%bc%a9-1&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;p&gt;&lt;img src=&#34;./images/compress.png&#34; alt=&#34;compress.png&#34; /&gt;&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;剪枝（Pruning）&lt;/li&gt;&#xA;&lt;li&gt;知识蒸馏（Knowledge Distillation，KD）&lt;/li&gt;&#xA;&lt;li&gt;量化（Quantization）&lt;/li&gt;&#xA;&lt;li&gt;低秩分解（Low-Rank Factorization）&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h3 id=&#34;kv-cache&#34;&gt;&#xA;  KV Cache&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#kv-cache&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;h1 id=&#34;参考&#34;&gt;&#xA;  参考&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e5%8f%82%e8%80%83&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;h3 id=&#34;综述&#34;&gt;&#xA;  综述&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e7%bb%bc%e8%bf%b0&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://mp.weixin.qq.com/s/glPPSqHjsnDjC0DZSuuPzA&#34;&gt;一文探秘LLM应用开发(13)-模型部署与推理(优化理论) &lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://lilianweng.github.io/posts/2023-01-10-inference-optimization/&#34;&gt;Large Transformer Model Inference Optimization &lt;/a&gt;  lilianweng&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;p&gt;1xx. &lt;a href=&#34;https://zhuanlan.zhihu.com/p/642412124&#34;&gt;NLP（十八）：LLM 的推理优化技术纵览&lt;/a&gt; ***&lt;br&gt;&#xA;1xx. &lt;a href=&#34;https://zhuanlan.zhihu.com/p/656485997&#34;&gt;大语言模型推理性能优化综述&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理|实战)混合精度 &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/Precision/gptPrecision/</link>
+      <pubDate>Thu, 01 Feb 2024 22:29:42 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/Precision/gptPrecision/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;混合精度&#34;&gt;&#xA;  混合精度&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e6%b7%b7%e5%90%88%e7%b2%be%e5%ba%a6&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/d27bdf000e7c42eabd288f9d036ea5e7?pvs=4&#34;&gt;(原理|实战)混合精度&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>GPU 指标&amp;监控</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/LLMOps/GPU/GPUMetrics/</link>
+      <pubDate>Sat, 23 Dec 2023 14:25:43 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/LLMOps/GPU/GPUMetrics/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;gpu-指标监控&#34;&gt;&#xA;  GPU 指标&amp;amp;监控&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#gpu-%e6%8c%87%e6%a0%87%e7%9b%91%e6%8e%a7&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/165bfe21108480e29fa1d06e4852a6e0?pvs=4&#34;&gt;GPU 指标&amp;amp;监控&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理)混合并行 &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/%E6%B7%B7%E5%90%88%E5%B9%B6%E8%A1%8C/TrainHybridParallel/</link>
+      <pubDate>Sun, 26 Nov 2023 23:29:08 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/%E6%B7%B7%E5%90%88%E5%B9%B6%E8%A1%8C/TrainHybridParallel/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;混合并行&#34;&gt;&#xA;  混合并行&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e6%b7%b7%e5%90%88%e5%b9%b6%e8%a1%8c&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/111bfe2110848026bf8ff0d2c779e3ed?pvs=4&#34;&gt;(原理)混合并行&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理)FlashAttention2 &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/FlashAttention/gptInferFlashAttention2/</link>
+      <pubDate>Wed, 15 Nov 2023 18:55:42 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/FlashAttention/gptInferFlashAttention2/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;flash-attention2&#34;&gt;&#xA;  Flash Attention2&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#flash-attention2&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/Flash-Attention2-110bfe21108480f782fcc7258d860ccc?pvs=4&#34;&gt;(原理)Flash Attention2&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(Survey)Speculative Decoding &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/gptInferSpeculativeDecodingSurvey/</link>
+      <pubDate>Sat, 21 Oct 2023 21:12:51 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/gptInferSpeculativeDecodingSurvey/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xD;&#xA;&lt;!-- more --&gt;&#xD;&#xA;&lt;h1 id=&#34;speculative-decoding&#34;&gt;&#xA;  Speculative Decoding&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#speculative-decoding&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/Unlocking-Efficiency-in-Large-Language-Model-Inference-A-Comprehensive-Survey-of-Speculative-Decodi-117bfe2110848059977ece3df3f9791d?pvs=4&#34;&gt;(Survey)Speculative Decoding &lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理|实现)Mooncake &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/gptInferMooncake/</link>
+      <pubDate>Thu, 19 Oct 2023 12:02:53 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/gptInferMooncake/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xD;&#xA;&lt;!-- more --&gt;&#xD;&#xA;&lt;h1 id=&#34;mooncake&#34;&gt;&#xA;  Mooncake&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#mooncake&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/Mooncake-d7d1506860df44bca7a2f880a1352285?pvs=4&#34;&gt;Mooncake&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理)SmoothQuant &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/gptQuantizationSmoothQuant/gptQuantizationSmoothQuant/</link>
+      <pubDate>Sat, 14 Oct 2023 13:33:21 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/gptQuantizationSmoothQuant/gptQuantizationSmoothQuant/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;smoothquant&#34;&gt;&#xA;  SmoothQuant&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#smoothquant&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/SmoothQuant-11dbfe21108480fc83f8ea2a495092b7?pvs=4&#34;&gt;(原理)SmoothQuant&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理|实战)AWQ &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/Weight-Only/gptQuantizationAWQ/</link>
+      <pubDate>Thu, 12 Oct 2023 14:34:07 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/Weight-Only/gptQuantizationAWQ/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;awq&#34;&gt;&#xA;  AWQ&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#awq&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/AWQ-11dbfe211084806396a0fc0f87983446?pvs=4&#34;&gt;(原理|实战)AWQ&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Chunked Prefill &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/Batch/gptInferChunkedPrefill/</link>
+      <pubDate>Mon, 18 Sep 2023 18:46:44 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/Batch/gptInferChunkedPrefill/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;chunked-prefill&#34;&gt;&#xA;  Chunked Prefill&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#chunked-prefill&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/chunked-prefill-102bfe21108480a7af99fee1f56fd5af?pvs=4&#34;&gt;Chunked Prefill&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理)KV Cache 优化 &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/KVCache/gptInferKVCacheOptimize/</link>
+      <pubDate>Sat, 02 Sep 2023 22:14:46 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/KVCache/gptInferKVCacheOptimize/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;kv-cache-优化&#34;&gt;&#xA;  KV Cache 优化&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#kv-cache-%e4%bc%98%e5%8c%96&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/KV-cache-bd0a35015c9845bd8e17d5c902dba152?pvs=4&#34;&gt;(原理)KV cache优化&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(综述)推理优化 &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/Overview/gptInferenceSurvey/</link>
+      <pubDate>Mon, 14 Aug 2023 13:23:31 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/Overview/gptInferenceSurvey/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;论文&#34;&gt;&#xA;  论文&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e8%ae%ba%e6%96%87&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/A-Survey-on-Efficient-Inference-for-Large-Language-Models-22145473188e437881bf566241492bea?pvs=4&#34;&gt;A Survey on Efficient Inference for Large Language Models&lt;/a&gt; 翻译&lt;/p&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/A-Survey-on-Efficient-Inference-for-Large-Language-Models-135bfe2110848034bf45ea8e5d1d2fdb?pvs=4&#34;&gt;A Survey on Efficient Inference for Large Language Models&lt;/a&gt; 总结&lt;/p&gt;&#xA;&lt;h1 id=&#34;inference-papers&#34;&gt;&#xA;  Inference Papers&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#inference-papers&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/Inference-Papers-bd22ef1d8c274d6f9951c394a95ff427?pvs=4&#34;&gt;Inference Papers&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(实战) vLLM &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMPractice/</link>
+      <pubDate>Mon, 12 Jun 2023 14:19:45 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMPractice/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;vllm-实战&#34;&gt;&#xA;  vLLM 实战&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#vllm-%e5%ae%9e%e6%88%98&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/vllm-a35a50c4cd2c4875a8de173575275217?pvs=4&#34;&gt;(实战) vLLM&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>LLama-Factory</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/LLMOps/LLamaFactory/</link>
+      <pubDate>Wed, 24 May 2023 18:43:17 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/LLMOps/LLamaFactory/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;llama-factory&#34;&gt;&#xA;  LLama-Factory&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#llama-factory&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/LLama-Factory-b6e286a1e9054c5399eebc5ffaeac82e?pvs=4&#34;&gt;LLama-Factory&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(实战)DeepSpeed Training &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainDistributedPractice/</link>
+      <pubDate>Sat, 25 Mar 2023 15:55:48 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainDistributedPractice/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;deepspeed-training&#34;&gt;&#xA;  DeepSpeed Training&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#deepspeed-training&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/98541b7f8be2493eb1deda3629677d26?pvs=4&#34;&gt;DeepSpeed Training&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理)量化 &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/Overview/gptQuantization/</link>
+      <pubDate>Sun, 19 Feb 2023 17:00:25 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/Overview/gptQuantization/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;量化&#34;&gt;&#xA;  量化&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e9%87%8f%e5%8c%96&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/9e2982aada064c5895ae2f862f1d33c3?pvs=4&#34;&gt;量化&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(实战)推理-lmdeploy</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/gptInferFrameworkPractice/</link>
+      <pubDate>Thu, 02 Feb 2023 11:14:35 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/gptInferFrameworkPractice/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;lmdeploy-推理部署-10&#34;&gt;&#xA;  lmdeploy-推理部署 [10]&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#lmdeploy-%e6%8e%a8%e7%90%86%e9%83%a8%e7%bd%b2-10&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;h3 id=&#34;模型转换&#34;&gt;&#xA;  模型转换&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e6%a8%a1%e5%9e%8b%e8%bd%ac%e6%8d%a2&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;p&gt;&lt;img src=&#34;./images/convert.png&#34; alt=&#34;convert.png&#34; /&gt;&lt;/p&gt;&#xA;&lt;h3 id=&#34;turbomind-推理命令行本地对话&#34;&gt;&#xA;  TurboMind 推理+命令行本地对话&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#turbomind-%e6%8e%a8%e7%90%86%e5%91%bd%e4%bb%a4%e8%a1%8c%e6%9c%ac%e5%9c%b0%e5%af%b9%e8%af%9d&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;p&gt;&lt;img src=&#34;./images/infer.png&#34; alt=&#34;infer.png&#34; /&gt;&lt;/p&gt;&#xA;&lt;h3 id=&#34;turbomind推理api服务&#34;&gt;&#xA;  TurboMind推理+API服务&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#turbomind%e6%8e%a8%e7%90%86api%e6%9c%8d%e5%8a%a1&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;启动服务&#xA;&lt;img src=&#34;./images/infer-api.png&#34; alt=&#34;infer-api.png&#34; /&gt;&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;Client访问服务&#xA;&lt;img src=&#34;./images/infer-api-client.png&#34; alt=&#34;infer-api-client.png&#34; /&gt;&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h1 id=&#34;参考&#34;&gt;&#xA;  参考&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e5%8f%82%e8%80%83&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;ol start=&#34;10&#34;&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://github.com/InternLM/tutorial/blob/main/lmdeploy/lmdeploy.md&#34;&gt;lmdeploy 量化部署&lt;/a&gt;&lt;br&gt;&#xA;&lt;a href=&#34;https://www.bilibili.com/video/BV1iW4y1A77P/&#34;&gt;(5)LMDeploy 大模型量化部署实践&lt;/a&gt; V&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;p&gt;1xx. &lt;a href=&#34;https://github.com/www6v/llm-action/tree/main/inference&#34;&gt;llm-action  inference&lt;/a&gt; git&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(综述)推理优化 &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/Overview/gptInferenceSurvey1/</link>
+      <pubDate>Wed, 11 Sep 2024 17:40:04 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/Overview/gptInferenceSurvey1/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;论文&#34;&gt;&#xA;  论文&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e8%ae%ba%e6%96%87&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/Towards-Efficient-Generative-Large-Language-Model-Serving-A-Survey-from-Algorithms-to-Systems-c1914500c33f4446ac7fbe8848354d91?pvs=4&#34;&gt;Towards Efficient Generative Large Language Model Serving: A Survey from Algorithms to Systems&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理)Llumnix &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/gptInferLlumnix/</link>
+      <pubDate>Thu, 30 Nov 2023 16:45:15 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/gptInferLlumnix/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;llumnix&#34;&gt;&#xA;  Llumnix&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#llumnix&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/Llumnix-14407e4f4d2f4a908edcf73b6990b4f0?pvs=4&#34;&gt;(原理)Llumnix&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(实战)[vLLM]投机解码 &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInferSpeculativeDecodingvLLM/</link>
+      <pubDate>Sat, 18 Nov 2023 16:28:40 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInferSpeculativeDecodingvLLM/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;speculating-with-a-draft-model&#34;&gt;&#xA;  &lt;strong&gt;Speculating with a draft model[1]&lt;/strong&gt;&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#speculating-with-a-draft-model&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;from&lt;/span&gt; vllm &lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; LLM, SamplingParams&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;prompts &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;The future of AI is&amp;#34;&lt;/span&gt;,&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;]&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sampling_params &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; SamplingParams(temperature&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;0.8&lt;/span&gt;, top_p&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;0.95&lt;/span&gt;)&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;llm &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; LLM(&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    model&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;facebook/opt-6.7b&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#75715e&#34;&gt;# verify 小模型&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    tensor_parallel_size&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;,&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    speculative_model&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;facebook/opt-125m&amp;#34;&lt;/span&gt;,    &lt;span style=&#34;color:#75715e&#34;&gt;# draft 小模型&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    num_speculative_tokens&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;5&lt;/span&gt;, &lt;span style=&#34;color:#75715e&#34;&gt;# 一次生成5个token &lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;)&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;outputs &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; llm&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;generate(prompts, sampling_params)&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; output &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; outputs:&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    prompt &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; output&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;prompt&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    generated_text &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; output&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;outputs[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;]&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;text&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    print(&lt;span style=&#34;color:#e6db74&#34;&gt;f&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Prompt: &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{&lt;/span&gt;prompt&lt;span style=&#34;color:#e6db74&#34;&gt;!r}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;, Generated text: &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{&lt;/span&gt;generated_text&lt;span style=&#34;color:#e6db74&#34;&gt;!r}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;)&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-powershell&#34; data-lang=&#34;powershell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;python -m vllm.entrypoints.openai.api_server --host &lt;span style=&#34;color:#ae81ff&#34;&gt;0.0&lt;/span&gt;.0.0 --port &lt;span style=&#34;color:#ae81ff&#34;&gt;8000&lt;/span&gt; \&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;       --model facebook/opt-&lt;span style=&#34;color:#ae81ff&#34;&gt;6&lt;/span&gt;.7b \&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;       --seed &lt;span style=&#34;color:#ae81ff&#34;&gt;42&lt;/span&gt; -tp &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; \&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;       --speculative_model facebook/opt-&lt;span style=&#34;color:#ae81ff&#34;&gt;125m&lt;/span&gt; \&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;       --use-v2-block-manager \&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;       --num_speculative_tokens &lt;span style=&#34;color:#ae81ff&#34;&gt;5&lt;/span&gt; \&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;       --gpu_memory_utilization &lt;span style=&#34;color:#ae81ff&#34;&gt;0.8&lt;/span&gt; \&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;Small LM&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理|实现)Medusa &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/gptInferMedusa/</link>
+      <pubDate>Sun, 12 Nov 2023 06:46:10 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/gptInferMedusa/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;medusa&#34;&gt;&#xA;  Medusa&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#medusa&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/Medusa-31e27ea0a51d4c818c804a654a3c839a?pvs=4&#34;&gt;(原理|实现)Medusa&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理)FP8 &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/gptQuantizationFP8/gptQuantizationFP8/</link>
+      <pubDate>Sat, 14 Oct 2023 13:33:46 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/gptQuantizationFP8/gptQuantizationFP8/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;fp8&#34;&gt;&#xA;  FP8&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#fp8&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/FP8-12c3b58d744e43299dad0badc397f592?pvs=4&#34;&gt;(原理)FP8&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理)Flash Decoding &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/FlashAttention/gptInferFlashDecoding/</link>
+      <pubDate>Fri, 06 Oct 2023 17:52:36 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/FlashAttention/gptInferFlashDecoding/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;flash-decoding&#34;&gt;&#xA;  Flash Decoding&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#flash-decoding&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/Flash-Decoding-110bfe2110848085aa6dde60217c486a?pvs=4&#34;&gt;(原理)Flash Decoding&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理|实战)DDP &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainDDP/</link>
+      <pubDate>Tue, 19 Sep 2023 18:08:48 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainDDP/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;ddp&#34;&gt;&#xA;  DDP&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#ddp&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/DDP-3576fea6254a42c2ab520f5e6c4ccb86?pvs=4&#34;&gt;DDP&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理)KV Cache 量化 &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/KVCache/Compress/gptInferKVCacheQuantization/</link>
+      <pubDate>Sat, 02 Sep 2023 23:13:07 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/KVCache/Compress/gptInferKVCacheQuantization/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;kv-cache-量化&#34;&gt;&#xA;  KV Cache 量化&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#kv-cache-%e9%87%8f%e5%8c%96&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/Quantization-c6fa20cf425a4211af150b4987711f47?pvs=4&#34;&gt;KV Cache 量化&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>显存估算</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/LLMOps/GPUComputing/</link>
+      <pubDate>Sat, 01 Jul 2023 17:13:39 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/LLMOps/GPUComputing/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;显存估算&#34;&gt;&#xA;  显存估算&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e6%98%be%e5%ad%98%e4%bc%b0%e7%ae%97&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/e4e6bd5f7c43430fa2e805c5a2777308?pvs=4&#34;&gt;显存估算&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理|实战) TensorRT-LLM &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/gptInferTensorRT/</link>
+      <pubDate>Fri, 02 Jun 2023 21:59:23 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/gptInferTensorRT/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;tensorrt-llm&#34;&gt;&#xA;  TensorRT-LLM&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#tensorrt-llm&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/TensorRT-LLM-11dbfe2110848030b7d5f27b9e9bda76?pvs=4&#34;&gt;(原理|实战) TensorRT-LLM&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>GPU 算力平台</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/LLMOps/GPU/GPU/</link>
+      <pubDate>Tue, 23 May 2023 11:49:49 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/LLMOps/GPU/GPU/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;gpu算力&#34;&gt;&#xA;  GPU算力&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#gpu%e7%ae%97%e5%8a%9b&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;h3 id=&#34;免费1&#34;&gt;&#xA;  免费[1]&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e5%85%8d%e8%b4%b91&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;p&gt;&lt;img src=&#34;./images/free.JPG&#34; alt=&#34;free.JPG&#34; /&gt;&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;modelscope 100小时 GPU&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h3 id=&#34;专业收费2&#34;&gt;&#xA;  专业收费[2]&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e4%b8%93%e4%b8%9a%e6%94%b6%e8%b4%b92&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;p&gt;&lt;img src=&#34;./images/cost.JPG&#34; alt=&#34;cost.JPG&#34; /&gt;&lt;/p&gt;&#xA;&lt;h1 id=&#34;显卡&#34;&gt;&#xA;  显卡&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e6%98%be%e5%8d%a1&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;显卡天梯榜&#xA;&lt;a href=&#34;https://topic.expreview.com/GPU&#34;&gt;显卡天梯榜&lt;/a&gt;&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;显卡&#xA;显卡 = GPU +  显存&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h1 id=&#34;参考&#34;&gt;&#xA;  参考&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e5%8f%82%e8%80%83&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://www.bilibili.com/video/BV1fC4y1N7qV/&#34;&gt;5种在线GPU算力资源白嫖指南&lt;/a&gt; V&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://www.bilibili.com/video/BV1q5411z7HM/&#34;&gt;5种专业在线GPU算力资源白嫖指南&lt;/a&gt; V.&lt;br&gt;&#xA;1xx. &lt;a href=&#34;https://www.bilibili.com/video/BV1Pv4y1f7VV/&#34;&gt;【PyTorch深度学习】01 GPU购买与白嫖指南&lt;/a&gt;&lt;/li&gt;&#xA;&lt;/ol&gt;</description>
+    </item>
+    <item>
+      <title>(原理|实战) [vLLM]Prefix Cache &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInferKVCacheRadixAttention/</link>
+      <pubDate>Fri, 15 Nov 2024 18:41:31 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInferKVCacheRadixAttention/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;原理实战-vllmprefix-cache&#34;&gt;&#xA;  (原理|实战) [vLLM]Prefix Cache&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e5%8e%9f%e7%90%86%e5%ae%9e%e6%88%98-vllmprefix-cache&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/RadixAttention-105bfe211084807581eccf952ba3bb59?pvs=4&#34;&gt;(原理|实战) [vLLM]Prefix Cache&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>EAGLE &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/gptInferEagle/</link>
+      <pubDate>Sun, 12 Nov 2023 06:46:22 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/gptInferEagle/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;eagle&#34;&gt;&#xA;  EAGLE&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#eagle&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/EAGLE-126bfe2110848058aeb0ed8c2d06319b?pvs=4&#34;&gt;EAGLE&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理|实战)FSDP &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainFSDP/</link>
+      <pubDate>Tue, 19 Sep 2023 18:17:13 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainFSDP/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;fsdp&#34;&gt;&#xA;  FSDP&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#fsdp&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/FSDP-2fc101f3b7ac4796b74d5e9287ff8210?pvs=4&#34;&gt;FSDP&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理)推理 Ray</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/gptInferRay/</link>
+      <pubDate>Sun, 11 Jun 2023 09:16:45 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/gptInferRay/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;architecture-overview&#34;&gt;&#xA;  Architecture Overview&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#architecture-overview&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;h3 id=&#34;application-concepts-1&#34;&gt;&#xA;  Application concepts [1]&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#application-concepts-1&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;Task - A remote function invocation.&lt;/li&gt;&#xA;&lt;li&gt;Object - An application value.&lt;/li&gt;&#xA;&lt;li&gt;Actor - a stateful worker process (an instance of a &lt;code&gt;@ray.remote&lt;/code&gt; class).&lt;/li&gt;&#xA;&lt;li&gt;Driver - The program root, or the “main” program.&lt;/li&gt;&#xA;&lt;li&gt;Job - The collection of tasks, objects, and actors originating (recursively) from the same driver, and their runtime environment.&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h3 id=&#34;design-1&#34;&gt;&#xA;  Design [1]&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#design-1&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;Components&#xA;&lt;ul&gt;&#xA;&lt;li&gt;One or more worker processes&lt;/li&gt;&#xA;&lt;li&gt;A raylet.&#xA;&lt;ul&gt;&#xA;&lt;li&gt;scheduler&lt;/li&gt;&#xA;&lt;li&gt;object store&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;head node&#xA;&lt;ul&gt;&#xA;&lt;li&gt;Global Control Service (GCS)&lt;/li&gt;&#xA;&lt;li&gt;driver process(es)&lt;/li&gt;&#xA;&lt;li&gt;cluster-level services&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h1 id=&#34;spark-vs-ray10&#34;&gt;&#xA;  Spark vs. Ray[10]&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#spark-vs-ray10&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;总的来说，Ray和Spark的主要差别在于他们的&lt;strong&gt;抽象层次&lt;/strong&gt;。&lt;strong&gt;Spark&lt;/strong&gt;对并行进行抽象和限制，不允许用户编写真正并行的应用，从而使框架有更多的控制权。&lt;strong&gt;Ray&lt;/strong&gt;的层次要低得多，虽然给用户提供了更多灵活性，但更难编程。可以说，&lt;strong&gt;Ray揭示和暴露了并行，而Spark抽象和隐藏了并行&lt;/strong&gt;。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>LLMOps</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/LLMOps/LLMOps/</link>
+      <pubDate>Wed, 28 Dec 2022 19:52:01 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/LLMOps/LLMOps/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://drive.google.com/file/d/1LZXTrRdrloIqAJT6xaNTl4WQd6y95o7K/view&#34;&gt;LLMOps: Deployment and Learning in Production&lt;/a&gt;&lt;br&gt;&#xA;&lt;a href=&#34;https://fullstackdeeplearning.com/llm-bootcamp/spring-2023/llmops/&#34;&gt;LLMOps: Deployment and Learning in Production&lt;/a&gt;&lt;br&gt;&#xA;&lt;a href=&#34;https://zhuanlan.zhihu.com/p/629589593&#34;&gt;[必读] LLM 应用开发全栈指南&lt;/a&gt; LLMOps&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://zhuanlan.zhihu.com/p/632026876&#34;&gt;了解一下新领域 LLMOps: 大模型运维&lt;/a&gt;&lt;br&gt;&#xA;&lt;a href=&#34;https://wandb.ai/site/articles/understanding-llmops-large-language-model-operations&#34;&gt;Understanding LLMOps: Large Language Model Operations&lt;/a&gt;&lt;/li&gt;&#xA;&lt;/ol&gt;</description>
+    </item>
+    <item>
+      <title>SpecInfer &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/gptInferSpecInfer/</link>
+      <pubDate>Sun, 12 Nov 2023 06:58:14 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/gptInferSpecInfer/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;specinfer&#34;&gt;&#xA;  SpecInfer&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#specinfer&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/SpecInfer-8b75821e44384cecba4541f7aa758adb?pvs=4&#34;&gt;SpecInfer&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(实战)推理 Ray</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/gptInferRayPractice/</link>
+      <pubDate>Fri, 16 Jun 2023 16:17:44 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/gptInferRayPractice/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;实战&#34;&gt;&#xA;  实战&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e5%ae%9e%e6%88%98&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;h3 id=&#34;环境&#34;&gt;&#xA;  环境&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e7%8e%af%e5%a2%83&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;p&gt;modelscope  GPU&lt;/p&gt;&#xA;&lt;h3 id=&#34;实战1&#34;&gt;&#xA;  实战1&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e5%ae%9e%e6%88%981&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;脚本[1]&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;遇到的异常[2]&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h3 id=&#34;实战2&#34;&gt;&#xA;  实战2&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e5%ae%9e%e6%88%982&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;脚本&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;### 变更模型名字&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;### import &amp;#39;modelscope&amp;#39; package&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;&#xA;&lt;li&gt;异常[11]&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h3 id=&#34;实战320&#34;&gt;&#xA;  实战3[20]&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e5%ae%9e%e6%88%98320&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;脚本&lt;br&gt;&#xA;vllm   0.2.3 -&amp;gt; 报异常&lt;br&gt;&#xA;vllm  0.3.3 -&amp;gt; 报另一个异常&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h3 id=&#34;实战4&#34;&gt;&#xA;  实战4&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e5%ae%9e%e6%88%984&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;脚本 [30]&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;异常 [31]&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;# 运行这个命令报异常&#xA;python -m vllm.entrypoints.openai.api_server --trust-remote-code --served-model-name gpt-4 --model mistralai/Mixtral-8x7B-Instruct-v0.1 --gpu-memory-utilization 1 --tensor-parallel-size 8 --port 8000&#xA;&lt;/code&gt;&lt;/pre&gt;&lt;h1 id=&#34;monitor40&#34;&gt;&#xA;  monitor[40]&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#monitor40&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;h3 id=&#34;ray-dashboard41&#34;&gt;&#xA;  Ray Dashboard[41]&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#ray-dashboard41&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;h3 id=&#34;ray-logging&#34;&gt;&#xA;  Ray logging&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#ray-logging&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;p&gt;Loki  grafana&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(实现)[vLLM]整体架构 &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMCode/</link>
+      <pubDate>Sat, 02 Dec 2023 15:09:52 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMCode/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;vllm&#34;&gt;&#xA;  vLLM&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#vllm&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/vLLM-10bbfe2110848006b1f9d51397008e89?pvs=4&#34;&gt;(实现)[vLLM]整体架构&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(实现)[vLLM]分布式 *</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMDist/</link>
+      <pubDate>Tue, 14 May 2024 19:51:55 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMDist/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h2 id=&#34;feature&#34;&gt;&#xA;  Feature&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#feature&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h2&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;Distributed Inference&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;Why distributed inference?&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;Infra-side&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;Communication device:&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;NVLink: direct communication between GPUs&lt;/li&gt;&#xA;&lt;li&gt;Infinity Band: High-speed connection between nodes&lt;/li&gt;&#xA;&lt;li&gt;RDMA: Remote direct memory access&#xA;&lt;ul&gt;&#xA;&lt;li&gt;RDMA NIC&lt;/li&gt;&#xA;&lt;li&gt;Software solution&lt;/li&gt;&#xA;&lt;li&gt;Key advantage: bypass operating system / zero copy&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;Communication library:&lt;/p&gt;&#xA;&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;dlms/distributed/device_communicators&#xA;&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;&#xA;&lt;li&gt;PyDCL: communication for NVIDIA&lt;/li&gt;&#xA;&lt;li&gt;shared memory : OS&lt;/li&gt;&#xA;&lt;li&gt;custom allreduce - A kernel jsut for all reduce operation&#xA;&lt;ul&gt;&#xA;&lt;li&gt;Before:&#xA;&lt;ul&gt;&#xA;&lt;li&gt;0 machine: [0]&lt;/li&gt;&#xA;&lt;li&gt;1 machine: [1]&lt;/li&gt;&#xA;&lt;li&gt;2 machine: [2]&lt;/li&gt;&#xA;&lt;li&gt;3 machine: [3]&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;After:&#xA;&lt;ul&gt;&#xA;&lt;li&gt;0 machine: [0,1,2,3]&lt;/li&gt;&#xA;&lt;li&gt;1 machine: [0,1,2,3]&lt;/li&gt;&#xA;&lt;li&gt;2 machine: [0,1,2,3]&lt;/li&gt;&#xA;&lt;li&gt;3 machine: [0,1,2,3]&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;torch.distributed : provide wide support to a list of communication library&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;GroupCoordinator&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(实现)[vLLM]PD分离 *</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMPD/</link>
+      <pubDate>Tue, 14 May 2024 19:52:38 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMPD/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;pd-disaggregation&#34;&gt;&#xA;  PD disaggregation&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#pd-disaggregation&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;h3 id=&#34;whats-prefill-and-decode&#34;&gt;&#xA;  What&amp;rsquo;s Prefill and Decode&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#whats-prefill-and-decode&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;prefill:&#xA;&lt;ul&gt;&#xA;&lt;li&gt;process input prompt, generate KV cache&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;decode:&#xA;&lt;ul&gt;&#xA;&lt;li&gt;generate tokens based on the KV cache&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h3 id=&#34;why-pd-disaggregation&#34;&gt;&#xA;  Why PD disaggregation&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#why-pd-disaggregation&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;Prefill:&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;attention — N tokens QKV — generate KV cache  takes a long time&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;Decode:&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;attention N KV, 1 Q — generate a new token  very fast&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;initial logic&lt;/p&gt;&#xA;&lt;p&gt;prioritize prefill&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;problem&lt;/p&gt;&#xA;&lt;p&gt;&lt;strong&gt;prefill will stop other request&amp;rsquo;s decode&lt;/strong&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(实现)[vLLM]投机解码 &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMSpeculativeDecode/</link>
+      <pubDate>Tue, 14 May 2024 19:53:12 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMSpeculativeDecode/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;vllm投机解码&#34;&gt;&#xA;  [vLLM]投机解码&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#vllm%e6%8a%95%e6%9c%ba%e8%a7%a3%e7%a0%81&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/vLLM-1f4bfe211084804eb2a4e399bae5a91d?pvs=4&#34;&gt;[vLLM]投机解码&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(实现)[vLLM]Prefix Caching &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMPrefixCaching/</link>
+      <pubDate>Wed, 14 May 2025 19:53:42 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMPrefixCaching/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;prefix-caching&#34;&gt;&#xA;  Prefix caching&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#prefix-caching&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;llm&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;inference(&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    input_tokens: list[int],  &lt;span style=&#34;color:#75715e&#34;&gt;# N tokens&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    previous_kv_cache: list[Tensor],  &lt;span style=&#34;color:#75715e&#34;&gt;# N tokens&amp;#39; kv cache ∪ &amp;lt;N&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt; output_tokens, new_kv_cache&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;output_tokens:  &lt;span style=&#34;color:#75715e&#34;&gt;# N&amp;#39; new tokens&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;new_kv_cache:  &lt;span style=&#34;color:#75715e&#34;&gt;# kv cache of N + N&amp;#39; tokens&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Key: tokens&#xA;Value: KV cache tensors&lt;/p&gt;&#xA;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;KVCacheStore&lt;/span&gt;:&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;store&lt;/span&gt;(tokens, kv_cache_tensors):&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;pass&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;retrieve&lt;/span&gt;(tokens) &lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt; kv_cache_tensors:&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;pass&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h1 id=&#34;prefix-based-matching&#34;&gt;&#xA;  Prefix-based matching&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#prefix-based-matching&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;Tokens 1: ABCDE -&amp;gt; [KV1, KV2, KV3, KV4, KV5]&lt;/li&gt;&#xA;&lt;li&gt;Tokens 2: ABCDF -&amp;gt; [KV1, KV2, KV3, KV4, KV6]&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;kv_cache_store&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;store(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;ABCDE&amp;#34;&lt;/span&gt;, [KV1, KV2, KV3, KV4, KV5])&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;kv_cache_store&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;retrieve(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;ABCD&amp;#34;&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt; [KV1, KV2, KV3, KV4]&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;&#xA;&lt;li&gt;&amp;ldquo;Trie&amp;rdquo;&lt;/li&gt;&#xA;&lt;li&gt;&amp;ldquo;ABCDEF&amp;rdquo; -&amp;gt; &amp;ldquo;AB&amp;rdquo;, &amp;ldquo;CD&amp;rdquo;, &amp;ldquo;EF&amp;rdquo; -&amp;gt; list of chunked prefix hashes&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;prefix_hash &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&amp;#34;&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; chunk &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; chunked_tokens:  &lt;span style=&#34;color:#75715e&#34;&gt;# [&amp;#34;AB&amp;#34;, &amp;#34;CD&amp;#34;, &amp;#34;EF&amp;#34;]&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    chunk_hash &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; hash(prefix_hash &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; chunk)&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    prefix_hash &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; chunk_hash&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# Given chunked prefix hashes, chunked kv cache&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# store&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; chunk_hash, chunk_kv &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; zip(&lt;span style=&#34;color:#f92672&#34;&gt;...&lt;/span&gt;):&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    redis&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;put(chunk_hash, chunk_kv)&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# retrieve&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; chunk_hash &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;...&lt;/span&gt;:&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    kv_chunk &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; redis&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;get(chunk_hash)&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; kv_chunk &lt;span style=&#34;color:#f92672&#34;&gt;is&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;None&lt;/span&gt;:&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;break&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h1 id=&#34;eviction&#34;&gt;&#xA;  Eviction&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#eviction&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;LRU, LFU&amp;hellip;&lt;/li&gt;&#xA;&lt;li&gt;&amp;ldquo;ABCDEF&amp;rdquo; &amp;ndash;&amp;gt; [&amp;ldquo;AB&amp;rdquo;, KV1], [&amp;ldquo;CD&amp;rdquo;, KV2], [&amp;ldquo;EF&amp;rdquo;, KV3]&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h1 id=&#34;参考&#34;&gt;&#xA;  参考&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e5%8f%82%e8%80%83&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://www.notion.so/EP05-vllm-Prefix-Caching-1fbbfe21108480db82c8d7cb6573eb5e?pvs=21&#34;&gt;&lt;strong&gt;[EP05] vllm从开源到部署，Prefix Caching和开源答疑&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(实现)[vLLM]V1 &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMv1/</link>
+      <pubDate>Tue, 14 May 2024 19:53:42 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMv1/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;vllm-v1&#34;&gt;&#xA;  vLLM V1&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#vllm-v1&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/vLLM-V1-21bbfe21108480e697c8c4fdc1550ddc?source=copy_link&#34;&gt;(实现)[vLLM]V1&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>MaaS 监控</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/LLMOps/MaaS/gptMaaSMonitor/</link>
+      <pubDate>Tue, 23 Apr 2024 21:54:43 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/LLMOps/MaaS/gptMaaSMonitor/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;maas-监控&#34;&gt;&#xA;  MaaS 监控&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#maas-%e7%9b%91%e6%8e%a7&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/MaaS-1d2bfe2110848079b06afffaea367fe9?pvs=4&#34;&gt;MaaS 监控&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>LLM PaaS</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/LLMOps/MaaS/gptLLMOpsPaaS/</link>
+      <pubDate>Tue, 26 Sep 2023 23:18:45 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/LLMOps/MaaS/gptLLMOpsPaaS/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;llm-paas&#34;&gt;&#xA;  LLM PaaS&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#llm-paas&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/9ddf2032d70b4722ad34a48cb305d80b?pvs=4&#34;&gt;LLM PaaS&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理)张量并行(TP) &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/TP/TrainTensorParallelism/</link>
+      <pubDate>Fri, 08 Sep 2023 19:11:17 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/TP/TrainTensorParallelism/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;张量并行tp&#34;&gt;&#xA;  张量并行(TP)&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e5%bc%a0%e9%87%8f%e5%b9%b6%e8%a1%8ctp&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/TP-35acabf325004c16b9ce93f82cb175c2?pvs=4&#34;&gt;(原理)张量并行(TP)&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理|实战)流水线并行(PP) &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/PP/TrainPipelineParallelism/</link>
+      <pubDate>Fri, 08 Sep 2023 19:08:23 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/PP/TrainPipelineParallelism/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;流水线并行pp&#34;&gt;&#xA;  流水线并行(PP)&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e6%b5%81%e6%b0%b4%e7%ba%bf%e5%b9%b6%e8%a1%8cpp&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/PP-f528f9a456184d1db006808039c0d2ee?pvs=4&#34;&gt;(原理|实战)流水线并行(PP)&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理)Streaming LLM &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/Sparse-Attention/gptInferKVCacheStreamingLLM/</link>
+      <pubDate>Sat, 02 Sep 2023 23:07:02 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/Sparse-Attention/gptInferKVCacheStreamingLLM/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;streaming-llm&#34;&gt;&#xA;  Streaming LLM&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#streaming-llm&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/StreamingLLM-5141d463ddf84b4783c369459c71eec8?pvs=4&#34;&gt;Streaming LLM&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>推理常见参数 &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E5%85%B6%E4%BB%96/gptTemperature/</link>
+      <pubDate>Thu, 30 Mar 2023 23:25:05 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E5%85%B6%E4%BB%96/gptTemperature/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;推理常见参数&#34;&gt;&#xA;  推理常见参数&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e6%8e%a8%e7%90%86%e5%b8%b8%e8%a7%81%e5%8f%82%e6%95%b0&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/4200b90adfd246ab93bfb1b330aa1bb2?pvs=4&#34;&gt;推理常见参数&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理)分布式训练 &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/Overview/TrainParallelism/</link>
+      <pubDate>Fri, 06 Jan 2023 05:51:54 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/Overview/TrainParallelism/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;分布式训练&#34;&gt;&#xA;  分布式训练&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e5%88%86%e5%b8%83%e5%bc%8f%e8%ae%ad%e7%bb%83&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/b23e09b21dee4e7595122d2c5f3943ae?pvs=4&#34;&gt;(原理)分布式训练&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,2547 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="
+
+
+  Feature
+  #
+
+
+
+Distributed Inference
+
+
+Why distributed inference?
+
+
+Infra-side
+
+
+Communication device:
+
+NVLink: direct communication between GPUs
+Infinity Band: High-speed connection between nodes
+RDMA: Remote direct memory access
+
+RDMA NIC
+Software solution
+Key advantage: bypass operating system / zero copy
+
+
+
+
+
+Communication library:
+dlms/distributed/device_communicators
+
+PyDCL: communication for NVIDIA
+shared memory : OS
+custom allreduce - A kernel jsut for all reduce operation
+
+Before:
+
+0 machine: [0]
+1 machine: [1]
+2 machine: [2]
+3 machine: [3]
+
+
+After:
+
+0 machine: [0,1,2,3]
+1 machine: [0,1,2,3]
+2 machine: [0,1,2,3]
+3 machine: [0,1,2,3]
+
+
+
+
+torch.distributed : provide wide support to a list of communication library
+
+
+
+GroupCoordinator">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMDist/">
+  <meta property="og:site_name" content="MLSys">
+  <meta property="og:title" content="(实现)[vLLM]分布式 *">
+  <meta property="og:description" content="Feature # Distributed Inference
+Why distributed inference?
+Infra-side
+Communication device:
+NVLink: direct communication between GPUs Infinity Band: High-speed connection between nodes RDMA: Remote direct memory access RDMA NIC Software solution Key advantage: bypass operating system / zero copy Communication library:
+dlms/distributed/device_communicators PyDCL: communication for NVIDIA shared memory : OS custom allreduce - A kernel jsut for all reduce operation Before: 0 machine: [0] 1 machine: [1] 2 machine: [2] 3 machine: [3] After: 0 machine: [0,1,2,3] 1 machine: [0,1,2,3] 2 machine: [0,1,2,3] 3 machine: [0,1,2,3] torch.distributed : provide wide support to a list of communication library GroupCoordinator">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="website">
+<title>(实现)[vLLM]分布式 * | MLSys</title>
+<link rel="icon" href="/www6vMLSys/favicon.png" >
+<link rel="manifest" href="/www6vMLSys/manifest.json">
+<link rel="canonical" href="https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMDist/">
+<link rel="stylesheet" href="/www6vMLSys/book.min.6c8b9d2a1fc95075ed7da46ca81060b39add8fff6741ac51259f768929281e2c.css" integrity="sha256-bIudKh/JUHXtfaRsqBBgs5rdj/9nQaxRJZ92iSkoHiw=" crossorigin="anonymous">
+  <script defer src="/www6vMLSys/fuse.min.js"></script>
+  <script defer src="/www6vMLSys/en.search.min.8a48a87ac04e77b03adebe35be8d1a27a08c5237e42759e78c9cff823366155b.js" integrity="sha256-ikioesBOd7A63r41vo0aJ6CMUjfkJ1nnjJz/gjNmFVs=" crossorigin="anonymous"></script>
+<link rel="alternate" type="application/rss+xml" href="https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMDist/index.xml" title="MLSys" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/www6vMLSys/"><span>MLSys</span>
+  </a>
+</h2>
+
+
+<div class="book-search hidden">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+<script>document.querySelector(".book-search").classList.remove("hidden")</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-bf23c006d2140684cc90ded82ec74653" class="toggle" checked />
+    <label for="section-bf23c006d2140684cc90ded82ec74653" class="flex justify-between">
+      <a role="button" class="">Inference</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-e2782e122236beb02b611a4b4376c5ba" class="toggle"  />
+    <label for="section-e2782e122236beb02b611a4b4376c5ba" class="flex justify-between">
+      <a role="button" class="">框架</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/gptInferFramework/" class="">(原理)推理-框架</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/gptInferFrameworkPractice/" class="">(实战)推理-lmdeploy</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/gptInferTensorRT/" class="">(原理|实战) TensorRT-LLM &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/gptInferRay/" class="">(原理)推理 Ray</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/gptInferRayPractice/" class="">(实战)推理 Ray</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-280e12f1588c5189fc8326fb4998fa2a" class="toggle" checked />
+    <label for="section-280e12f1588c5189fc8326fb4998fa2a" class="flex justify-between">
+      <a role="button" class="">框架vLLM</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLM/" class="">(原理) vLLM  &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMPractice/" class="">(实战) vLLM &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInferSpeculativeDecodingvLLM/" class="">(实战)[vLLM]投机解码 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInferKVCacheRadixAttention/" class="">(原理|实战) [vLLM]Prefix Cache &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMCode/" class="">(实现)[vLLM]整体架构 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMDist/" class="active">(实现)[vLLM]分布式 *</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMPD/" class="">(实现)[vLLM]PD分离 *</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMSpeculativeDecode/" class="">(实现)[vLLM]投机解码 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMPrefixCaching/" class="">(实现)[vLLM]Prefix Caching &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMv1/" class="">(实现)[vLLM]V1 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-d659e6fde8f172d5e6d65a0b2bc79031" class="toggle"  />
+    <label for="section-d659e6fde8f172d5e6d65a0b2bc79031" class="flex justify-between">
+      <a role="button" class="">Inference 优化</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-8cc4904ea51a1aff793d6755622ea54b" class="toggle"  />
+    <label for="section-8cc4904ea51a1aff793d6755622ea54b" class="flex justify-between">
+      <a role="button" class="">Overview</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/Overview/gptInference/" class="">(总结)推理优化</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/Overview/gptInferenceSurvey/" class="">(综述)推理优化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/Overview/gptInferenceSurvey1/" class="">(综述)推理优化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-75fffd45c4e3af9b253513bcf99a1e7e" class="toggle"  />
+    <label for="section-75fffd45c4e3af9b253513bcf99a1e7e" class="flex justify-between">
+      <a role="button" class="">系统层优化</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-2c31e36f5b0e9f84d75738e603bcdfd3" class="toggle"  />
+    <label for="section-2c31e36f5b0e9f84d75738e603bcdfd3" class="flex justify-between">
+      <a role="button" class="">FlashAttention</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/FlashAttention/gptFlashAttention/" class="">(原理)Flash Attention &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/FlashAttention/gptInferFlashAttention2/" class="">(原理)FlashAttention2 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/FlashAttention/gptInferFlashDecoding/" class="">(原理)Flash Decoding &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-903dc4762e53fc23899b8b41e24d4e3d" class="toggle"  />
+    <label for="section-903dc4762e53fc23899b8b41e24d4e3d" class="flex justify-between">
+      <a role="button" class="">SpeculativeDecoding</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/gptInferSpeculativeDecoding/" class="">Speculative Decoding &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/gptInferSpeculativeDecodingSurvey/" class="">(Survey)Speculative Decoding &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/gptInferMedusa/" class="">(原理|实现)Medusa &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/gptInferEagle/" class="">EAGLE &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/gptInferSpecInfer/" class="">SpecInfer &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-9c3aeee5bee9d8a45b6959715db1f460" class="toggle"  />
+    <label for="section-9c3aeee5bee9d8a45b6959715db1f460" class="flex justify-between">
+      <a role="button" class="">KVCache</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/KVCache/gptInferKVCache/" class="">(原理|实现) KV Cache &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/KVCache/gptInferKVCacheOptimize/" class="">(原理)KV Cache 优化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-a0d66f65a2c7b4e05694f79579d1f686" class="toggle"  />
+    <label for="section-a0d66f65a2c7b4e05694f79579d1f686" class="flex justify-between">
+      <a role="button" class="">Compress</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/KVCache/Compress/gptInferKVCacheQuantization/" class="">(原理)KV Cache 量化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-cc89fec5cef17da80426c3ab29dc55f2" class="toggle"  />
+    <label for="section-cc89fec5cef17da80426c3ab29dc55f2" class="flex justify-between">
+      <a role="button" class="">Batch</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/Batch/gptInferContinuousBatching/" class="">Continuous Batching &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/Batch/gptInferChunkedPrefill/" class="">Chunked Prefill &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-a86001c551f91c9d6742692d85235ce9" class="toggle"  />
+    <label for="section-a86001c551f91c9d6742692d85235ce9" class="flex justify-between">
+      <a role="button" class="">PD 分离</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/gptInferDistServe/" class="">DistServe &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/gptInferMooncake/" class="">(原理|实现)Mooncake &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/gptInferLlumnix/" class="">(原理)Llumnix &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0a8aa3616751d94d876ab5a7638dfee2" class="toggle"  />
+    <label for="section-0a8aa3616751d94d876ab5a7638dfee2" class="flex justify-between">
+      <a role="button" class="">模型层优化</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-5a6462bfaadf7adfe8b66d09bc58303b" class="toggle"  />
+    <label for="section-5a6462bfaadf7adfe8b66d09bc58303b" class="flex justify-between">
+      <a role="button" class="">量化</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-2d87a22f91be75b78e6616958283b668" class="toggle"  />
+    <label for="section-2d87a22f91be75b78e6616958283b668" class="flex justify-between">
+      <a role="button" class="">Overview</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/Overview/gptQuantizationSurvey/" class="">(Survey)Quantization &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/Overview/gptQuantization/" class="">(原理)量化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-88d52cf49c9a5295f0c154e14ccc03a5" class="toggle"  />
+    <label for="section-88d52cf49c9a5295f0c154e14ccc03a5" class="flex justify-between">
+      <a role="button" class="">PTQ</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/gptQuantizationWeight/" class="">(原理)PTQ-Weight Only &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-359a9d256fc5cc0b6a903de93454a7d5" class="toggle"  />
+    <label for="section-359a9d256fc5cc0b6a903de93454a7d5" class="flex justify-between">
+      <a role="button" class="">Weight Only</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/Weight-Only/gptQuantizationGPTQ/" class="">(原理|实战|实现)GPTQ &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/Weight-Only/gptQuantizationAWQ/" class="">(原理|实战)AWQ &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-80f1cfdbb0d11740a87708737d9705d1" class="toggle"  />
+    <label for="section-80f1cfdbb0d11740a87708737d9705d1" class="flex justify-between">
+      <a role="button" class="">Weight&amp;Activation</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/gptQuantizationInt8/gptQuantizationInt8/" class="">(原理|实战)LLM.int8() &#43;</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/gptQuantizationSmoothQuant/gptQuantizationSmoothQuant/" class="">(原理)SmoothQuant &#43;</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/gptQuantizationFP8/gptQuantizationFP8/" class="">(原理)FP8 &#43;</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0fae359329dcf38fe41928a875455a3a" class="toggle"  />
+    <label for="section-0fae359329dcf38fe41928a875455a3a" class="flex justify-between">
+      <a role="button" class="">Practice</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/Practice/gptQuantizationPractice/" class="">(实战)量化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-1bda5152ea8335d4cdc6a16fa79ec8a2" class="toggle"  />
+    <label for="section-1bda5152ea8335d4cdc6a16fa79ec8a2" class="flex justify-between">
+      <a role="button" class="">Sparse Attention</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/Sparse-Attention/gptInferKVCacheStreamingLLM/" class="">(原理)Streaming LLM &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-92274cd592f961ae92a826acd4a198e7" class="toggle"  />
+    <label for="section-92274cd592f961ae92a826acd4a198e7" class="flex justify-between">
+      <a role="button" class="">其他</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E5%85%B6%E4%BB%96/gptTemperature/" class="">推理常见参数 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-f4030e06a7cd0b4d4f01c69f804511e3" class="toggle"  />
+    <label for="section-f4030e06a7cd0b4d4f01c69f804511e3" class="flex justify-between">
+      <a role="button" class="">Training</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-a3302ad31d47b6b33edaefb16b9595c8" class="toggle"  />
+    <label for="section-a3302ad31d47b6b33edaefb16b9595c8" class="flex justify-between">
+      <a role="button" class="">分布式</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-ca35777dc3dc1df2cd1c182701911ffb" class="toggle"  />
+    <label for="section-ca35777dc3dc1df2cd1c182701911ffb" class="flex justify-between">
+      <a role="button" class="">Overview</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/Overview/TrainParallelism/" class="">(原理)分布式训练 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-ae4385c3230d5a72d0fd739cfe337330" class="toggle"  />
+    <label for="section-ae4385c3230d5a72d0fd739cfe337330" class="flex justify-between">
+      <a role="button" class="">DP</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainZeroDeepspeed/" class="">(原理) Deepspeed Zero &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainDistributedPractice/" class="">(实战)DeepSpeed Training &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainDDP/" class="">(原理|实战)DDP &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainFSDP/" class="">(原理|实战)FSDP &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0cfa5a342351431197e06859d2a0b5dd" class="toggle"  />
+    <label for="section-0cfa5a342351431197e06859d2a0b5dd" class="flex justify-between">
+      <a role="button" class="">TP</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/TP/TrainTensorParallelism/" class="">(原理)张量并行(TP) &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-bf4278f3920999fc3bb13908e22d34bb" class="toggle"  />
+    <label for="section-bf4278f3920999fc3bb13908e22d34bb" class="flex justify-between">
+      <a role="button" class="">PP</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/PP/TrainPipelineParallelism/" class="">(原理|实战)流水线并行(PP) &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-30fd02881b0903fc1d9b6c52304de566" class="toggle"  />
+    <label for="section-30fd02881b0903fc1d9b6c52304de566" class="flex justify-between">
+      <a role="button" class="">混合并行</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/%E6%B7%B7%E5%90%88%E5%B9%B6%E8%A1%8C/TrainMegatron/" class="">(原理)Megatron &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/%E6%B7%B7%E5%90%88%E5%B9%B6%E8%A1%8C/TrainHybridParallel/" class="">(原理)混合并行 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-25028652b0e6469d4e603a946ea402c4" class="toggle"  />
+    <label for="section-25028652b0e6469d4e603a946ea402c4" class="flex justify-between">
+      <a role="button" class="">低精度</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/LowPrecision/gptLowPrecision/" class="">低精度训练 &#43;</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/Precision/gptPrecision/" class="">(原理|实战)混合精度 &#43;</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-4c59ddc3d219d63b3dde79b574842e09" class="toggle"  />
+    <label for="section-4c59ddc3d219d63b3dde79b574842e09" class="flex justify-between">
+      <a role="button" class="">LLMOps</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-7ebdcb9a1f5f42cca0e13037c0b12b5d" class="toggle"  />
+    <label for="section-7ebdcb9a1f5f42cca0e13037c0b12b5d" class="flex justify-between">
+      <a role="button" class="">MaaS</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/LLMOps/MaaS/gptMaaSMonitor/" class="">MaaS 监控</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/LLMOps/MaaS/gptLLMOpsPaaS/" class="">LLM PaaS</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/LLMOps/LLamaFactory/" class="">LLama-Factory</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/LLMOps/GPUComputing/" class="">显存估算</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/LLMOps/LLMOps/" class="">LLMOps</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-9484c8ef5479ebf1810697d279568858" class="toggle"  />
+    <label for="section-9484c8ef5479ebf1810697d279568858" class="flex justify-between">
+      <a role="button" class="">GPU</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/LLMOps/GPU/GPUk8s/" class="">(实战)K8s部署GPU</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/LLMOps/GPU/GPUMetrics/" class="">GPU 指标&amp;监控</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/LLMOps/GPU/GPU/" class="">GPU 算力平台</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-542e0883d2790694810f81c484e2ab13" class="toggle"  />
+    <label for="section-542e0883d2790694810f81c484e2ab13" class="flex justify-between">
+      <a role="button" class="">AI平台</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/LLMOps/AI%E5%B9%B3%E5%8F%B0/aiPlatform/" class="">(原理)AI平台</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/LLMOps/AI%E5%B9%B3%E5%8F%B0/aiObserve/" class="">(阿里)AI 应用观测</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-8f868c3c013a787783e65df936258f6a" class="toggle"  />
+    <label for="section-8f868c3c013a787783e65df936258f6a" class="flex justify-between">
+      <a role="button" class="">AI网关</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/LLMOps/AI%E5%B9%B3%E5%8F%B0/AI%E7%BD%91%E5%85%B3/LiteLLM/" class="">(实现)LiteLLM</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/LLMOps/AI%E5%B9%B3%E5%8F%B0/AI%E7%BD%91%E5%85%B3/aiGateway/" class="">(阿里) AI 网关</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/www6vMLSys/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <h3>(实现)[vLLM]分布式 *</h3>
+
+  <label for="toc-control">
+    
+    <img src="/www6vMLSys/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#feature">Feature</a></li>
+      </ul>
+    </li>
+    <li><a href="#代码">代码</a>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#tp">TP</a></li>
+            <li><a href="#tp-in-llama">TP in llama</a></li>
+            <li><a href="#pp">PP</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#参考">参考</a></li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><p></p>
+<!-- more -->
+<h2 id="feature">
+  Feature
+  <a class="anchor" href="#feature">#</a>
+</h2>
+<ul>
+<li>
+<p>Distributed Inference</p>
+<ul>
+<li>
+<p>Why distributed inference?</p>
+<ul>
+<li>
+<p>Infra-side</p>
+<ul>
+<li>
+<p>Communication device:</p>
+<ul>
+<li>NVLink: direct communication between GPUs</li>
+<li>Infinity Band: High-speed connection between nodes</li>
+<li>RDMA: Remote direct memory access
+<ul>
+<li>RDMA NIC</li>
+<li>Software solution</li>
+<li>Key advantage: bypass operating system / zero copy</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>Communication library:</p>
+<pre tabindex="0"><code>dlms/distributed/device_communicators
+</code></pre><ul>
+<li>PyDCL: communication for NVIDIA</li>
+<li>shared memory : OS</li>
+<li>custom allreduce - A kernel jsut for all reduce operation
+<ul>
+<li>Before:
+<ul>
+<li>0 machine: [0]</li>
+<li>1 machine: [1]</li>
+<li>2 machine: [2]</li>
+<li>3 machine: [3]</li>
+</ul>
+</li>
+<li>After:
+<ul>
+<li>0 machine: [0,1,2,3]</li>
+<li>1 machine: [0,1,2,3]</li>
+<li>2 machine: [0,1,2,3]</li>
+<li>3 machine: [0,1,2,3]</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>torch.distributed : provide wide support to a list of communication library</li>
+</ul>
+</li>
+<li>
+<p>GroupCoordinator</p>
+</li>
+</ul>
+</li>
+<li>
+<p>Algorithm-side</p>
+<ul>
+<li>[TP]</li>
+<li><code>vlms/model_executor/models/llama.py</code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>Pipeline parallel</p>
+<ul>
+<li>Much less requirement to device&ndash;device connection hardware</li>
+<li>Cost: not improve latency
+<ul>
+<li>Tensor parallel: directly improve latency</li>
+</ul>
+</li>
+<li>Algorithm-side:
+<ul>
+<li>Worker in charge of a subset of layers
+<ul>
+<li><code>~~vlms/model_executor/models/llama.py~~</code></li>
+<li><code>vlms/model_executor/models/llama.py</code></li>
+<li>self.start_layer &ndash;&gt; self.end_layer</li>
+<li>between workers: communicate IntermediateTensor</li>
+<li>get_pp_group()</li>
+<li><code>vlms/worker/model_runner.py</code>: search <code>get_pp_group()</code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>Expert parallel &amp; data parallel (advanced)</p>
+<ul>
+<li>Why expert parallel:
+<ul>
+<li>Mistral / Mixtral / Deepseek model: Mixture of Experts (MoE)
+<ul>
+<li>Only for linear layers</li>
+<li>Normal MoE: all weights participant in computation</li>
+<li>MoE: expert as granularity, only a small subset of experts participate the computation, this subset of experts may be different between request</li>
+</ul>
+</li>
+<li>Place different experts onto different GPUs &ndash;&gt; expert parallel</li>
+<li>Algorithm:
+<ul>
+<li>Expert parallel:
+<ul>
+<li>Shuffle (deepsp communication kernel)</li>
+<li>Forward</li>
+<li>Shuffle back</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>TP is for attention, EP is for linear layers.</li>
+<li>Shared expert will have high load &ndash;&gt; duplicate shared expert.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>DP (data parallel)</p>
+<ul>
+<li>max tp &laquo; ep needed</li>
+<li>tp &lt; # attention head</li>
+<li>basic linear layer &ldquo;degree of parallism&rdquo; &raquo; basic attention layer tp &ldquo;degree of parallism&rdquo;, parallel request to raise attention &ldquo;degree of parallism&rdquo;</li>
+<li>Difficult to implement in practice:
+<ul>
+<li>request padding to avoid deadlock.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>Types of distributed inference: TP / PP / EP / DP</p>
+</li>
+<li>
+<p>PD Disaggregation</p>
+</li>
+</ul>
+<h1 id="代码">
+  代码
+  <a class="anchor" href="#%e4%bb%a3%e7%a0%81">#</a>
+</h1>
+<h3 id="tp">
+  TP
+  <a class="anchor" href="#tp">#</a>
+</h3>
+<p><a href="https://github.com/vllm-project/vllm/blob/main/vllm/distributed/parallel_state.py">https://github.com/vllm-project/vllm/blob/main/vllm/distributed/parallel_state.py</a></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>_TP: Optional[GroupCoordinator] <span style="color:#f92672">=</span> <span style="color:#66d9ef">None</span>  <span style="color:#75715e">### TP</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get_tp_group</span>() <span style="color:#f92672">-&gt;</span> GroupCoordinator:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">assert</span> _TP <span style="color:#f92672">is</span> <span style="color:#f92672">not</span> <span style="color:#66d9ef">None</span>, (<span style="color:#e6db74">&#34;tensor model parallel group is not initialized&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> _TP
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">GroupCoordinator</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    PyTorch ProcessGroup wrapper for a group of processes.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    PyTorch ProcessGroup is bound to one specific communication backend,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        e.g. NCCL, Gloo, MPI, etc.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    GroupCoordinator takes charge of all the communication operations among
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        the processes in the group. It manages both CPU and device
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        communication.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># available attributes:</span>
+</span></span><span style="display:flex;"><span>    rank: int  <span style="color:#75715e"># global rank</span>
+</span></span><span style="display:flex;"><span>    ranks: list[int]  <span style="color:#75715e"># global ranks in the group</span>
+</span></span><span style="display:flex;"><span>    world_size: int  <span style="color:#75715e"># size of the group</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># difference between `local_rank` and `rank_in_group`:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># if we have a group of size 4 across two nodes:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Process | Node | Rank | Local Rank | Rank in Group</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">#   0     |   0  |  0   |     0      |       0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">#   1     |   0  |  1   |     1      |       1</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">#   2     |   1  |  2   |     0      |       2</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">#   3     |   1  |  3   |     1      |       3</span>
+</span></span><span style="display:flex;"><span>    local_rank: int  <span style="color:#75715e"># local rank used to assign devices</span>
+</span></span><span style="display:flex;"><span>    rank_in_group: int  <span style="color:#75715e"># rank inside the group</span>
+</span></span><span style="display:flex;"><span>    cpu_group: ProcessGroup  <span style="color:#75715e"># group for CPU communication</span>
+</span></span><span style="display:flex;"><span>    device_group: ProcessGroup  <span style="color:#75715e"># group for device communication</span>
+</span></span><span style="display:flex;"><span>    use_device_communicator: bool  <span style="color:#75715e"># whether to use device communicator</span>
+</span></span><span style="display:flex;"><span>    device_communicator: DeviceCommunicatorBase  <span style="color:#75715e"># device communicator</span>
+</span></span><span style="display:flex;"><span>    mq_broadcaster: Optional[Any]  <span style="color:#75715e"># shared memory broadcaster</span>
+</span></span></code></pre></div><hr>
+<p><a href="https://github.com/vllm-project/vllm/blob/main/vllm/distributed/device_communicators/pynccl.py">https://github.com/vllm-project/vllm/blob/main/vllm/distributed/device_communicators/pynccl.py</a></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">all_reduce</span>(self,
+</span></span><span style="display:flex;"><span>                   in_tensor: torch<span style="color:#f92672">.</span>Tensor,
+</span></span><span style="display:flex;"><span>                   op: ReduceOp <span style="color:#f92672">=</span> ReduceOp<span style="color:#f92672">.</span>SUM,
+</span></span><span style="display:flex;"><span>                   stream<span style="color:#f92672">=</span><span style="color:#66d9ef">None</span>) <span style="color:#f92672">-&gt;</span> torch<span style="color:#f92672">.</span>Tensor:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>disabled:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">None</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># nccl communicator created on a specific device</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># will only work on tensors on the same device</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># otherwise it will cause &#34;illegal memory access&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">assert</span> in_tensor<span style="color:#f92672">.</span>device <span style="color:#f92672">==</span> self<span style="color:#f92672">.</span>device, (
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;this nccl communicator is created to work on </span><span style="color:#e6db74">{</span>self<span style="color:#f92672">.</span>device<span style="color:#e6db74">}</span><span style="color:#e6db74">, &#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;but the input tensor is on </span><span style="color:#e6db74">{</span>in_tensor<span style="color:#f92672">.</span>device<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        out_tensor <span style="color:#f92672">=</span> torch<span style="color:#f92672">.</span>empty_like(in_tensor)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> stream <span style="color:#f92672">is</span> <span style="color:#66d9ef">None</span>:
+</span></span><span style="display:flex;"><span>            stream <span style="color:#f92672">=</span> current_stream()
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>nccl<span style="color:#f92672">.</span>ncclAllReduce(buffer_type(in_tensor<span style="color:#f92672">.</span>data_ptr()),
+</span></span><span style="display:flex;"><span>                                buffer_type(out_tensor<span style="color:#f92672">.</span>data_ptr()),
+</span></span><span style="display:flex;"><span>                                in_tensor<span style="color:#f92672">.</span>numel(),
+</span></span><span style="display:flex;"><span>                                ncclDataTypeEnum<span style="color:#f92672">.</span>from_torch(in_tensor<span style="color:#f92672">.</span>dtype),
+</span></span><span style="display:flex;"><span>                                ncclRedOpTypeEnum<span style="color:#f92672">.</span>from_torch(op), self<span style="color:#f92672">.</span>comm,
+</span></span><span style="display:flex;"><span>                                cudaStream_t(stream<span style="color:#f92672">.</span>cuda_stream))
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> out_tensor
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">all_gather</span>(self,
+</span></span><span style="display:flex;"><span>                   output_tensor: torch<span style="color:#f92672">.</span>Tensor,
+</span></span><span style="display:flex;"><span>                   input_tensor: torch<span style="color:#f92672">.</span>Tensor,
+</span></span><span style="display:flex;"><span>                   stream<span style="color:#f92672">=</span><span style="color:#66d9ef">None</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>disabled:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># nccl communicator created on a specific device</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># will only work on tensors on the same device</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># otherwise it will cause &#34;illegal memory access&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">assert</span> input_tensor<span style="color:#f92672">.</span>device <span style="color:#f92672">==</span> self<span style="color:#f92672">.</span>device, (
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;this nccl communicator is created to work on </span><span style="color:#e6db74">{</span>self<span style="color:#f92672">.</span>device<span style="color:#e6db74">}</span><span style="color:#e6db74">, &#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;but the input tensor is on </span><span style="color:#e6db74">{</span>input_tensor<span style="color:#f92672">.</span>device<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> stream <span style="color:#f92672">is</span> <span style="color:#66d9ef">None</span>:
+</span></span><span style="display:flex;"><span>            stream <span style="color:#f92672">=</span> current_stream()
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>nccl<span style="color:#f92672">.</span>ncclAllGather(
+</span></span><span style="display:flex;"><span>            buffer_type(input_tensor<span style="color:#f92672">.</span>data_ptr()),
+</span></span><span style="display:flex;"><span>            buffer_type(output_tensor<span style="color:#f92672">.</span>data_ptr()), input_tensor<span style="color:#f92672">.</span>numel(),
+</span></span><span style="display:flex;"><span>            ncclDataTypeEnum<span style="color:#f92672">.</span>from_torch(input_tensor<span style="color:#f92672">.</span>dtype), self<span style="color:#f92672">.</span>comm,
+</span></span><span style="display:flex;"><span>            cudaStream_t(stream<span style="color:#f92672">.</span>cuda_stream))
+</span></span></code></pre></div><h3 id="tp-in-llama">
+  TP in llama
+  <a class="anchor" href="#tp-in-llama">#</a>
+</h3>
+<p><a href="https://github.com/vllm-project/vllm/blob/main/vllm/model_executor/models/llama.py">https://github.com/vllm-project/vllm/blob/main/vllm/model_executor/models/llama.py</a></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">LlamaAttention</span>(nn<span style="color:#f92672">.</span>Module):
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">__init__</span>(
+</span></span><span style="display:flex;"><span>        self,
+</span></span><span style="display:flex;"><span>        config: LlamaConfig,
+</span></span><span style="display:flex;"><span>        hidden_size: int,
+</span></span><span style="display:flex;"><span>        num_heads: int,
+</span></span><span style="display:flex;"><span>        num_kv_heads: int,
+</span></span><span style="display:flex;"><span>        rope_theta: float <span style="color:#f92672">=</span> <span style="color:#ae81ff">10000</span>,
+</span></span><span style="display:flex;"><span>        rope_scaling: Optional[dict[str, Any]] <span style="color:#f92672">=</span> <span style="color:#66d9ef">None</span>,
+</span></span><span style="display:flex;"><span>        max_position_embeddings: int <span style="color:#f92672">=</span> <span style="color:#ae81ff">8192</span>,
+</span></span><span style="display:flex;"><span>        quant_config: Optional[QuantizationConfig] <span style="color:#f92672">=</span> <span style="color:#66d9ef">None</span>,
+</span></span><span style="display:flex;"><span>        bias: bool <span style="color:#f92672">=</span> <span style="color:#66d9ef">False</span>,
+</span></span><span style="display:flex;"><span>        bias_o_proj: bool <span style="color:#f92672">=</span> <span style="color:#66d9ef">False</span>,
+</span></span><span style="display:flex;"><span>        cache_config: Optional[CacheConfig] <span style="color:#f92672">=</span> <span style="color:#66d9ef">None</span>,
+</span></span><span style="display:flex;"><span>        prefix: str <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>        attn_type: str <span style="color:#f92672">=</span> AttentionType<span style="color:#f92672">.</span>DECODER,
+</span></span><span style="display:flex;"><span>    ) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">None</span>:
+</span></span><span style="display:flex;"><span>        super()<span style="color:#f92672">.</span><span style="color:#a6e22e">__init__</span>()
+</span></span><span style="display:flex;"><span>        layer_idx <span style="color:#f92672">=</span> extract_layer_index(prefix)
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>hidden_size <span style="color:#f92672">=</span> hidden_size
+</span></span><span style="display:flex;"><span>        tp_size <span style="color:#f92672">=</span> get_tensor_model_parallel_world_size()  <span style="color:#75715e">### </span>
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>total_num_heads <span style="color:#f92672">=</span> num_heads
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">assert</span> self<span style="color:#f92672">.</span>total_num_heads <span style="color:#f92672">%</span> tp_size <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>num_heads <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>total_num_heads <span style="color:#f92672">//</span> tp_size   <span style="color:#75715e">### </span>
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>total_num_kv_heads <span style="color:#f92672">=</span> num_kv_heads
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>total_num_kv_heads <span style="color:#f92672">&gt;=</span> tp_size:
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># Number of KV heads is greater than TP size, so we partition</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># the KV heads across multiple tensor parallel GPUs.</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">assert</span> self<span style="color:#f92672">.</span>total_num_kv_heads <span style="color:#f92672">%</span> tp_size <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># Number of KV heads is less than TP size, so we replicate</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># the KV heads across multiple tensor parallel GPUs.</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">assert</span> tp_size <span style="color:#f92672">%</span> self<span style="color:#f92672">.</span>total_num_kv_heads <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>num_kv_heads <span style="color:#f92672">=</span> max(<span style="color:#ae81ff">1</span>, self<span style="color:#f92672">.</span>total_num_kv_heads <span style="color:#f92672">//</span> tp_size)  <span style="color:#75715e">### </span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># MistralConfig has an optional head_dim introduced by Mistral-Nemo</span>
+</span></span><span style="display:flex;"><span>        head_dim <span style="color:#f92672">=</span> getattr(config, <span style="color:#e6db74">&#34;head_dim&#34;</span>, <span style="color:#66d9ef">None</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> head_dim <span style="color:#f92672">is</span> <span style="color:#66d9ef">None</span>:
+</span></span><span style="display:flex;"><span>            head_dim <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>hidden_size <span style="color:#f92672">//</span> self<span style="color:#f92672">.</span>total_num_heads
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>head_dim <span style="color:#f92672">=</span> head_dim
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># Phi models introduced a partial_rotary_factor parameter in the config</span>
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>partial_rotary_factor <span style="color:#f92672">=</span> getattr(config, <span style="color:#e6db74">&#34;partial_rotary_factor&#34;</span>,
+</span></span><span style="display:flex;"><span>                                             <span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>q_size <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>num_heads <span style="color:#f92672">*</span> self<span style="color:#f92672">.</span>head_dim
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>kv_size <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>num_kv_heads <span style="color:#f92672">*</span> self<span style="color:#f92672">.</span>head_dim
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>scaling <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>head_dim<span style="color:#f92672">**-</span><span style="color:#ae81ff">0.5</span>
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>rope_theta <span style="color:#f92672">=</span> rope_theta
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>max_position_embeddings <span style="color:#f92672">=</span> max_position_embeddings
+</span></span></code></pre></div><h3 id="pp">
+  PP
+  <a class="anchor" href="#pp">#</a>
+</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#a6e22e">@support_torch_compile</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">LlamaModel</span>(nn<span style="color:#f92672">.</span>Module):
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">__init__</span>(self,
+</span></span><span style="display:flex;"><span>                 <span style="color:#f92672">*</span>,
+</span></span><span style="display:flex;"><span>                 vllm_config: VllmConfig,
+</span></span><span style="display:flex;"><span>                 prefix: str <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>                 layer_type: type[nn<span style="color:#f92672">.</span>Module] <span style="color:#f92672">=</span> LlamaDecoderLayer):
+</span></span><span style="display:flex;"><span>        super()<span style="color:#f92672">.</span><span style="color:#a6e22e">__init__</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        config <span style="color:#f92672">=</span> vllm_config<span style="color:#f92672">.</span>model_config<span style="color:#f92672">.</span>hf_config
+</span></span><span style="display:flex;"><span>        cache_config <span style="color:#f92672">=</span> vllm_config<span style="color:#f92672">.</span>cache_config
+</span></span><span style="display:flex;"><span>        quant_config <span style="color:#f92672">=</span> vllm_config<span style="color:#f92672">.</span>quant_config
+</span></span><span style="display:flex;"><span>        lora_config <span style="color:#f92672">=</span> vllm_config<span style="color:#f92672">.</span>lora_config
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>config <span style="color:#f92672">=</span> config
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>quant_config <span style="color:#f92672">=</span> quant_config
+</span></span><span style="display:flex;"><span>        lora_vocab <span style="color:#f92672">=</span> (lora_config<span style="color:#f92672">.</span>lora_extra_vocab_size <span style="color:#f92672">*</span>
+</span></span><span style="display:flex;"><span>                      (lora_config<span style="color:#f92672">.</span>max_loras <span style="color:#f92672">or</span> <span style="color:#ae81ff">1</span>)) <span style="color:#66d9ef">if</span> lora_config <span style="color:#66d9ef">else</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>vocab_size <span style="color:#f92672">=</span> config<span style="color:#f92672">.</span>vocab_size <span style="color:#f92672">+</span> lora_vocab
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>org_vocab_size <span style="color:#f92672">=</span> config<span style="color:#f92672">.</span>vocab_size
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> get_pp_group()<span style="color:#f92672">.</span>is_first_rank <span style="color:#f92672">or</span> (config<span style="color:#f92672">.</span>tie_word_embeddings
+</span></span><span style="display:flex;"><span>                                            <span style="color:#f92672">and</span> get_pp_group()<span style="color:#f92672">.</span>is_last_rank):
+</span></span><span style="display:flex;"><span>            self<span style="color:#f92672">.</span>embed_tokens <span style="color:#f92672">=</span> VocabParallelEmbedding(
+</span></span><span style="display:flex;"><span>                self<span style="color:#f92672">.</span>vocab_size,
+</span></span><span style="display:flex;"><span>                config<span style="color:#f92672">.</span>hidden_size,
+</span></span><span style="display:flex;"><span>                org_num_embeddings<span style="color:#f92672">=</span>config<span style="color:#f92672">.</span>vocab_size,
+</span></span><span style="display:flex;"><span>                quant_config<span style="color:#f92672">=</span>quant_config,
+</span></span><span style="display:flex;"><span>            )
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>            self<span style="color:#f92672">.</span>embed_tokens <span style="color:#f92672">=</span> PPMissingLayer()
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>start_layer, self<span style="color:#f92672">.</span>end_layer, self<span style="color:#f92672">.</span>layers <span style="color:#f92672">=</span> make_layers( <span style="color:#75715e">## start_layer end_layer</span>
+</span></span><span style="display:flex;"><span>            config<span style="color:#f92672">.</span>num_hidden_layers,
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">lambda</span> prefix: layer_type(config<span style="color:#f92672">=</span>config,
+</span></span><span style="display:flex;"><span>                                      cache_config<span style="color:#f92672">=</span>cache_config,
+</span></span><span style="display:flex;"><span>                                      quant_config<span style="color:#f92672">=</span>quant_config,
+</span></span><span style="display:flex;"><span>                                      prefix<span style="color:#f92672">=</span>prefix),
+</span></span><span style="display:flex;"><span>            prefix<span style="color:#f92672">=</span><span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">{</span>prefix<span style="color:#e6db74">}</span><span style="color:#e6db74">.layers&#34;</span>,
+</span></span><span style="display:flex;"><span>        )
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> get_pp_group()<span style="color:#f92672">.</span>is_last_rank:
+</span></span><span style="display:flex;"><span>            self<span style="color:#f92672">.</span>norm <span style="color:#f92672">=</span> RMSNorm(config<span style="color:#f92672">.</span>hidden_size, eps<span style="color:#f92672">=</span>config<span style="color:#f92672">.</span>rms_norm_eps)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>            self<span style="color:#f92672">.</span>norm <span style="color:#f92672">=</span> PPMissingLayer()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>aux_hidden_state_layers: tuple[int] <span style="color:#f92672">=</span> tuple()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>make_empty_intermediate_tensors <span style="color:#f92672">=</span> (
+</span></span><span style="display:flex;"><span>            make_empty_intermediate_tensors_factory(
+</span></span><span style="display:flex;"><span>                [<span style="color:#e6db74">&#34;hidden_states&#34;</span>, <span style="color:#e6db74">&#34;residual&#34;</span>], config<span style="color:#f92672">.</span>hidden_size))
+</span></span></code></pre></div><h1 id="参考">
+  参考
+  <a class="anchor" href="#%e5%8f%82%e8%80%83">#</a>
+</h1>
+<p><a href="https://www.notion.so/EP02-vllm-1f4bfe21108480de94fecfa7fe5c474e?pvs=21">[EP02]分布式推理优化，vllm源码解读</a></p>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#feature">Feature</a></li>
+      </ul>
+    </li>
+    <li><a href="#代码">代码</a>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#tp">TP</a></li>
+            <li><a href="#tp-in-llama">TP in llama</a></li>
+            <li><a href="#pp">PP</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#参考">参考</a></li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

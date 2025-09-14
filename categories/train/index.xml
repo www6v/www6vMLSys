@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Train on MLSys</title>
+    <link>https://www6v.github.io/www6vMLSys/categories/train/</link>
+    <description>Recent content in Train on MLSys</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Sun, 26 Nov 2023 23:29:08 +0000</lastBuildDate>
+    <atom:link href="https://www6v.github.io/www6vMLSys/categories/train/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>(原理)Megatron &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/%E6%B7%B7%E5%90%88%E5%B9%B6%E8%A1%8C/TrainMegatron/</link>
+      <pubDate>Sun, 26 Nov 2023 23:03:23 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/%E6%B7%B7%E5%90%88%E5%B9%B6%E8%A1%8C/TrainMegatron/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;megatron&#34;&gt;&#xA;  Megatron&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#megatron&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/Megatron-10bbfe21108480a3890ae6388bcdf834?pvs=4&#34;&gt;(原理)Megatron&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理)混合并行 &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/%E6%B7%B7%E5%90%88%E5%B9%B6%E8%A1%8C/TrainHybridParallel/</link>
+      <pubDate>Sun, 26 Nov 2023 23:29:08 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/%E6%B7%B7%E5%90%88%E5%B9%B6%E8%A1%8C/TrainHybridParallel/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;混合并行&#34;&gt;&#xA;  混合并行&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e6%b7%b7%e5%90%88%e5%b9%b6%e8%a1%8c&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/111bfe2110848026bf8ff0d2c779e3ed?pvs=4&#34;&gt;(原理)混合并行&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理|实战)DDP &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainDDP/</link>
+      <pubDate>Tue, 19 Sep 2023 18:08:48 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainDDP/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;ddp&#34;&gt;&#xA;  DDP&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#ddp&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/DDP-3576fea6254a42c2ab520f5e6c4ccb86?pvs=4&#34;&gt;DDP&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理|实战)FSDP &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainFSDP/</link>
+      <pubDate>Tue, 19 Sep 2023 18:17:13 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainFSDP/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;fsdp&#34;&gt;&#xA;  FSDP&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#fsdp&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/FSDP-2fc101f3b7ac4796b74d5e9287ff8210?pvs=4&#34;&gt;FSDP&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理)张量并行(TP) &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/TP/TrainTensorParallelism/</link>
+      <pubDate>Fri, 08 Sep 2023 19:11:17 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/TP/TrainTensorParallelism/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;张量并行tp&#34;&gt;&#xA;  张量并行(TP)&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e5%bc%a0%e9%87%8f%e5%b9%b6%e8%a1%8ctp&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/TP-35acabf325004c16b9ce93f82cb175c2?pvs=4&#34;&gt;(原理)张量并行(TP)&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理|实战)流水线并行(PP) &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/PP/TrainPipelineParallelism/</link>
+      <pubDate>Fri, 08 Sep 2023 19:08:23 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/PP/TrainPipelineParallelism/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;流水线并行pp&#34;&gt;&#xA;  流水线并行(PP)&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e6%b5%81%e6%b0%b4%e7%ba%bf%e5%b9%b6%e8%a1%8cpp&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/PP-f528f9a456184d1db006808039c0d2ee?pvs=4&#34;&gt;(原理|实战)流水线并行(PP)&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>(原理)分布式训练 &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/Overview/TrainParallelism/</link>
+      <pubDate>Fri, 06 Jan 2023 05:51:54 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/Overview/TrainParallelism/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;分布式训练&#34;&gt;&#xA;  分布式训练&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e5%88%86%e5%b8%83%e5%bc%8f%e8%ae%ad%e7%bb%83&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/b23e09b21dee4e7595122d2c5f3943ae?pvs=4&#34;&gt;(原理)分布式训练&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

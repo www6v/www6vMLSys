@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>LLMOps on MLSys</title>
+    <link>https://www6v.github.io/www6vMLSys/categories/LLMOps/</link>
+    <description>Recent content in LLMOps on MLSys</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Tue, 26 Sep 2023 23:18:45 +0000</lastBuildDate>
+    <atom:link href="https://www6v.github.io/www6vMLSys/categories/LLMOps/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>LLMOps</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/LLMOps/LLMOps/</link>
+      <pubDate>Wed, 28 Dec 2022 19:52:01 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/LLMOps/LLMOps/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://drive.google.com/file/d/1LZXTrRdrloIqAJT6xaNTl4WQd6y95o7K/view&#34;&gt;LLMOps: Deployment and Learning in Production&lt;/a&gt;&lt;br&gt;&#xA;&lt;a href=&#34;https://fullstackdeeplearning.com/llm-bootcamp/spring-2023/llmops/&#34;&gt;LLMOps: Deployment and Learning in Production&lt;/a&gt;&lt;br&gt;&#xA;&lt;a href=&#34;https://zhuanlan.zhihu.com/p/629589593&#34;&gt;[必读] LLM 应用开发全栈指南&lt;/a&gt; LLMOps&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://zhuanlan.zhihu.com/p/632026876&#34;&gt;了解一下新领域 LLMOps: 大模型运维&lt;/a&gt;&lt;br&gt;&#xA;&lt;a href=&#34;https://wandb.ai/site/articles/understanding-llmops-large-language-model-operations&#34;&gt;Understanding LLMOps: Large Language Model Operations&lt;/a&gt;&lt;/li&gt;&#xA;&lt;/ol&gt;</description>
+    </item>
+    <item>
+      <title>LLM PaaS</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/LLMOps/MaaS/gptLLMOpsPaaS/</link>
+      <pubDate>Tue, 26 Sep 2023 23:18:45 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/LLMOps/MaaS/gptLLMOpsPaaS/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;llm-paas&#34;&gt;&#xA;  LLM PaaS&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#llm-paas&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/9ddf2032d70b4722ad34a48cb305d80b?pvs=4&#34;&gt;LLM PaaS&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

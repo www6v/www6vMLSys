@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Precision on MLSys</title>
+    <link>https://www6v.github.io/www6vMLSys/tags/Precision/</link>
+    <description>Recent content in Precision on MLSys</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Thu, 01 Feb 2024 22:29:42 +0000</lastBuildDate>
+    <atom:link href="https://www6v.github.io/www6vMLSys/tags/Precision/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>(原理|实战)混合精度 &#43;</title>
+      <link>https://www6v.github.io/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/Precision/gptPrecision/</link>
+      <pubDate>Thu, 01 Feb 2024 22:29:42 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/Precision/gptPrecision/</guid>
+      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;混合精度&#34;&gt;&#xA;  混合精度&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e6%b7%b7%e5%90%88%e7%b2%be%e5%ba%a6&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/d27bdf000e7c42eabd288f9d036ea5e7?pvs=4&#34;&gt;(原理|实战)混合精度&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

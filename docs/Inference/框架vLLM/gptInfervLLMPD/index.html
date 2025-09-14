@@ -1,0 +1,2505 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="
+
+
+  PD disaggregation
+  #
+
+
+  What&rsquo;s Prefill and Decode
+  #
+
+
+prefill:
+
+process input prompt, generate KV cache
+
+
+decode:
+
+generate tokens based on the KV cache
+
+
+
+
+  Why PD disaggregation
+  #
+
+
+
+Prefill:
+
+attention — N tokens QKV — generate KV cache  takes a long time
+
+
+
+Decode:
+
+attention N KV, 1 Q — generate a new token  very fast
+
+
+
+initial logic
+prioritize prefill
+
+
+problem
+prefill will stop other request&rsquo;s decode">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMPD/">
+  <meta property="og:site_name" content="MLSys">
+  <meta property="og:title" content="(实现)[vLLM]PD分离 *">
+  <meta property="og:description" content="PD disaggregation # What’s Prefill and Decode # prefill: process input prompt, generate KV cache decode: generate tokens based on the KV cache Why PD disaggregation # Prefill:
+attention — N tokens QKV — generate KV cache takes a long time Decode:
+attention N KV, 1 Q — generate a new token very fast initial logic
+prioritize prefill
+problem
+prefill will stop other request’s decode">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="website">
+<title>(实现)[vLLM]PD分离 * | MLSys</title>
+<link rel="icon" href="/www6vMLSys/favicon.png" >
+<link rel="manifest" href="/www6vMLSys/manifest.json">
+<link rel="canonical" href="https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMPD/">
+<link rel="stylesheet" href="/www6vMLSys/book.min.6c8b9d2a1fc95075ed7da46ca81060b39add8fff6741ac51259f768929281e2c.css" integrity="sha256-bIudKh/JUHXtfaRsqBBgs5rdj/9nQaxRJZ92iSkoHiw=" crossorigin="anonymous">
+  <script defer src="/www6vMLSys/fuse.min.js"></script>
+  <script defer src="/www6vMLSys/en.search.min.8a48a87ac04e77b03adebe35be8d1a27a08c5237e42759e78c9cff823366155b.js" integrity="sha256-ikioesBOd7A63r41vo0aJ6CMUjfkJ1nnjJz/gjNmFVs=" crossorigin="anonymous"></script>
+<link rel="alternate" type="application/rss+xml" href="https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMPD/index.xml" title="MLSys" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/www6vMLSys/"><span>MLSys</span>
+  </a>
+</h2>
+
+
+<div class="book-search hidden">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+<script>document.querySelector(".book-search").classList.remove("hidden")</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-bf23c006d2140684cc90ded82ec74653" class="toggle" checked />
+    <label for="section-bf23c006d2140684cc90ded82ec74653" class="flex justify-between">
+      <a role="button" class="">Inference</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-e2782e122236beb02b611a4b4376c5ba" class="toggle"  />
+    <label for="section-e2782e122236beb02b611a4b4376c5ba" class="flex justify-between">
+      <a role="button" class="">框架</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/gptInferFramework/" class="">(原理)推理-框架</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/gptInferFrameworkPractice/" class="">(实战)推理-lmdeploy</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/gptInferTensorRT/" class="">(原理|实战) TensorRT-LLM &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/gptInferRay/" class="">(原理)推理 Ray</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/gptInferRayPractice/" class="">(实战)推理 Ray</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-280e12f1588c5189fc8326fb4998fa2a" class="toggle" checked />
+    <label for="section-280e12f1588c5189fc8326fb4998fa2a" class="flex justify-between">
+      <a role="button" class="">框架vLLM</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLM/" class="">(原理) vLLM  &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMPractice/" class="">(实战) vLLM &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInferSpeculativeDecodingvLLM/" class="">(实战)[vLLM]投机解码 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInferKVCacheRadixAttention/" class="">(原理|实战) [vLLM]Prefix Cache &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMCode/" class="">(实现)[vLLM]整体架构 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMDist/" class="">(实现)[vLLM]分布式 *</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMPD/" class="active">(实现)[vLLM]PD分离 *</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMSpeculativeDecode/" class="">(实现)[vLLM]投机解码 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMPrefixCaching/" class="">(实现)[vLLM]Prefix Caching &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/gptInfervLLMv1/" class="">(实现)[vLLM]V1 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-d659e6fde8f172d5e6d65a0b2bc79031" class="toggle"  />
+    <label for="section-d659e6fde8f172d5e6d65a0b2bc79031" class="flex justify-between">
+      <a role="button" class="">Inference 优化</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-8cc4904ea51a1aff793d6755622ea54b" class="toggle"  />
+    <label for="section-8cc4904ea51a1aff793d6755622ea54b" class="flex justify-between">
+      <a role="button" class="">Overview</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/Overview/gptInference/" class="">(总结)推理优化</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/Overview/gptInferenceSurvey/" class="">(综述)推理优化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/Overview/gptInferenceSurvey1/" class="">(综述)推理优化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-75fffd45c4e3af9b253513bcf99a1e7e" class="toggle"  />
+    <label for="section-75fffd45c4e3af9b253513bcf99a1e7e" class="flex justify-between">
+      <a role="button" class="">系统层优化</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-2c31e36f5b0e9f84d75738e603bcdfd3" class="toggle"  />
+    <label for="section-2c31e36f5b0e9f84d75738e603bcdfd3" class="flex justify-between">
+      <a role="button" class="">FlashAttention</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/FlashAttention/gptFlashAttention/" class="">(原理)Flash Attention &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/FlashAttention/gptInferFlashAttention2/" class="">(原理)FlashAttention2 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/FlashAttention/gptInferFlashDecoding/" class="">(原理)Flash Decoding &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-903dc4762e53fc23899b8b41e24d4e3d" class="toggle"  />
+    <label for="section-903dc4762e53fc23899b8b41e24d4e3d" class="flex justify-between">
+      <a role="button" class="">SpeculativeDecoding</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/gptInferSpeculativeDecoding/" class="">Speculative Decoding &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/gptInferSpeculativeDecodingSurvey/" class="">(Survey)Speculative Decoding &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/gptInferMedusa/" class="">(原理|实现)Medusa &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/gptInferEagle/" class="">EAGLE &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/gptInferSpecInfer/" class="">SpecInfer &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-9c3aeee5bee9d8a45b6959715db1f460" class="toggle"  />
+    <label for="section-9c3aeee5bee9d8a45b6959715db1f460" class="flex justify-between">
+      <a role="button" class="">KVCache</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/KVCache/gptInferKVCache/" class="">(原理|实现) KV Cache &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/KVCache/gptInferKVCacheOptimize/" class="">(原理)KV Cache 优化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-a0d66f65a2c7b4e05694f79579d1f686" class="toggle"  />
+    <label for="section-a0d66f65a2c7b4e05694f79579d1f686" class="flex justify-between">
+      <a role="button" class="">Compress</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/KVCache/Compress/gptInferKVCacheQuantization/" class="">(原理)KV Cache 量化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-cc89fec5cef17da80426c3ab29dc55f2" class="toggle"  />
+    <label for="section-cc89fec5cef17da80426c3ab29dc55f2" class="flex justify-between">
+      <a role="button" class="">Batch</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/Batch/gptInferContinuousBatching/" class="">Continuous Batching &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/Batch/gptInferChunkedPrefill/" class="">Chunked Prefill &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-a86001c551f91c9d6742692d85235ce9" class="toggle"  />
+    <label for="section-a86001c551f91c9d6742692d85235ce9" class="flex justify-between">
+      <a role="button" class="">PD 分离</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/gptInferDistServe/" class="">DistServe &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/gptInferMooncake/" class="">(原理|实现)Mooncake &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/gptInferLlumnix/" class="">(原理)Llumnix &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0a8aa3616751d94d876ab5a7638dfee2" class="toggle"  />
+    <label for="section-0a8aa3616751d94d876ab5a7638dfee2" class="flex justify-between">
+      <a role="button" class="">模型层优化</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-5a6462bfaadf7adfe8b66d09bc58303b" class="toggle"  />
+    <label for="section-5a6462bfaadf7adfe8b66d09bc58303b" class="flex justify-between">
+      <a role="button" class="">量化</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-2d87a22f91be75b78e6616958283b668" class="toggle"  />
+    <label for="section-2d87a22f91be75b78e6616958283b668" class="flex justify-between">
+      <a role="button" class="">Overview</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/Overview/gptQuantizationSurvey/" class="">(Survey)Quantization &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/Overview/gptQuantization/" class="">(原理)量化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-88d52cf49c9a5295f0c154e14ccc03a5" class="toggle"  />
+    <label for="section-88d52cf49c9a5295f0c154e14ccc03a5" class="flex justify-between">
+      <a role="button" class="">PTQ</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/gptQuantizationWeight/" class="">(原理)PTQ-Weight Only &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-359a9d256fc5cc0b6a903de93454a7d5" class="toggle"  />
+    <label for="section-359a9d256fc5cc0b6a903de93454a7d5" class="flex justify-between">
+      <a role="button" class="">Weight Only</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/Weight-Only/gptQuantizationGPTQ/" class="">(原理|实战|实现)GPTQ &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/Weight-Only/gptQuantizationAWQ/" class="">(原理|实战)AWQ &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-80f1cfdbb0d11740a87708737d9705d1" class="toggle"  />
+    <label for="section-80f1cfdbb0d11740a87708737d9705d1" class="flex justify-between">
+      <a role="button" class="">Weight&amp;Activation</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/gptQuantizationInt8/gptQuantizationInt8/" class="">(原理|实战)LLM.int8() &#43;</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/gptQuantizationSmoothQuant/gptQuantizationSmoothQuant/" class="">(原理)SmoothQuant &#43;</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/gptQuantizationFP8/gptQuantizationFP8/" class="">(原理)FP8 &#43;</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0fae359329dcf38fe41928a875455a3a" class="toggle"  />
+    <label for="section-0fae359329dcf38fe41928a875455a3a" class="flex justify-between">
+      <a role="button" class="">Practice</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/Practice/gptQuantizationPractice/" class="">(实战)量化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-1bda5152ea8335d4cdc6a16fa79ec8a2" class="toggle"  />
+    <label for="section-1bda5152ea8335d4cdc6a16fa79ec8a2" class="flex justify-between">
+      <a role="button" class="">Sparse Attention</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/Sparse-Attention/gptInferKVCacheStreamingLLM/" class="">(原理)Streaming LLM &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-92274cd592f961ae92a826acd4a198e7" class="toggle"  />
+    <label for="section-92274cd592f961ae92a826acd4a198e7" class="flex justify-between">
+      <a role="button" class="">其他</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E5%85%B6%E4%BB%96/gptTemperature/" class="">推理常见参数 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-f4030e06a7cd0b4d4f01c69f804511e3" class="toggle"  />
+    <label for="section-f4030e06a7cd0b4d4f01c69f804511e3" class="flex justify-between">
+      <a role="button" class="">Training</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-a3302ad31d47b6b33edaefb16b9595c8" class="toggle"  />
+    <label for="section-a3302ad31d47b6b33edaefb16b9595c8" class="flex justify-between">
+      <a role="button" class="">分布式</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-ca35777dc3dc1df2cd1c182701911ffb" class="toggle"  />
+    <label for="section-ca35777dc3dc1df2cd1c182701911ffb" class="flex justify-between">
+      <a role="button" class="">Overview</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/Overview/TrainParallelism/" class="">(原理)分布式训练 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-ae4385c3230d5a72d0fd739cfe337330" class="toggle"  />
+    <label for="section-ae4385c3230d5a72d0fd739cfe337330" class="flex justify-between">
+      <a role="button" class="">DP</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainZeroDeepspeed/" class="">(原理) Deepspeed Zero &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainDistributedPractice/" class="">(实战)DeepSpeed Training &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainDDP/" class="">(原理|实战)DDP &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainFSDP/" class="">(原理|实战)FSDP &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0cfa5a342351431197e06859d2a0b5dd" class="toggle"  />
+    <label for="section-0cfa5a342351431197e06859d2a0b5dd" class="flex justify-between">
+      <a role="button" class="">TP</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/TP/TrainTensorParallelism/" class="">(原理)张量并行(TP) &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-bf4278f3920999fc3bb13908e22d34bb" class="toggle"  />
+    <label for="section-bf4278f3920999fc3bb13908e22d34bb" class="flex justify-between">
+      <a role="button" class="">PP</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/PP/TrainPipelineParallelism/" class="">(原理|实战)流水线并行(PP) &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-30fd02881b0903fc1d9b6c52304de566" class="toggle"  />
+    <label for="section-30fd02881b0903fc1d9b6c52304de566" class="flex justify-between">
+      <a role="button" class="">混合并行</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/%E6%B7%B7%E5%90%88%E5%B9%B6%E8%A1%8C/TrainMegatron/" class="">(原理)Megatron &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/%E6%B7%B7%E5%90%88%E5%B9%B6%E8%A1%8C/TrainHybridParallel/" class="">(原理)混合并行 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-25028652b0e6469d4e603a946ea402c4" class="toggle"  />
+    <label for="section-25028652b0e6469d4e603a946ea402c4" class="flex justify-between">
+      <a role="button" class="">低精度</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/LowPrecision/gptLowPrecision/" class="">低精度训练 &#43;</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/Precision/gptPrecision/" class="">(原理|实战)混合精度 &#43;</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-4c59ddc3d219d63b3dde79b574842e09" class="toggle"  />
+    <label for="section-4c59ddc3d219d63b3dde79b574842e09" class="flex justify-between">
+      <a role="button" class="">LLMOps</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-7ebdcb9a1f5f42cca0e13037c0b12b5d" class="toggle"  />
+    <label for="section-7ebdcb9a1f5f42cca0e13037c0b12b5d" class="flex justify-between">
+      <a role="button" class="">MaaS</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/LLMOps/MaaS/gptMaaSMonitor/" class="">MaaS 监控</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/LLMOps/MaaS/gptLLMOpsPaaS/" class="">LLM PaaS</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/LLMOps/LLamaFactory/" class="">LLama-Factory</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/LLMOps/GPUComputing/" class="">显存估算</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/LLMOps/LLMOps/" class="">LLMOps</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-9484c8ef5479ebf1810697d279568858" class="toggle"  />
+    <label for="section-9484c8ef5479ebf1810697d279568858" class="flex justify-between">
+      <a role="button" class="">GPU</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/LLMOps/GPU/GPUk8s/" class="">(实战)K8s部署GPU</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/LLMOps/GPU/GPUMetrics/" class="">GPU 指标&amp;监控</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/LLMOps/GPU/GPU/" class="">GPU 算力平台</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-542e0883d2790694810f81c484e2ab13" class="toggle"  />
+    <label for="section-542e0883d2790694810f81c484e2ab13" class="flex justify-between">
+      <a role="button" class="">AI平台</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/LLMOps/AI%E5%B9%B3%E5%8F%B0/aiPlatform/" class="">(原理)AI平台</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/LLMOps/AI%E5%B9%B3%E5%8F%B0/aiObserve/" class="">(阿里)AI 应用观测</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-8f868c3c013a787783e65df936258f6a" class="toggle"  />
+    <label for="section-8f868c3c013a787783e65df936258f6a" class="flex justify-between">
+      <a role="button" class="">AI网关</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/LLMOps/AI%E5%B9%B3%E5%8F%B0/AI%E7%BD%91%E5%85%B3/LiteLLM/" class="">(实现)LiteLLM</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/LLMOps/AI%E5%B9%B3%E5%8F%B0/AI%E7%BD%91%E5%85%B3/aiGateway/" class="">(阿里) AI 网关</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/www6vMLSys/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <h3>(实现)[vLLM]PD分离 *</h3>
+
+  <label for="toc-control">
+    
+    <img src="/www6vMLSys/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#pd-disaggregation">PD disaggregation</a>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#whats-prefill-and-decode">What&rsquo;s Prefill and Decode</a></li>
+            <li><a href="#why-pd-disaggregation">Why PD disaggregation</a></li>
+            <li><a href="#how-to-extract-and-inject-kv-cache-from-to-vllm-">How to extract (and inject) KV cache from (to) vLLM *</a></li>
+            <li><a href="#when-to-send-the-request-to-p-and-d-node">When to send the request to P and D node</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#代码">代码</a></li>
+    <li><a href="#参考">参考</a></li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><p></p>
+<!-- more -->
+<h1 id="pd-disaggregation">
+  PD disaggregation
+  <a class="anchor" href="#pd-disaggregation">#</a>
+</h1>
+<h3 id="whats-prefill-and-decode">
+  What&rsquo;s Prefill and Decode
+  <a class="anchor" href="#whats-prefill-and-decode">#</a>
+</h3>
+<ul>
+<li>prefill:
+<ul>
+<li>process input prompt, generate KV cache</li>
+</ul>
+</li>
+<li>decode:
+<ul>
+<li>generate tokens based on the KV cache</li>
+</ul>
+</li>
+</ul>
+<h3 id="why-pd-disaggregation">
+  Why PD disaggregation
+  <a class="anchor" href="#why-pd-disaggregation">#</a>
+</h3>
+<ul>
+<li>
+<p>Prefill:</p>
+<ul>
+<li>attention — N tokens QKV — generate KV cache  takes a long time</li>
+</ul>
+</li>
+<li>
+<p>Decode:</p>
+<ul>
+<li>attention N KV, 1 Q — generate a new token  very fast</li>
+</ul>
+</li>
+<li>
+<p>initial logic</p>
+<p>prioritize prefill</p>
+</li>
+<li>
+<p>problem</p>
+<p><strong>prefill will stop other request&rsquo;s decode</strong></p>
+</li>
+<li>
+<p>solution</p>
+<p><strong>PD disaggregation</strong>,   chunked prefill</p>
+</li>
+</ul>
+<h3 id="how-to-extract-and-inject-kv-cache-from-to-vllm-">
+  How to extract (and inject) KV cache from (to) vLLM *
+  <a class="anchor" href="#how-to-extract-and-inject-kv-cache-from-to-vllm-">#</a>
+</h3>
+<ul>
+<li>
+<p>connector API</p>
+</li>
+<li>
+<p>called in model_runner</p>
+<ul>
+<li>
+<p><strong>before model forward</strong></p>
+<p>try receive KV cache (inject KV cache into vLLM&rsquo;s paged memory)</p>
+</li>
+<li>
+<p><strong>model forward</strong></p>
+</li>
+<li>
+<p><strong>after model forward</strong></p>
+<p>extract KV cache from vLLM&rsquo;s paged memory and send it to outside</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="when-to-send-the-request-to-p-and-d-node">
+  When to send the request to P and D node
+  <a class="anchor" href="#when-to-send-the-request-to-p-and-d-node">#</a>
+</h3>
+<ul>
+<li>first P then D</li>
+<li>first D then P</li>
+</ul>
+<h1 id="代码">
+  代码
+  <a class="anchor" href="#%e4%bb%a3%e7%a0%81">#</a>
+</h1>
+<p><a href="https://github.com/vllm-project/vllm/blob/main/vllm/worker/model_runner.py">https://github.com/vllm-project/vllm/blob/main/vllm/worker/model_runner.py</a></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>        <span style="color:#960050;background-color:#1e0010">【</span>inject KV cache into vLLM<span style="color:#e6db74">&#39;s   paged memory】</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># Receive KV cache in distributed KV cache transfer setting</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># In disagg prefill setting, it will also recv hidden states and bypass</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># model forwarding</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># In KV cache database setting, it will change the model input so that</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># we can skip prefilling on tokens that successfully received KV caches</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># NOTE: The receive operation is blocking</span>
+</span></span><span style="display:flex;"><span>        bypass_model_exec <span style="color:#f92672">=</span> <span style="color:#66d9ef">False</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>need_recv_kv(model_input, kv_caches):
+</span></span><span style="display:flex;"><span>            hidden_or_intermediate_states, bypass_model_exec, model_input <span style="color:#f92672">=</span> \\
+</span></span><span style="display:flex;"><span>                get_kv_transfer_group()<span style="color:#f92672">.</span>recv_kv_caches_and_hidden_states(
+</span></span><span style="display:flex;"><span>                    <span style="color:#75715e"># model is used to know which layer the current worker</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#75715e"># is working on, so that we can receive KV for only those</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#75715e"># layers.</span>
+</span></span><span style="display:flex;"><span>                    model_executable,
+</span></span><span style="display:flex;"><span>                    model_input,
+</span></span><span style="display:flex;"><span>                    kv_caches<span style="color:#f92672">=</span>kv_caches
+</span></span><span style="display:flex;"><span>                )
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        multi_modal_kwargs <span style="color:#f92672">=</span> model_input<span style="color:#f92672">.</span>multi_modal_kwargs <span style="color:#f92672">or</span> {}
+</span></span><span style="display:flex;"><span>        seqlen_agnostic_kwargs <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;finished_requests_ids&#34;</span>: model_input<span style="color:#f92672">.</span>finished_requests_ids,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;request_ids_to_seq_ids&#34;</span>: model_input<span style="color:#f92672">.</span>request_ids_to_seq_ids,
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>has_inner_state <span style="color:#66d9ef">else</span> {}
+</span></span><span style="display:flex;"><span>        model_kwargs <span style="color:#f92672">=</span> {}
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> previous_hidden_states <span style="color:#f92672">is</span> <span style="color:#f92672">not</span> <span style="color:#66d9ef">None</span>:
+</span></span><span style="display:flex;"><span>            model_kwargs[<span style="color:#e6db74">&#34;previous_hidden_states&#34;</span>] <span style="color:#f92672">=</span> previous_hidden_states
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (self<span style="color:#f92672">.</span>observability_config <span style="color:#f92672">is</span> <span style="color:#f92672">not</span> <span style="color:#66d9ef">None</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">and</span> self<span style="color:#f92672">.</span>observability_config<span style="color:#f92672">.</span>collect_model_forward_time):
+</span></span><span style="display:flex;"><span>            model_forward_start <span style="color:#f92672">=</span> torch<span style="color:#f92672">.</span>cuda<span style="color:#f92672">.</span>Event(enable_timing<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>)
+</span></span><span style="display:flex;"><span>            model_forward_end <span style="color:#f92672">=</span> torch<span style="color:#f92672">.</span>cuda<span style="color:#f92672">.</span>Event(enable_timing<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>)
+</span></span><span style="display:flex;"><span>            model_forward_start<span style="color:#f92672">.</span>record()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> bypass_model_exec:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">with</span> set_forward_context(model_input<span style="color:#f92672">.</span>attn_metadata,
+</span></span><span style="display:flex;"><span>                                     self<span style="color:#f92672">.</span>vllm_config, virtual_engine):
+</span></span><span style="display:flex;"><span>                hidden_or_intermediate_states <span style="color:#f92672">=</span> model_executable(
+</span></span><span style="display:flex;"><span>                    input_ids<span style="color:#f92672">=</span>model_input<span style="color:#f92672">.</span>input_tokens,
+</span></span><span style="display:flex;"><span>                    inputs_embeds<span style="color:#f92672">=</span>model_input<span style="color:#f92672">.</span>inputs_embeds,
+</span></span><span style="display:flex;"><span>                    positions<span style="color:#f92672">=</span>model_input<span style="color:#f92672">.</span>input_positions,
+</span></span><span style="display:flex;"><span>                    intermediate_tensors<span style="color:#f92672">=</span>intermediate_tensors,
+</span></span><span style="display:flex;"><span>                    <span style="color:#f92672">**</span>MultiModalKwargs<span style="color:#f92672">.</span>as_kwargs(multi_modal_kwargs,
+</span></span><span style="display:flex;"><span>                                                 device<span style="color:#f92672">=</span>self<span style="color:#f92672">.</span>device),
+</span></span><span style="display:flex;"><span>                    <span style="color:#f92672">**</span>seqlen_agnostic_kwargs,
+</span></span><span style="display:flex;"><span>                    <span style="color:#f92672">**</span>model_kwargs,
+</span></span><span style="display:flex;"><span>                )
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (self<span style="color:#f92672">.</span>observability_config <span style="color:#f92672">is</span> <span style="color:#f92672">not</span> <span style="color:#66d9ef">None</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">and</span> self<span style="color:#f92672">.</span>observability_config<span style="color:#f92672">.</span>collect_model_forward_time):
+</span></span><span style="display:flex;"><span>            model_forward_end<span style="color:#f92672">.</span>record()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#960050;background-color:#1e0010">【</span>extract KV cache <span style="color:#f92672">from</span> vLLM paged memory <span style="color:#f92672">and</span> send it to outside<span style="color:#960050;background-color:#1e0010">】</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># Sending KV cache in distributed KV cache transfer setting</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># NOTE: the send operation is non-blocking</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>need_send_kv(model_input, kv_caches):
+</span></span><span style="display:flex;"><span>            get_kv_transfer_group()<span style="color:#f92672">.</span>send_kv_caches_and_hidden_states(
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e"># model_executable is used to know which layer the current</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e"># worker is working on, so that we can send KV for only those</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e"># layers.</span>
+</span></span><span style="display:flex;"><span>                model_executable,
+</span></span><span style="display:flex;"><span>                model_input,
+</span></span><span style="display:flex;"><span>                kv_caches,
+</span></span><span style="display:flex;"><span>                hidden_or_intermediate_states,
+</span></span><span style="display:flex;"><span>            )
+</span></span></code></pre></div><p><a href="https://github.com/vllm-project/vllm/blob/main/vllm/distributed/kv_transfer/kv_connector/simple_connector.py">https://github.com/vllm-project/vllm/blob/main/vllm/distributed/kv_transfer/kv_connector/simple_connector.py</a></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">send_kv_caches_and_hidden_states</span>(
+</span></span><span style="display:flex;"><span>        self,
+</span></span><span style="display:flex;"><span>        model_executable: torch<span style="color:#f92672">.</span>nn<span style="color:#f92672">.</span>Module,
+</span></span><span style="display:flex;"><span>        model_input: <span style="color:#e6db74">&#34;ModelInputForGPUWithSamplingMetadata&#34;</span>,
+</span></span><span style="display:flex;"><span>        kv_caches: List[torch<span style="color:#f92672">.</span>Tensor],
+</span></span><span style="display:flex;"><span>        hidden_or_intermediate_states: Union[torch<span style="color:#f92672">.</span>Tensor,
+</span></span><span style="display:flex;"><span>                                             IntermediateTensors],
+</span></span><span style="display:flex;"><span>    ) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">None</span>:
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        input_tokens_tensor <span style="color:#f92672">=</span> model_input<span style="color:#f92672">.</span>input_tokens
+</span></span><span style="display:flex;"><span>        seq_lens <span style="color:#f92672">=</span> model_input<span style="color:#f92672">.</span>attn_metadata<span style="color:#f92672">.</span>seq_lens
+</span></span><span style="display:flex;"><span>        slot_mapping_flat <span style="color:#f92672">=</span> model_input<span style="color:#f92672">.</span>attn_metadata<span style="color:#f92672">.</span>slot_mapping<span style="color:#f92672">.</span>flatten()
+</span></span><span style="display:flex;"><span>        num_prefill_tokens <span style="color:#f92672">=</span> model_input<span style="color:#f92672">.</span>attn_metadata<span style="color:#f92672">.</span>num_prefill_tokens
+</span></span><span style="display:flex;"><span>        start_layer <span style="color:#f92672">=</span> model_executable<span style="color:#f92672">.</span>model<span style="color:#f92672">.</span>start_layer
+</span></span><span style="display:flex;"><span>        end_layer <span style="color:#f92672">=</span> model_executable<span style="color:#f92672">.</span>model<span style="color:#f92672">.</span>end_layer
+</span></span><span style="display:flex;"><span>        num_heads, head_size <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>kv_helper<span style="color:#f92672">.</span>get_model_args(model_executable)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># query_lens contains new KV caches that are added to vLLM.</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># so we will send them to decode instance</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># FIXME(Kuntai): This assume that all requests are prefill.</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> idx, slen <span style="color:#f92672">in</span> enumerate(seq_lens):
+</span></span><span style="display:flex;"><span>            start_pos <span style="color:#f92672">=</span> sum(seq_lens[:idx])
+</span></span><span style="display:flex;"><span>            end_pos <span style="color:#f92672">=</span> start_pos <span style="color:#f92672">+</span> slen
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> start_pos <span style="color:#f92672">&gt;=</span> num_prefill_tokens:
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e"># vllm/worker/model_runner.py::_prepare_model_input_tensors:</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e"># - input_tokens[:num_prefill_tokens] contains prefill tokens.</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e"># - input_tokens[num_prefill_tokens:] contains decode tokens.</span>
+</span></span><span style="display:flex;"><span>                logger<span style="color:#f92672">.</span>warning(<span style="color:#e6db74">&#34;You have some decode requests while using &#34;</span>
+</span></span><span style="display:flex;"><span>                               <span style="color:#e6db74">&#34;SimpleConnector. Their KVCache won&#39;t be sent.&#34;</span>)
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">break</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            current_tokens <span style="color:#f92672">=</span> input_tokens_tensor[start_pos:end_pos]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            keys, values <span style="color:#f92672">=</span> [], []
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> layer_id <span style="color:#f92672">in</span> range(start_layer, end_layer):
+</span></span><span style="display:flex;"><span>                kv_cache <span style="color:#f92672">=</span> kv_caches[layer_id <span style="color:#f92672">-</span> start_layer]
+</span></span><span style="display:flex;"><span>                key_cache, value_cache <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>kv_helper<span style="color:#f92672">.</span>get_kv_from_cache(
+</span></span><span style="display:flex;"><span>                    kv_cache, num_heads, head_size)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                current_slot_mapping <span style="color:#f92672">=</span> slot_mapping_flat[start_pos:end_pos]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                keys<span style="color:#f92672">.</span>append(key_cache[current_slot_mapping]<span style="color:#f92672">.</span>unsqueeze(<span style="color:#ae81ff">0</span>))
+</span></span><span style="display:flex;"><span>                values<span style="color:#f92672">.</span>append(value_cache[current_slot_mapping]<span style="color:#f92672">.</span>unsqueeze(<span style="color:#ae81ff">0</span>))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            keys <span style="color:#f92672">=</span> torch<span style="color:#f92672">.</span>cat(keys, dim<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>            values <span style="color:#f92672">=</span> torch<span style="color:#f92672">.</span>cat(values, dim<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            self<span style="color:#f92672">.</span>insert(current_tokens,
+</span></span><span style="display:flex;"><span>                        torch<span style="color:#f92672">.</span>ones_like(current_tokens,
+</span></span><span style="display:flex;"><span>                                        dtype<span style="color:#f92672">=</span>bool), keys, values,
+</span></span><span style="display:flex;"><span>                        hidden_or_intermediate_states[start_pos:end_pos])
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        logger<span style="color:#f92672">.</span>debug(<span style="color:#e6db74">&#34;[rank</span><span style="color:#e6db74">%d</span><span style="color:#e6db74">]: KV send DONE.&#34;</span>, torch<span style="color:#f92672">.</span>distributed<span style="color:#f92672">.</span>get_rank())
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">recv_kv_caches_and_hidden_states</span>(
+</span></span><span style="display:flex;"><span>        self, model_executable: torch<span style="color:#f92672">.</span>nn<span style="color:#f92672">.</span>Module,
+</span></span><span style="display:flex;"><span>        model_input: <span style="color:#e6db74">&#34;ModelInputForGPUWithSamplingMetadata&#34;</span>,
+</span></span><span style="display:flex;"><span>        kv_caches: List[torch<span style="color:#f92672">.</span>Tensor]
+</span></span><span style="display:flex;"><span>    ) <span style="color:#f92672">-&gt;</span> Tuple[Union[torch<span style="color:#f92672">.</span>Tensor, IntermediateTensors], bool,
+</span></span><span style="display:flex;"><span>               <span style="color:#e6db74">&#34;ModelInputForGPUWithSamplingMetadata&#34;</span>]:
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># When bypass_model_exec is set to False, it means that at least for one</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># request its corresponding KV cache or hidden state is missing.</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># In this case we need to do prefilling to recompute missing KV cache</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># and hidden states.</span>
+</span></span><span style="display:flex;"><span>        bypass_model_exec <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        input_tokens_tensor <span style="color:#f92672">=</span> model_input<span style="color:#f92672">.</span>input_tokens
+</span></span><span style="display:flex;"><span>        seq_lens <span style="color:#f92672">=</span> model_input<span style="color:#f92672">.</span>attn_metadata<span style="color:#f92672">.</span>seq_lens
+</span></span><span style="display:flex;"><span>        num_prefill_tokens <span style="color:#f92672">=</span> model_input<span style="color:#f92672">.</span>attn_metadata<span style="color:#f92672">.</span>num_prefill_tokens
+</span></span><span style="display:flex;"><span>        slot_mapping <span style="color:#f92672">=</span> model_input<span style="color:#f92672">.</span>attn_metadata<span style="color:#f92672">.</span>slot_mapping<span style="color:#f92672">.</span>flatten()
+</span></span><span style="display:flex;"><span>        start_layer <span style="color:#f92672">=</span> model_executable<span style="color:#f92672">.</span>model<span style="color:#f92672">.</span>start_layer
+</span></span><span style="display:flex;"><span>        end_layer <span style="color:#f92672">=</span> model_executable<span style="color:#f92672">.</span>model<span style="color:#f92672">.</span>end_layer
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        hidden_or_intermediate_states_for_one_req <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        input_tokens_list <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>        num_computed_tokens_list <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>        start_pos_list <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># enumerate different requests</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># FIXME(Kuntai): This impl assumes that all requests are prefill.</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> idx, slen <span style="color:#f92672">in</span> enumerate(seq_lens):
+</span></span><span style="display:flex;"><span>            start_pos <span style="color:#f92672">=</span> sum(seq_lens[:idx])
+</span></span><span style="display:flex;"><span>            end_pos <span style="color:#f92672">=</span> start_pos <span style="color:#f92672">+</span> slen
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> start_pos <span style="color:#f92672">&gt;=</span> num_prefill_tokens:
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e"># This can happen during inflight batching. See:</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e"># vllm/worker/model_runner.py::_prepare_model_input_tensors:</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e"># - input_tokens[:num_prefill_tokens] contains prefill tokens.</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e"># - input_tokens[num_prefill_tokens:] contains decode tokens.</span>
+</span></span><span style="display:flex;"><span>                logger<span style="color:#f92672">.</span>warning(<span style="color:#e6db74">&#34;You should set --enable_chunked_prefill=False &#34;</span>
+</span></span><span style="display:flex;"><span>                               <span style="color:#e6db74">&#34;and --max_num_batched_tokens &#34;</span>
+</span></span><span style="display:flex;"><span>                               <span style="color:#e6db74">&#34;should be equal to --max_seq_len_to_capture&#34;</span>)
+</span></span><span style="display:flex;"><span>                bypass_model_exec <span style="color:#f92672">=</span> <span style="color:#66d9ef">False</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">assert</span> start_pos <span style="color:#f92672">==</span> num_prefill_tokens
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">break</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            current_tokens <span style="color:#f92672">=</span> input_tokens_tensor[start_pos:end_pos]
+</span></span><span style="display:flex;"><span>            num_tokens <span style="color:#f92672">=</span> slen
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># collecting data for rebuilding the input</span>
+</span></span><span style="display:flex;"><span>            input_tokens_list<span style="color:#f92672">.</span>append(current_tokens)
+</span></span><span style="display:flex;"><span>            start_pos_list<span style="color:#f92672">.</span>append(start_pos)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            ret <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>select(current_tokens,
+</span></span><span style="display:flex;"><span>                              torch<span style="color:#f92672">.</span>ones_like(current_tokens, dtype<span style="color:#f92672">=</span>bool))
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> ret[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">is</span> <span style="color:#66d9ef">None</span>:
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e"># didn&#39;t find any match.</span>
+</span></span><span style="display:flex;"><span>                bypass_model_exec <span style="color:#f92672">=</span> <span style="color:#66d9ef">False</span>
+</span></span><span style="display:flex;"><span>                num_computed_tokens_list<span style="color:#f92672">.</span>append(<span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">continue</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            roi: torch<span style="color:#f92672">.</span>Tensor <span style="color:#f92672">=</span> ret[<span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span>            keys: torch<span style="color:#f92672">.</span>Tensor <span style="color:#f92672">=</span> ret[<span style="color:#ae81ff">2</span>]
+</span></span><span style="display:flex;"><span>            values: torch<span style="color:#f92672">.</span>Tensor <span style="color:#f92672">=</span> ret[<span style="color:#ae81ff">3</span>]
+</span></span><span style="display:flex;"><span>            hidden: torch<span style="color:#f92672">.</span>Tensor <span style="color:#f92672">=</span> ret[<span style="color:#ae81ff">4</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            num_computed_tokens <span style="color:#f92672">=</span> roi<span style="color:#f92672">.</span>shape[<span style="color:#ae81ff">0</span>]
+</span></span><span style="display:flex;"><span>            num_computed_tokens_list<span style="color:#f92672">.</span>append(num_computed_tokens)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># check if both KV cache and the hidden states are received</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># If not, need to redo the forwarding to compute missing states</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> all([(num_computed_tokens <span style="color:#f92672">==</span> num_tokens), hidden <span style="color:#f92672">is</span> <span style="color:#f92672">not</span> <span style="color:#66d9ef">None</span>
+</span></span><span style="display:flex;"><span>                        ]):
+</span></span><span style="display:flex;"><span>                bypass_model_exec <span style="color:#f92672">=</span> <span style="color:#66d9ef">False</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># update the end position based on how many tokens are cached.</span>
+</span></span><span style="display:flex;"><span>            end_pos <span style="color:#f92672">=</span> start_pos <span style="color:#f92672">+</span> num_computed_tokens
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#960050;background-color:#1e0010">【</span>KV caches  塞到paged memory 中<span style="color:#960050;background-color:#1e0010">】</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># put received KV caches into paged memory</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> cur_layer <span style="color:#f92672">in</span> range(start_layer, end_layer):
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                layer_id <span style="color:#f92672">=</span> cur_layer <span style="color:#f92672">-</span> start_layer
+</span></span><span style="display:flex;"><span>                kv_cache <span style="color:#f92672">=</span> kv_caches[layer_id]
+</span></span><span style="display:flex;"><span>                layer <span style="color:#f92672">=</span> model_executable<span style="color:#f92672">.</span>model<span style="color:#f92672">.</span>layers[cur_layer]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e"># get remote kvcache</span>
+</span></span><span style="display:flex;"><span>                remote_k, remote_v <span style="color:#f92672">=</span> keys[layer_id], values[layer_id]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                self<span style="color:#f92672">.</span>kv_helper<span style="color:#f92672">.</span>put_kv_to_cache(model_executable, remote_k,
+</span></span><span style="display:flex;"><span>                                               remote_v, layer, kv_cache,
+</span></span><span style="display:flex;"><span>                                               slot_mapping, start_pos,
+</span></span><span style="display:flex;"><span>                                               end_pos)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            hidden_or_intermediate_states_for_one_req<span style="color:#f92672">.</span>append(hidden)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> bypass_model_exec:
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># Some of the KV cache is not retrieved</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># Here we will fall back to normal model forwarding</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># But optionally you can adjust model_input so that you only do</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># prefilling on those tokens that are missing KV caches.</span>
+</span></span><span style="display:flex;"><span>            logger<span style="color:#f92672">.</span>warning(
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;[rank</span><span style="color:#e6db74">%d</span><span style="color:#e6db74">]: Failed to receive all KVs and hidden &#34;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;states, redo model forwarding.&#34;</span>, torch<span style="color:#f92672">.</span>distributed<span style="color:#f92672">.</span>get_rank())
+</span></span><span style="display:flex;"><span>            hidden_or_intermediate_states <span style="color:#f92672">=</span> <span style="color:#66d9ef">None</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>            logger<span style="color:#f92672">.</span>debug(
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;[rank</span><span style="color:#e6db74">%d</span><span style="color:#e6db74">]: Successfully received all KVs and hidden &#34;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;states, skip model forwarding.&#34;</span>, torch<span style="color:#f92672">.</span>distributed<span style="color:#f92672">.</span>get_rank())
+</span></span><span style="display:flex;"><span>            hidden_or_intermediate_states <span style="color:#f92672">=</span> torch<span style="color:#f92672">.</span>cat(
+</span></span><span style="display:flex;"><span>                hidden_or_intermediate_states_for_one_req, dim<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> hidden_or_intermediate_states, bypass_model_exec, model_input
+</span></span></code></pre></div><h1 id="参考">
+  参考
+  <a class="anchor" href="#%e5%8f%82%e8%80%83">#</a>
+</h1>
+<p><a href="https://www.notion.so/EP03-vllm-PD-1e7bfe211084801fa9ebc0b0cec1c861?pvs=21">[EP03] 大模型推理，从vllm看PD分离</a></p>
+<p><a href="https://mp.weixin.qq.com/s/Ra-Dysm4rjTP1shkkgWPpQ">vLLM PD分离方案浅析</a></p>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#pd-disaggregation">PD disaggregation</a>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#whats-prefill-and-decode">What&rsquo;s Prefill and Decode</a></li>
+            <li><a href="#why-pd-disaggregation">Why PD disaggregation</a></li>
+            <li><a href="#how-to-extract-and-inject-kv-cache-from-to-vllm-">How to extract (and inject) KV cache from (to) vLLM *</a></li>
+            <li><a href="#when-to-send-the-request-to-p-and-d-node">When to send the request to P and D node</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#代码">代码</a></li>
+    <li><a href="#参考">参考</a></li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
