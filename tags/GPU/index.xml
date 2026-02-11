@@ -23,13 +23,6 @@
       <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;gpu-指标监控&#34;&gt;&#xA;  GPU 指标&amp;amp;监控&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#gpu-%e6%8c%87%e6%a0%87%e7%9b%91%e6%8e%a7&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/165bfe21108480e29fa1d06e4852a6e0?pvs=4&#34;&gt;GPU 指标&amp;amp;监控&lt;/a&gt;&lt;/p&gt;</description>
     </item>
     <item>
-      <title>显存估算</title>
-      <link>https://www6v.github.io/www6vMLSys/docs/LLMOps/GPUComputing/</link>
-      <pubDate>Sat, 01 Jul 2023 17:13:39 +0000</pubDate>
-      <guid>https://www6v.github.io/www6vMLSys/docs/LLMOps/GPUComputing/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;显存估算&#34;&gt;&#xA;  显存估算&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e6%98%be%e5%ad%98%e4%bc%b0%e7%ae%97&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/e4e6bd5f7c43430fa2e805c5a2777308?pvs=4&#34;&gt;显存估算&lt;/a&gt;&lt;/p&gt;</description>
-    </item>
-    <item>
       <title>GPU 算力平台</title>
       <link>https://www6v.github.io/www6vMLSys/docs/LLMOps/GPU/GPU/</link>
       <pubDate>Tue, 23 May 2023 11:49:49 +0000</pubDate>

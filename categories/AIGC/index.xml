@@ -296,13 +296,6 @@
       <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;kv-cache-量化&#34;&gt;&#xA;  KV Cache 量化&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#kv-cache-%e9%87%8f%e5%8c%96&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/Quantization-c6fa20cf425a4211af150b4987711f47?pvs=4&#34;&gt;KV Cache 量化&lt;/a&gt;&lt;/p&gt;</description>
     </item>
     <item>
-      <title>显存估算</title>
-      <link>https://www6v.github.io/www6vMLSys/docs/LLMOps/GPUComputing/</link>
-      <pubDate>Sat, 01 Jul 2023 17:13:39 +0000</pubDate>
-      <guid>https://www6v.github.io/www6vMLSys/docs/LLMOps/GPUComputing/</guid>
-      <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;显存估算&#34;&gt;&#xA;  显存估算&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e6%98%be%e5%ad%98%e4%bc%b0%e7%ae%97&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/e4e6bd5f7c43430fa2e805c5a2777308?pvs=4&#34;&gt;显存估算&lt;/a&gt;&lt;/p&gt;</description>
-    </item>
-    <item>
       <title>(原理|实战) TensorRT-LLM &#43;</title>
       <link>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/TensorRT/</link>
       <pubDate>Fri, 02 Jun 2023 21:59:23 +0000</pubDate>
