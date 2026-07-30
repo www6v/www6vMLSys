@@ -11,13 +11,13 @@
     <loc>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/Overview/</loc>
     <lastmod>2024-09-11T17:40:04+00:00</lastmod>
   </url><url>
-    <loc>https://www6v.github.io/www6vMLSys/docs/LLMOps/MaaS/</loc>
+    <loc>https://www6v.github.io/www6vMLSys/docs/MaaS/MaaS/</loc>
     <lastmod>2024-04-23T21:54:43+00:00</lastmod>
   </url><url>
-    <loc>https://www6v.github.io/www6vMLSys/docs/LLMOps/GPU/GPUk8s/</loc>
+    <loc>https://www6v.github.io/www6vMLSys/docs/Infra/GPU/GPUk8s/</loc>
     <lastmod>2024-03-23T12:43:50+00:00</lastmod>
   </url><url>
-    <loc>https://www6v.github.io/www6vMLSys/docs/LLMOps/AI%E5%B9%B3%E5%8F%B0/AI%E7%BD%91%E5%85%B3/LiteLLM/</loc>
+    <loc>https://www6v.github.io/www6vMLSys/docs/MaaS/AI%E5%B9%B3%E5%8F%B0/AI%E7%BD%91%E5%85%B3/LiteLLM/</loc>
     <lastmod>2024-03-23T12:43:50+00:00</lastmod>
   </url><url>
     <loc>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/Practice/QuantizationPractice/</loc>
@@ -95,11 +95,11 @@
     <loc>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/Overview/Inference/</loc>
     <lastmod>2023-01-01T22:58:43+00:00</lastmod>
   </url><url>
-    <loc>https://www6v.github.io/www6vMLSys/docs/LLMOps/GPU/GPU%E6%9E%B6%E6%9E%84A1/</loc>
+    <loc>https://www6v.github.io/www6vMLSys/docs/Infra/GPU/GPU%E6%9E%B6%E6%9E%84A1/</loc>
   </url><url>
-    <loc>https://www6v.github.io/www6vMLSys/docs/LLMOps/%E6%98%BE%E5%AD%98%E4%BC%B0%E7%AE%97/GPU-InferA1/</loc>
+    <loc>https://www6v.github.io/www6vMLSys/docs/Infra/%E6%98%BE%E5%AD%98%E4%BC%B0%E7%AE%97/GPU-InferA1/</loc>
   </url><url>
-    <loc>https://www6v.github.io/www6vMLSys/docs/LLMOps/AI%E5%B9%B3%E5%8F%B0/aiPlatform/</loc>
+    <loc>https://www6v.github.io/www6vMLSys/docs/MaaS/AI%E5%B9%B3%E5%8F%B0/aiPlatform/</loc>
   </url><url>
     <loc>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/</loc>
     <lastmod>2025-05-14T19:53:42+00:00</lastmod>
@@ -113,7 +113,7 @@
     <loc>https://www6v.github.io/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/</loc>
     <lastmod>2024-02-01T22:29:42+00:00</lastmod>
   </url><url>
-    <loc>https://www6v.github.io/www6vMLSys/docs/LLMOps/GPU/GPUMetrics/</loc>
+    <loc>https://www6v.github.io/www6vMLSys/docs/Infra/GPU/GPUMetrics/</loc>
     <lastmod>2023-12-23T14:25:43+00:00</lastmod>
   </url><url>
     <loc>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/</loc>
@@ -155,7 +155,7 @@
     <loc>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMPractice/</loc>
     <lastmod>2023-06-12T14:19:45+00:00</lastmod>
   </url><url>
-    <loc>https://www6v.github.io/www6vMLSys/docs/LLMOps/LLamaFactory/</loc>
+    <loc>https://www6v.github.io/www6vMLSys/docs/Infra/LLamaFactory/</loc>
     <lastmod>2023-05-24T18:43:17+00:00</lastmod>
   </url><url>
     <loc>https://www6v.github.io/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainDistributedPractice/</loc>
@@ -171,7 +171,7 @@
   </url><url>
     <loc>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/PD%E5%88%86%E7%A6%BB/</loc>
   </url><url>
-    <loc>https://www6v.github.io/www6vMLSys/docs/LLMOps/AI%E5%B9%B3%E5%8F%B0/AI%E7%BD%91%E5%85%B3/aiGateway/</loc>
+    <loc>https://www6v.github.io/www6vMLSys/docs/MaaS/AI%E5%B9%B3%E5%8F%B0/AI%E7%BD%91%E5%85%B3/aiGateway/</loc>
   </url><url>
     <loc>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/Overview/InferenceSurvey1/</loc>
     <lastmod>2024-09-11T17:40:04+00:00</lastmod>
@@ -221,18 +221,15 @@
     <loc>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/TensorRT/</loc>
     <lastmod>2023-06-02T21:59:23+00:00</lastmod>
   </url><url>
-    <loc>https://www6v.github.io/www6vMLSys/docs/LLMOps/GPU/GPU/</loc>
+    <loc>https://www6v.github.io/www6vMLSys/docs/Infra/GPU/GPU/</loc>
     <lastmod>2023-05-23T11:49:49+00:00</lastmod>
   </url><url>
-    <loc>https://www6v.github.io/www6vMLSys/docs/LLMOps/AI%E5%B9%B3%E5%8F%B0/aiObserve/</loc>
+    <loc>https://www6v.github.io/www6vMLSys/docs/MaaS/AI%E5%B9%B3%E5%8F%B0/aiObserve/</loc>
   </url><url>
-    <loc>https://www6v.github.io/www6vMLSys/docs/LLMOps/%E6%98%BE%E5%AD%98%E4%BC%B0%E7%AE%97/GPUComputing/</loc>
+    <loc>https://www6v.github.io/www6vMLSys/docs/Infra/%E6%98%BE%E5%AD%98%E4%BC%B0%E7%AE%97/GPUComputing/</loc>
   </url><url>
     <loc>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/KVCacheRadixAttention/</loc>
     <lastmod>2024-11-15T18:41:31+00:00</lastmod>
-  </url><url>
-    <loc>https://www6v.github.io/www6vMLSys/docs/LLMOps/</loc>
-    <lastmod>2024-04-23T21:54:43+00:00</lastmod>
   </url><url>
     <loc>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/Eagle/</loc>
     <lastmod>2023-11-12T06:46:22+00:00</lastmod>
@@ -249,10 +246,10 @@
     <loc>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/Ray/</loc>
     <lastmod>2023-06-11T09:16:45+00:00</lastmod>
   </url><url>
-    <loc>https://www6v.github.io/www6vMLSys/docs/LLMOps/LLMOps/</loc>
+    <loc>https://www6v.github.io/www6vMLSys/docs/MaaS/LLMOps/</loc>
     <lastmod>2022-12-28T19:52:01+00:00</lastmod>
   </url><url>
-    <loc>https://www6v.github.io/www6vMLSys/docs/LLMOps/GPU/</loc>
+    <loc>https://www6v.github.io/www6vMLSys/docs/Infra/GPU/</loc>
     <lastmod>2024-03-23T12:43:50+00:00</lastmod>
   </url><url>
     <loc>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/</loc>
@@ -267,13 +264,16 @@
     <loc>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/RayPractice/</loc>
     <lastmod>2023-06-16T16:17:44+00:00</lastmod>
   </url><url>
-    <loc>https://www6v.github.io/www6vMLSys/docs/LLMOps/AI%E5%B9%B3%E5%8F%B0/AI%E7%BD%91%E5%85%B3/</loc>
+    <loc>https://www6v.github.io/www6vMLSys/docs/MaaS/AI%E5%B9%B3%E5%8F%B0/AI%E7%BD%91%E5%85%B3/</loc>
     <lastmod>2024-03-23T12:43:50+00:00</lastmod>
   </url><url>
-    <loc>https://www6v.github.io/www6vMLSys/docs/LLMOps/AI%E5%B9%B3%E5%8F%B0/</loc>
+    <loc>https://www6v.github.io/www6vMLSys/docs/MaaS/AI%E5%B9%B3%E5%8F%B0/</loc>
     <lastmod>2024-03-23T12:43:50+00:00</lastmod>
   </url><url>
-    <loc>https://www6v.github.io/www6vMLSys/docs/LLMOps/%E6%98%BE%E5%AD%98%E4%BC%B0%E7%AE%97/</loc>
+    <loc>https://www6v.github.io/www6vMLSys/docs/Infra/%E6%98%BE%E5%AD%98%E4%BC%B0%E7%AE%97/</loc>
+  </url><url>
+    <loc>https://www6v.github.io/www6vMLSys/docs/MaaS/</loc>
+    <lastmod>2024-04-23T21:54:43+00:00</lastmod>
   </url><url>
     <loc>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMCode/</loc>
     <lastmod>2023-12-02T15:09:52+00:00</lastmod>
@@ -292,6 +292,9 @@
   </url><url>
     <loc>https://www6v.github.io/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMv1/</loc>
     <lastmod>2024-05-14T19:53:42+00:00</lastmod>
+  </url><url>
+    <loc>https://www6v.github.io/www6vMLSys/docs/Infra/</loc>
+    <lastmod>2024-03-23T12:43:50+00:00</lastmod>
   </url><url>
     <loc>https://www6v.github.io/www6vMLSys/categories/AIGC/</loc>
     <lastmod>2025-05-14T19:53:42+00:00</lastmod>
@@ -323,7 +326,7 @@
     <loc>https://www6v.github.io/www6vMLSys/tags/MaaS/</loc>
     <lastmod>2024-04-23T21:54:43+00:00</lastmod>
   </url><url>
-    <loc>https://www6v.github.io/www6vMLSys/docs/LLMOps/MaaS/gptMaaSMonitor/</loc>
+    <loc>https://www6v.github.io/www6vMLSys/docs/MaaS/MaaS/gptMaaSMonitor/</loc>
     <lastmod>2024-04-23T21:54:43+00:00</lastmod>
   </url><url>
     <loc>https://www6v.github.io/www6vMLSys/categories/GPU/</loc>
@@ -350,7 +353,7 @@
     <loc>https://www6v.github.io/www6vMLSys/tags/train/</loc>
     <lastmod>2023-11-26T23:29:08+00:00</lastmod>
   </url><url>
-    <loc>https://www6v.github.io/www6vMLSys/docs/LLMOps/MaaS/gptLLMOpsPaaS/</loc>
+    <loc>https://www6v.github.io/www6vMLSys/docs/MaaS/MaaS/gptLLMOpsPaaS/</loc>
     <lastmod>2023-09-26T23:18:45+00:00</lastmod>
   </url><url>
     <loc>https://www6v.github.io/www6vMLSys/categories/LLMOps/</loc>
