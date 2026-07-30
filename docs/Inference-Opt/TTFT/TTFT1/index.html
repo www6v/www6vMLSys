@@ -1,0 +1,2673 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="
+  LLM 首字延迟 (TTFT) 优化全栈指南
+  #
+
+
+&ldquo;In interactive systems, the speed of the first response is not a performance metric — it is a trust signal. If the user waits too long, they assume the system is broken, not thinking.&rdquo;
+—— 改编自 Jakob Nielsen, Response Times: The 3 Important Limits [1]
+
+  一、TTFT 的定义与核心公式
+  #
+
+
+  1.1 什么是 TTFT？
+  #
+
+TTFT (Time To First Token) 指从客户端发出请求，到模型生成并返回第一个 Token 的端到端时间。
+在 LLM 的自回归生成过程中，推理分为两个截然不同的阶段：">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://www6v.github.io/www6vMLSys/docs/Inference-Opt/TTFT/TTFT1/">
+  <meta property="og:site_name" content="MLSys">
+  <meta property="og:title" content="LLM 首字延迟（TTFT）优化方案">
+  <meta property="og:description" content="LLM 首字延迟 (TTFT) 优化全栈指南 # “In interactive systems, the speed of the first response is not a performance metric — it is a trust signal. If the user waits too long, they assume the system is broken, not thinking.” —— 改编自 Jakob Nielsen, Response Times: The 3 Important Limits [1]
+一、TTFT 的定义与核心公式 # 1.1 什么是 TTFT？ # TTFT (Time To First Token) 指从客户端发出请求，到模型生成并返回第一个 Token 的端到端时间。
+在 LLM 的自回归生成过程中，推理分为两个截然不同的阶段：">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="website">
+<title>LLM 首字延迟（TTFT）优化方案 | MLSys</title>
+<link rel="icon" href="/www6vMLSys/favicon.png" >
+<link rel="manifest" href="/www6vMLSys/manifest.json">
+<link rel="canonical" href="https://www6v.github.io/www6vMLSys/docs/Inference-Opt/TTFT/TTFT1/">
+<link rel="stylesheet" href="/www6vMLSys/book.min.6c8b9d2a1fc95075ed7da46ca81060b39add8fff6741ac51259f768929281e2c.css" integrity="sha256-bIudKh/JUHXtfaRsqBBgs5rdj/9nQaxRJZ92iSkoHiw=" crossorigin="anonymous">
+  <script defer src="/www6vMLSys/fuse.min.js"></script>
+  <script defer src="/www6vMLSys/en.search.min.cf1559bf8411a1d1b672f6b7390ead8ee990c2a9203f0e629700460f22aeddb3.js" integrity="sha256-zxVZv4QRodG2cva3OQ6tjumQwqkgPw5ilwBGDyKu3bM=" crossorigin="anonymous"></script>
+<link rel="alternate" type="application/rss+xml" href="https://www6v.github.io/www6vMLSys/docs/Inference-Opt/TTFT/TTFT1/index.xml" title="MLSys" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/www6vMLSys/"><span>MLSys</span>
+  </a>
+</h2>
+
+
+<div class="book-search hidden">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+<script>document.querySelector(".book-search").classList.remove("hidden")</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-bf23c006d2140684cc90ded82ec74653" class="toggle"  />
+    <label for="section-bf23c006d2140684cc90ded82ec74653" class="flex justify-between">
+      <a role="button" class="">Inference</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-e2782e122236beb02b611a4b4376c5ba" class="toggle"  />
+    <label for="section-e2782e122236beb02b611a4b4376c5ba" class="flex justify-between">
+      <a role="button" class="">框架</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/Framework/" class="">(原理)推理-框架</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/FrameworkPractice/" class="">(实战)推理-lmdeploy</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/TensorRT/" class="">(原理|实战) TensorRT-LLM &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/Ray/" class="">(原理)推理 Ray</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/RayPractice/" class="">(实战)推理 Ray</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-280e12f1588c5189fc8326fb4998fa2a" class="toggle"  />
+    <label for="section-280e12f1588c5189fc8326fb4998fa2a" class="flex justify-between">
+      <a role="button" class="">框架vLLM</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLM/" class="">(原理) vLLM  &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMPractice/" class="">(实战) vLLM &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/SpeculativeDecodingvLLM/" class="">(实战)[vLLM]投机解码 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/KVCacheRadixAttention/" class="">(原理|实战) [vLLM]Prefix Cache &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMCode/" class="">(实现)[vLLM]整体架构 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMDist/" class="">(实现)[vLLM]分布式 *</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMPD/" class="">(实现)[vLLM]PD分离 *</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMSpeculativeDecode/" class="">(实现)[vLLM]投机解码 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMPrefixCaching/" class="">(实现)[vLLM]Prefix Caching &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMv1/" class="">(实现)[vLLM]V1 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-d659e6fde8f172d5e6d65a0b2bc79031" class="toggle" checked />
+    <label for="section-d659e6fde8f172d5e6d65a0b2bc79031" class="flex justify-between">
+      <a role="button" class="">Inference 优化</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-8cc4904ea51a1aff793d6755622ea54b" class="toggle"  />
+    <label for="section-8cc4904ea51a1aff793d6755622ea54b" class="flex justify-between">
+      <a role="button" class="">Overview</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/Overview/Inference/" class="">(总结)推理优化</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/Overview/InferenceSurvey/" class="">(综述)推理优化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/Overview/InferenceSurvey1/" class="">(综述)推理优化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-75fffd45c4e3af9b253513bcf99a1e7e" class="toggle"  />
+    <label for="section-75fffd45c4e3af9b253513bcf99a1e7e" class="flex justify-between">
+      <a role="button" class="">系统层优化</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-2c31e36f5b0e9f84d75738e603bcdfd3" class="toggle"  />
+    <label for="section-2c31e36f5b0e9f84d75738e603bcdfd3" class="flex justify-between">
+      <a role="button" class="">FlashAttention</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/FlashAttention/FlashAttention/" class="">(原理)Flash Attention &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/FlashAttention/FlashAttention2/" class="">(原理)FlashAttention2 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/FlashAttention/FlashDecoding/" class="">(原理)Flash Decoding &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-903dc4762e53fc23899b8b41e24d4e3d" class="toggle"  />
+    <label for="section-903dc4762e53fc23899b8b41e24d4e3d" class="flex justify-between">
+      <a role="button" class="">SpeculativeDecoding</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/SpeculativeDecoding/" class="">Speculative Decoding &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/SpeculativeDecodingSurvey/" class="">(Survey)Speculative Decoding &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/Medusa/" class="">(原理|实现)Medusa &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/Eagle/" class="">EAGLE &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/SpecInfer/" class="">SpecInfer &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-9c3aeee5bee9d8a45b6959715db1f460" class="toggle"  />
+    <label for="section-9c3aeee5bee9d8a45b6959715db1f460" class="flex justify-between">
+      <a role="button" class="">KVCache</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/KVCache/KVCache/" class="">(原理|实现) KV Cache &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/KVCache/KVCacheOptimize/" class="">(原理)KV Cache 优化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-a0d66f65a2c7b4e05694f79579d1f686" class="toggle"  />
+    <label for="section-a0d66f65a2c7b4e05694f79579d1f686" class="flex justify-between">
+      <a role="button" class="">Compress</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/KVCache/Compress/gptInferKVCacheQuantization/" class="">(原理)KV Cache 量化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-cc89fec5cef17da80426c3ab29dc55f2" class="toggle"  />
+    <label for="section-cc89fec5cef17da80426c3ab29dc55f2" class="flex justify-between">
+      <a role="button" class="">Batch</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/Batch/ContinuousBatching/" class="">Continuous Batching &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/Batch/ChunkedPrefill/" class="">Chunked Prefill &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-a86001c551f91c9d6742692d85235ce9" class="toggle"  />
+    <label for="section-a86001c551f91c9d6742692d85235ce9" class="flex justify-between">
+      <a role="button" class="">PD 分离</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/DistServe/" class="">DistServe &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/Mooncake/" class="">(原理|实现)Mooncake &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/MooncakeA1/" class="">(A1)Mooncake 架构 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/PD%E5%88%86%E7%A6%BB/" class="">(A1)PD分离 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/Llumnix/" class="">(原理)Llumnix &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0a8aa3616751d94d876ab5a7638dfee2" class="toggle"  />
+    <label for="section-0a8aa3616751d94d876ab5a7638dfee2" class="flex justify-between">
+      <a role="button" class="">模型层优化</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-5a6462bfaadf7adfe8b66d09bc58303b" class="toggle"  />
+    <label for="section-5a6462bfaadf7adfe8b66d09bc58303b" class="flex justify-between">
+      <a role="button" class="">量化</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-2d87a22f91be75b78e6616958283b668" class="toggle"  />
+    <label for="section-2d87a22f91be75b78e6616958283b668" class="flex justify-between">
+      <a role="button" class="">Overview</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/Overview/QuantizationSurvey/" class="">(Survey)Quantization &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/Overview/Quantization/" class="">(原理)量化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-88d52cf49c9a5295f0c154e14ccc03a5" class="toggle"  />
+    <label for="section-88d52cf49c9a5295f0c154e14ccc03a5" class="flex justify-between">
+      <a role="button" class="">PTQ</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/QuantizationWeight/" class="">(原理)PTQ-Weight Only &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-359a9d256fc5cc0b6a903de93454a7d5" class="toggle"  />
+    <label for="section-359a9d256fc5cc0b6a903de93454a7d5" class="flex justify-between">
+      <a role="button" class="">Weight Only</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/Weight-Only/QuantizationGPTQ/" class="">(原理|实战|实现)GPTQ &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/Weight-Only/QuantizationAWQ/" class="">(原理|实战)AWQ &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-80f1cfdbb0d11740a87708737d9705d1" class="toggle"  />
+    <label for="section-80f1cfdbb0d11740a87708737d9705d1" class="flex justify-between">
+      <a role="button" class="">Weight&amp;Activation</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/QuantizationInt8/gptQuantizationInt8/" class="">(原理|实战)LLM.int8() &#43;</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/QuantizationSmoothQuant/gptQuantizationSmoothQuant/" class="">(原理)SmoothQuant &#43;</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/QuantizationFP8/gptQuantizationFP8/" class="">(原理)FP8 &#43;</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0fae359329dcf38fe41928a875455a3a" class="toggle"  />
+    <label for="section-0fae359329dcf38fe41928a875455a3a" class="flex justify-between">
+      <a role="button" class="">Practice</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/Practice/QuantizationPractice/" class="">(实战)量化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-1bda5152ea8335d4cdc6a16fa79ec8a2" class="toggle"  />
+    <label for="section-1bda5152ea8335d4cdc6a16fa79ec8a2" class="flex justify-between">
+      <a role="button" class="">Sparse Attention</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/Sparse-Attention/KVCacheStreamingLLM/" class="">(原理)Streaming LLM &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0e872e900c80202bf8d3f77fb2b652dd" class="toggle" checked />
+    <label for="section-0e872e900c80202bf8d3f77fb2b652dd" class="flex justify-between">
+      <a role="button" class="">TTFT</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/TTFT/TTFT/" class="">LLM 首字延迟（TTFT）优化方案</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/TTFT/TTFT1/" class="active">LLM 首字延迟（TTFT）优化方案</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-f4030e06a7cd0b4d4f01c69f804511e3" class="toggle"  />
+    <label for="section-f4030e06a7cd0b4d4f01c69f804511e3" class="flex justify-between">
+      <a role="button" class="">Training</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-a3302ad31d47b6b33edaefb16b9595c8" class="toggle"  />
+    <label for="section-a3302ad31d47b6b33edaefb16b9595c8" class="flex justify-between">
+      <a role="button" class="">分布式</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-ca35777dc3dc1df2cd1c182701911ffb" class="toggle"  />
+    <label for="section-ca35777dc3dc1df2cd1c182701911ffb" class="flex justify-between">
+      <a role="button" class="">Overview</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/Overview/TrainParallelism/" class="">(原理)分布式训练 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-ae4385c3230d5a72d0fd739cfe337330" class="toggle"  />
+    <label for="section-ae4385c3230d5a72d0fd739cfe337330" class="flex justify-between">
+      <a role="button" class="">DP</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainZeroDeepspeed/" class="">(原理) Deepspeed Zero &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainDistributedPractice/" class="">(实战)DeepSpeed Training &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainDDP/" class="">(原理|实战)DDP &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainFSDP/" class="">(原理|实战)FSDP &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0cfa5a342351431197e06859d2a0b5dd" class="toggle"  />
+    <label for="section-0cfa5a342351431197e06859d2a0b5dd" class="flex justify-between">
+      <a role="button" class="">TP</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/TP/TrainTensorParallelism/" class="">(原理)张量并行(TP) &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-bf4278f3920999fc3bb13908e22d34bb" class="toggle"  />
+    <label for="section-bf4278f3920999fc3bb13908e22d34bb" class="flex justify-between">
+      <a role="button" class="">PP</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/PP/TrainPipelineParallelism/" class="">(原理|实战)流水线并行(PP) &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-30fd02881b0903fc1d9b6c52304de566" class="toggle"  />
+    <label for="section-30fd02881b0903fc1d9b6c52304de566" class="flex justify-between">
+      <a role="button" class="">混合并行</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/%E6%B7%B7%E5%90%88%E5%B9%B6%E8%A1%8C/TrainMegatron/" class="">(原理)Megatron &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/%E6%B7%B7%E5%90%88%E5%B9%B6%E8%A1%8C/TrainHybridParallel/" class="">(原理)混合并行 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-25028652b0e6469d4e603a946ea402c4" class="toggle"  />
+    <label for="section-25028652b0e6469d4e603a946ea402c4" class="flex justify-between">
+      <a role="button" class="">低精度</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/LowPrecision/gptLowPrecision/" class="">低精度训练 &#43;</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/Precision/gptPrecision/" class="">(原理|实战)混合精度 &#43;</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-644e6fa45ba6f6c0dcdfc190025a39fb" class="toggle"  />
+    <label for="section-644e6fa45ba6f6c0dcdfc190025a39fb" class="flex justify-between">
+      <a role="button" class="">AI平台</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/aiPlatform/" class="">(原理)AI平台</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/aiObserve/" class="">(阿里)AI 应用观测</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-f61cbb1f2645b362442da027a971ba18" class="toggle"  />
+    <label for="section-f61cbb1f2645b362442da027a971ba18" class="flex justify-between">
+      <a role="button" class="">AI网关</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/AI%E7%BD%91%E5%85%B3/LiteLLM/" class="">(实现)LiteLLM</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/AI%E7%BD%91%E5%85%B3/gateway/" class="">(阿里) AI 网关</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/LLMOps/" class="">LLMOps</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-327fb05179acab9fa2e8db471e2465cd" class="toggle"  />
+    <label for="section-327fb05179acab9fa2e8db471e2465cd" class="flex justify-between">
+      <a role="button" class="">MaaS</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/MaaS/MaaS1/" class="">MaaS</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/MaaS/MaaS2/" class="">MaaS</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/MaaS/MaaS-observe/" class="">MaaS 监控</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-e5df6522c4b2ff6188291204672608c8" class="toggle"  />
+    <label for="section-e5df6522c4b2ff6188291204672608c8" class="flex justify-between">
+      <a role="button" class="">Infra</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Infra/LLamaFactory/" class="">LLama-Factory</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-79fcd731bc33432daba619103c18a87a" class="toggle"  />
+    <label for="section-79fcd731bc33432daba619103c18a87a" class="flex justify-between">
+      <a role="button" class="">GPU</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Infra/GPU/GPUk8s/" class="">(实战)K8s部署GPU</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Infra/GPU/GPU%E6%9E%B6%E6%9E%84A1/" class="">(A1)GPU 架构 *</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Infra/GPU/GPUMetrics/" class="">GPU 指标&amp;监控</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Infra/GPU/GPU/" class="">GPU 算力平台</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-1048340579f6168f3a532057403baf28" class="toggle"  />
+    <label for="section-1048340579f6168f3a532057403baf28" class="flex justify-between">
+      <a role="button" class="">显存估算</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Infra/%E6%98%BE%E5%AD%98%E4%BC%B0%E7%AE%97/GPU-InferA1/" class="">(A1)推理显存估算 *</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Infra/%E6%98%BE%E5%AD%98%E4%BC%B0%E7%AE%97/GPUComputing/" class="">显存估算</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/www6vMLSys/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <h3>LLM 首字延迟（TTFT）优化方案</h3>
+
+  <label for="toc-control">
+    
+    <img src="/www6vMLSys/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#llm-首字延迟-ttft-优化全栈指南">LLM 首字延迟 (TTFT) 优化全栈指南</a>
+      <ul>
+        <li><a href="#一ttft-的定义与核心公式">一、TTFT 的定义与核心公式</a>
+          <ul>
+            <li><a href="#11-什么是-ttft">1.1 什么是 TTFT？</a></li>
+            <li><a href="#12-ttft-的核心组成">1.2 TTFT 的核心组成</a></li>
+          </ul>
+        </li>
+        <li><a href="#二ttft-的核心瓶颈拆解">二、TTFT 的核心瓶颈拆解</a>
+          <ul>
+            <li><a href="#21-prefill-的计算与访存瓶颈">2.1 Prefill 的计算与访存瓶颈</a></li>
+            <li><a href="#22-排队延迟the-hidden-killer">2.2 排队延迟（The Hidden Killer）</a></li>
+          </ul>
+        </li>
+        <li><a href="#三推理引擎层优化核心战场">三、推理引擎层优化（核心战场）</a>
+          <ul>
+            <li><a href="#31-连续批处理-continuous-batching">3.1 连续批处理 (Continuous Batching)</a></li>
+            <li><a href="#32-块级预填充-chunked-prefill">3.2 块级预填充 (Chunked Prefill)</a></li>
+            <li><a href="#33-kv-cache-复用prefix-caching--radixattention">3.3 KV Cache 复用：Prefix Caching &amp; RadixAttention</a></li>
+          </ul>
+        </li>
+        <li><a href="#四系统架构层优化资源调度">四、系统架构层优化（资源调度）</a>
+          <ul>
+            <li><a href="#41-pd-分离架构-prefill-decode-disaggregation">4.1 PD 分离架构 (Prefill-Decode Disaggregation)</a></li>
+            <li><a href="#42-flash-attention-23-技术">4.2 Flash Attention 2/3 技术</a></li>
+          </ul>
+        </li>
+        <li><a href="#五常见坑点与避坑指南">五、常见坑点与避坑指南</a></li>
+        <li><a href="#六总结与实战建议">六、总结与实战建议</a>
+          <ul>
+            <li><a href="#61-分层落地路线图">6.1 分层落地路线图</a></li>
+            <li><a href="#62-给架构师的-3-条核心建议">6.2 给架构师的 3 条核心建议</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><h1 id="llm-首字延迟-ttft-优化全栈指南">
+  LLM 首字延迟 (TTFT) 优化全栈指南
+  <a class="anchor" href="#llm-%e9%a6%96%e5%ad%97%e5%bb%b6%e8%bf%9f-ttft-%e4%bc%98%e5%8c%96%e5%85%a8%e6%a0%88%e6%8c%87%e5%8d%97">#</a>
+</h1>
+<blockquote>
+<p>&ldquo;In interactive systems, the speed of the first response is not a performance metric — it is a trust signal. If the user waits too long, they assume the system is broken, not thinking.&rdquo;
+—— 改编自 Jakob Nielsen, <em>Response Times: The 3 Important Limits</em> [1]</p></blockquote>
+<h2 id="一ttft-的定义与核心公式">
+  一、TTFT 的定义与核心公式
+  <a class="anchor" href="#%e4%b8%80ttft-%e7%9a%84%e5%ae%9a%e4%b9%89%e4%b8%8e%e6%a0%b8%e5%bf%83%e5%85%ac%e5%bc%8f">#</a>
+</h2>
+<h3 id="11-什么是-ttft">
+  1.1 什么是 TTFT？
+  <a class="anchor" href="#11-%e4%bb%80%e4%b9%88%e6%98%af-ttft">#</a>
+</h3>
+<p><strong>TTFT (Time To First Token)</strong> 指从客户端发出请求，到模型生成并返回第一个 Token 的端到端时间。</p>
+<p>在 LLM 的自回归生成过程中，推理分为两个截然不同的阶段：</p>
+<ul>
+<li><strong>Prefill (预填充)</strong>：一次性计算整个 Prompt 的 KV Cache。计算密集，复杂度 $O(N^2)$。</li>
+<li><strong>Decode (解码)</strong>：自回归逐个生成 Token。访存密集（Memory-bound），复杂度 $O(N)$。</li>
+</ul>
+<p><strong>TTFT 几乎完全由 Prefill 阶段决定。</strong></p>
+<h3 id="12-ttft-的核心组成">
+  1.2 TTFT 的核心组成
+  <a class="anchor" href="#12-ttft-%e7%9a%84%e6%a0%b8%e5%bf%83%e7%bb%84%e6%88%90">#</a>
+</h3>
+<pre tabindex="0"><code>用户点击发送 ─────────────────────────────────────────────────────────────► 看到第一个字
+                 │          │           │            │
+                 ▼          ▼           ▼            ▼
+            [ 网络传输 ] [ 排队等待 ] [ 调度分配 ] [ Prefill 计算 ]
+            (T_network)  (T_queue)   (T_sched)     (T_prefill)
+            ─────────────┴───────────┴────────────┘
+                       端到端 TTFT
+</code></pre><table>
+  <thead>
+      <tr>
+          <th>组件</th>
+          <th>含义</th>
+          <th>典型占比</th>
+          <th>优化方向</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>$T_{queue}$</td>
+          <td>请求在队列中等待的时间</td>
+          <td>0% ~ 80% (高并发时)</td>
+          <td>连续批处理、弹性扩缩容</td>
+      </tr>
+      <tr>
+          <td>$T_{network}$</td>
+          <td>网络传输与协议握手延迟</td>
+          <td>5% ~ 15%</td>
+          <td>HTTP/2、连接池、网关优化</td>
+      </tr>
+      <tr>
+          <td>$T_{scheduling}$</td>
+          <td>调度器分配 GPU 资源的时间</td>
+          <td>&lt; 5%</td>
+          <td>异步调度、资源预热</td>
+      </tr>
+      <tr>
+          <td>$T_{prefill}$</td>
+          <td>模型计算 Prompt 的 KV Cache</td>
+          <td>40% ~ 90%</td>
+          <td>Flash Attention、Chunked Prefill、PD 分离</td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>用户体验的心理阈值</strong>：</p>
+<ul>
+<li><strong>&lt; 100ms</strong>：即时响应，用户感觉“直接操作”。</li>
+<li><strong>100ms ~ 500ms</strong>：流畅，用户能感知轻微延迟但可接受。</li>
+<li><strong>&gt; 2000ms</strong>：用户产生焦虑，可能重复提交或放弃。</li>
+</ul>
+<hr>
+<h2 id="二ttft-的核心瓶颈拆解">
+  二、TTFT 的核心瓶颈拆解
+  <a class="anchor" href="#%e4%ba%8cttft-%e7%9a%84%e6%a0%b8%e5%bf%83%e7%93%b6%e9%a2%88%e6%8b%86%e8%a7%a3">#</a>
+</h2>
+<h3 id="21-prefill-的计算与访存瓶颈">
+  2.1 Prefill 的计算与访存瓶颈
+  <a class="anchor" href="#21-prefill-%e7%9a%84%e8%ae%a1%e7%ae%97%e4%b8%8e%e8%ae%bf%e5%ad%98%e7%93%b6%e9%a2%88">#</a>
+</h3>
+<pre tabindex="0"><code>    GPU SRAM (高速缓存)
+    ┌─────────────────┐
+    │                 │◄───── 权重加载 (HBM -&gt; SRAM)
+    │    Compute      │       (140GB for 70B)
+    │   (ALU Units)   │
+    │                 │
+    └────────┬────────┘
+             │
+             ▼
+    ┌─────────────────┐
+    │                 │
+    │      HBM        │◄───── 显存带宽瓶颈
+    │   (3.35 TB/s)   │       数据搬运 &gt; 实际计算
+    └─────────────────┘
+</code></pre><p>在 Prefill 阶段，尽管 FLOPS 很高，但现代 GPU (H100/A100) 的算力远超显存带宽。Prefill 阶段大部分时间在<strong>等待数据从 HBM 搬运到 SRAM</strong>，而非实际计算。</p>
+<h3 id="22-排队延迟the-hidden-killer">
+  2.2 排队延迟（The Hidden Killer）
+  <a class="anchor" href="#22-%e6%8e%92%e9%98%9f%e5%bb%b6%e8%bf%9fthe-hidden-killer">#</a>
+</h3>
+<p>传统推理服务使用 <strong>Static Batching</strong>：一个 Batch 填满后一起送入 GPU，Batch 中所有请求必须等待最长的那个 Prefill 完成才能返回。</p>
+<pre tabindex="0"><code>传统 Static Batching (木桶效应):
+───────────────────────────────────────────────────────────── 时间
+Req A (短):  [ P ============== ] [ D D D D ]
+Req B (长):  [ P ================================ ] [ D D D ]
+Req C (中):  [................... 等待 ...................] [ P =========== ] [ D D ]
+                                  ▲
+                           Req C 的 TTFT 被 Req B 严重阻塞
+</code></pre><p>在高并发下，$T_{queue}$ 成为 TTFT 的主导因素。</p>
+<hr>
+<h2 id="三推理引擎层优化核心战场">
+  三、推理引擎层优化（核心战场）
+  <a class="anchor" href="#%e4%b8%89%e6%8e%a8%e7%90%86%e5%bc%95%e6%93%8e%e5%b1%82%e4%bc%98%e5%8c%96%e6%a0%b8%e5%bf%83%e6%88%98%e5%9c%ba">#</a>
+</h2>
+<h3 id="31-连续批处理-continuous-batching">
+  3.1 连续批处理 (Continuous Batching)
+  <a class="anchor" href="#31-%e8%bf%9e%e7%bb%ad%e6%89%b9%e5%a4%84%e7%90%86-continuous-batching">#</a>
+</h3>
+<p>vLLM 的核心创新，彻底打破 Static Batching 的木桶效应。只要 Batch 中有任何一个请求完成 Decode 腾出 Slot，调度器立刻将排队的请求插入，并执行其 Prefill。</p>
+<pre tabindex="0"><code>Continuous Batching (动态插空):
+───────────────────────────────────────────────────────────── 时间
+Req A (短):  [ P ] [ D D D D ]
+Req B (长):         [ P ==== ] [ D D D ]
+Req C (中):              [ P === ] [ D D D ]
+Req D (短):                   [ P ] [ D D D ]
+             ▲
+       所有请求几乎同时开始 Prefill，TTFT 显著降低
+</code></pre><p><strong>效果</strong>：$T_{queue}$ 趋近于 0，GPU 利用率从 30% 提升至 80%+。</p>
+<h3 id="32-块级预填充-chunked-prefill">
+  3.2 块级预填充 (Chunked Prefill)
+  <a class="anchor" href="#32-%e5%9d%97%e7%ba%a7%e9%a2%84%e5%a1%ab%e5%85%85-chunked-prefill">#</a>
+</h3>
+<p>Continuous Batching 解决了排队问题，但<strong>单个超长请求仍会阻塞整个 GPU</strong>（因为 Prefill 不可中断）。</p>
+<pre tabindex="0"><code>Chunked Prefill 机制:
+───────────────────────────────────────────────────────────── 时间
+Req Long (32k): [ P1 ] [ P2 ] [ P3 ] [ P4 ] [ P5 ] [ P6 ] ...
+Req Short (A):        [ P == ] [ D D ]
+Req Short (B):               [ P == ] [ D D ]
+             ▲
+       长 Prompt 被切块 (Chunk)，与短请求的 Decode 交替执行
+</code></pre><ul>
+<li><strong>原理</strong>：将长 Prompt 拆分为固定大小的 Chunk（如 512 Token）。每次迭代只计算一个 Chunk，并与 Decode 请求交替执行。</li>
+<li><strong>效果</strong>：长尾延迟（P99 TTFT）下降 60-80%。</li>
+</ul>
+<h3 id="33-kv-cache-复用prefix-caching--radixattention">
+  3.3 KV Cache 复用：Prefix Caching &amp; RadixAttention
+  <a class="anchor" href="#33-kv-cache-%e5%a4%8d%e7%94%a8prefix-caching--radixattention">#</a>
+</h3>
+<p>在实际业务中（如多轮对话、Agent 工具调用），大量请求共享相同的系统 Prompt。</p>
+<pre tabindex="0"><code>RadixAttention 缓存树 (Trie):
+                [Root]
+               /      \
+           [SysPrompt]
+           /         \
+      [User_A]      [User_B]
+      /    \        /    \
+ [History] [New] [History] [New]
+   ▲          ▲      ▲
+   └──────────┴──────┘
+     直接复用已计算的 KV Cache
+     T_prefill ≈ T_load_cache (&lt; 5ms)
+</code></pre><p><strong>效果</strong>：命中前缀的请求，$T_{prefill}$ 可降至极低，因为跳过了繁重的矩阵乘法。</p>
+<hr>
+<h2 id="四系统架构层优化资源调度">
+  四、系统架构层优化（资源调度）
+  <a class="anchor" href="#%e5%9b%9b%e7%b3%bb%e7%bb%9f%e6%9e%b6%e6%9e%84%e5%b1%82%e4%bc%98%e5%8c%96%e8%b5%84%e6%ba%90%e8%b0%83%e5%ba%a6">#</a>
+</h2>
+<h3 id="41-pd-分离架构-prefill-decode-disaggregation">
+  4.1 PD 分离架构 (Prefill-Decode Disaggregation)
+  <a class="anchor" href="#41-pd-%e5%88%86%e7%a6%bb%e6%9e%b6%e6%9e%84-prefill-decode-disaggregation">#</a>
+</h3>
+<p>2024-2025 年工业界最热门的架构演进。将 Prefill（计算密集）和 Decode（访存密集）拆分到不同实例。</p>
+<pre tabindex="0"><code>┌──────────────────────────────────────────────────────────────┐
+│                        API Gateway                           │
+│  (路由逻辑: Prompt 长度 &gt; 8k 走 Prefill 集群，否则走 Decode)   │
+└───────────────┬────────────────────────────┬─────────────────┘
+                │                            │
+     (长 Prompt / 计算密集)          (短 Prompt / 访存密集)
+                │                            │
+                ▼                            ▼
+    ┌──────────────────────┐      ┌──────────────────────┐
+    │    Prefill Cluster   │      │    Decode Cluster    │
+    │   (H100 × 4, 高算力)  │      │   (L40S × 8, 高显存) │
+    │                      │      │                      │
+    │  [ P1 ] [ P2 ] [ P3] │      │  [ D1 ] [ D2 ] [ D3] │
+    │  [ P1 ] [ P2 ] [ P3] │      │  [ D1 ] [ D2 ] [ D3] │
+    │  [ P1 ] [ P2 ] [ P3] │      │  [ D1 ] [ D2 ] [ D3] │
+    └──────────┬───────────┘      └──────────▲───────────┘
+               │                            │
+               │     KV Cache Transfer      │
+               └────────────────────────────┘
+                  (RDMA / P2P / Shared Mem)
+</code></pre><p><strong>优势</strong>：</p>
+<ol>
+<li><strong>资源匹配</strong>：Prefill 吃算力，Decode 吃显存带宽。不再让昂贵的 H100 被 Decode 的低带宽利用率浪费。</li>
+<li><strong>隔离干扰</strong>：长 Prompt 的 Prefill 不再抢占 Decode 的 GPU 时间片。</li>
+<li><strong>弹性扩缩容</strong>：可根据业务峰谷独立扩容 Prefill 或 Decode 节点。</li>
+</ol>
+<p><strong>代表项目</strong>：DistServe, Splitwise, Mooncake, vLLM (PD Disaggregation)。</p>
+<h3 id="42-flash-attention-23-技术">
+  4.2 Flash Attention 2/3 技术
+  <a class="anchor" href="#42-flash-attention-23-%e6%8a%80%e6%9c%af">#</a>
+</h3>
+<p>传统 Attention 实现需要多次读写 HBM，Flash Attention 通过 <strong>IO-Aware</strong> 分块计算，将中间结果保留在 SRAM 中。</p>
+<table>
+  <thead>
+      <tr>
+          <th>版本</th>
+          <th>核心优化</th>
+          <th>适用硬件</th>
+          <th>Prefill 提速</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><strong>Flash Attention 1</strong></td>
+          <td>分块计算，减少 HBM 读写</td>
+          <td>A100/V100</td>
+          <td>1.5x - 2x</td>
+      </tr>
+      <tr>
+          <td><strong>Flash Attention 2</strong></td>
+          <td>优化线程块调度，减少同步</td>
+          <td>A100/H100</td>
+          <td>2x - 3x</td>
+      </tr>
+      <tr>
+          <td><strong>Flash Attention 3</strong></td>
+          <td>Hopper TMA 异步加载指令</td>
+          <td>H100/H200</td>
+          <td>3x - 5x</td>
+      </tr>
+  </tbody>
+</table>
+<hr>
+<h2 id="五常见坑点与避坑指南">
+  五、常见坑点与避坑指南
+  <a class="anchor" href="#%e4%ba%94%e5%b8%b8%e8%a7%81%e5%9d%91%e7%82%b9%e4%b8%8e%e9%81%bf%e5%9d%91%e6%8c%87%e5%8d%97">#</a>
+</h2>
+<table>
+  <thead>
+      <tr>
+          <th>#</th>
+          <th>坑点</th>
+          <th>现象</th>
+          <th>根因分析</th>
+          <th>解决方案</th>
+          <th>严重程度</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>1</td>
+          <td><strong>长 Prompt 阻塞全局</strong></td>
+          <td>P99 TTFT 飙升，短请求排队 &gt; 2s</td>
+          <td>静态 Batch 或未开启 Chunked Prefill</td>
+          <td>开启 <code>--enable-chunked-prefill</code>，设置合理 Chunk 大小</td>
+          <td>🔴 致命</td>
+      </tr>
+      <tr>
+          <td>2</td>
+          <td><strong>显存碎片化</strong></td>
+          <td>请求被 OOM 拒绝或频繁触发 Swap</td>
+          <td>传统 KV Cache 分配非连续</td>
+          <td>使用 vLLM/SGLang 的 PagedAttention</td>
+          <td>🔴 致命</td>
+      </tr>
+      <tr>
+          <td>3</td>
+          <td><strong>TP 并行度过大</strong></td>
+          <td>算力利用率低，通信占比 &gt; 30%</td>
+          <td>AllReduce 同步延迟抵消计算收益</td>
+          <td>控制 TP≤4（A100）或 ≤8（H100）</td>
+          <td>🟠 高</td>
+      </tr>
+      <tr>
+          <td>4</td>
+          <td><strong>KV Cache 未清理</strong></td>
+          <td>显存泄漏，运行数小时后 OOM</td>
+          <td>异常请求或超时连接未释放 Cache</td>
+          <td>配置 TTL + 定期 GC，启用 Paged Cache</td>
+          <td>🟡 中</td>
+      </tr>
+      <tr>
+          <td>5</td>
+          <td><strong>网关缓冲流式响应</strong></td>
+          <td>首字延迟高，但后续输出极快</td>
+          <td>网关等待整个响应打包后才下发</td>
+          <td>开启 SSE 实时透传，禁用响应缓冲</td>
+          <td>🟠 高</td>
+      </tr>
+  </tbody>
+</table>
+<hr>
+<h2 id="六总结与实战建议">
+  六、总结与实战建议
+  <a class="anchor" href="#%e5%85%ad%e6%80%bb%e7%bb%93%e4%b8%8e%e5%ae%9e%e6%88%98%e5%bb%ba%e8%ae%ae">#</a>
+</h2>
+<h3 id="61-分层落地路线图">
+  6.1 分层落地路线图
+  <a class="anchor" href="#61-%e5%88%86%e5%b1%82%e8%90%bd%e5%9c%b0%e8%b7%af%e7%ba%bf%e5%9b%be">#</a>
+</h3>
+<table>
+  <thead>
+      <tr>
+          <th>场景</th>
+          <th>推荐技术栈</th>
+          <th>预期 TTFT</th>
+          <th>实施成本</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><strong>轻量级/原型</strong></td>
+          <td>vLLM + FlashAttn2 + PagedAttention</td>
+          <td>500ms ~ 1s</td>
+          <td>低（开箱即用）</td>
+      </tr>
+      <tr>
+          <td><strong>高并发生产</strong></td>
+          <td>vLLM/SGLang + Chunked Prefill + RadixAttention</td>
+          <td>200ms ~ 500ms</td>
+          <td>中（需调参）</td>
+      </tr>
+      <tr>
+          <td><strong>极致低延迟/长文本</strong></td>
+          <td>PD 分离 + Speculative Prefill + H100/L40S 异构</td>
+          <td>&lt; 200ms (128k)</td>
+          <td>高（架构改造）</td>
+      </tr>
+  </tbody>
+</table>
+<h3 id="62-给架构师的-3-条核心建议">
+  6.2 给架构师的 3 条核心建议
+  <a class="anchor" href="#62-%e7%bb%99%e6%9e%b6%e6%9e%84%e5%b8%88%e7%9a%84-3-%e6%9d%a1%e6%a0%b8%e5%bf%83%e5%bb%ba%e8%ae%ae">#</a>
+</h3>
+<ol>
+<li><strong>先开 PagedAttention 和 Continuous Batching</strong>：这是 vLLM/SGLang 的默认能力，不花一分钱硬件成本，可解决 80% 的排队和碎片问题。</li>
+<li><strong>长文本必开 Chunked Prefill</strong>：不要相信&quot;GPU 算力够就能硬扛长 Prompt&quot;。Chunk 是保证 P99 延迟不雪崩的唯一工程手段。</li>
+<li><strong>TTFT 与 Throughput 是 trade-off</strong>：过度优化 TTFT（如极小 Chunk）会牺牲吞吐。根据业务 SLA 设定合理的 Chunk Size。</li>
+</ol>
+<hr>
+<p><em>文档版本：v2.0 (图文并茂版) | 作者：小伟 | 日期：2026-07-29</em></p>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#llm-首字延迟-ttft-优化全栈指南">LLM 首字延迟 (TTFT) 优化全栈指南</a>
+      <ul>
+        <li><a href="#一ttft-的定义与核心公式">一、TTFT 的定义与核心公式</a>
+          <ul>
+            <li><a href="#11-什么是-ttft">1.1 什么是 TTFT？</a></li>
+            <li><a href="#12-ttft-的核心组成">1.2 TTFT 的核心组成</a></li>
+          </ul>
+        </li>
+        <li><a href="#二ttft-的核心瓶颈拆解">二、TTFT 的核心瓶颈拆解</a>
+          <ul>
+            <li><a href="#21-prefill-的计算与访存瓶颈">2.1 Prefill 的计算与访存瓶颈</a></li>
+            <li><a href="#22-排队延迟the-hidden-killer">2.2 排队延迟（The Hidden Killer）</a></li>
+          </ul>
+        </li>
+        <li><a href="#三推理引擎层优化核心战场">三、推理引擎层优化（核心战场）</a>
+          <ul>
+            <li><a href="#31-连续批处理-continuous-batching">3.1 连续批处理 (Continuous Batching)</a></li>
+            <li><a href="#32-块级预填充-chunked-prefill">3.2 块级预填充 (Chunked Prefill)</a></li>
+            <li><a href="#33-kv-cache-复用prefix-caching--radixattention">3.3 KV Cache 复用：Prefix Caching &amp; RadixAttention</a></li>
+          </ul>
+        </li>
+        <li><a href="#四系统架构层优化资源调度">四、系统架构层优化（资源调度）</a>
+          <ul>
+            <li><a href="#41-pd-分离架构-prefill-decode-disaggregation">4.1 PD 分离架构 (Prefill-Decode Disaggregation)</a></li>
+            <li><a href="#42-flash-attention-23-技术">4.2 Flash Attention 2/3 技术</a></li>
+          </ul>
+        </li>
+        <li><a href="#五常见坑点与避坑指南">五、常见坑点与避坑指南</a></li>
+        <li><a href="#六总结与实战建议">六、总结与实战建议</a>
+          <ul>
+            <li><a href="#61-分层落地路线图">6.1 分层落地路线图</a></li>
+            <li><a href="#62-给架构师的-3-条核心建议">6.2 给架构师的 3 条核心建议</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

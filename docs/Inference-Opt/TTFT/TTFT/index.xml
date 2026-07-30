@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>LLM 首字延迟（TTFT）优化方案 on MLSys</title>
+    <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/TTFT/TTFT/</link>
+    <description>Recent content in LLM 首字延迟（TTFT）优化方案 on MLSys</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <atom:link href="https://www6v.github.io/www6vMLSys/docs/Inference-Opt/TTFT/TTFT/index.xml" rel="self" type="application/rss+xml" />
+  </channel>
+</rss>
