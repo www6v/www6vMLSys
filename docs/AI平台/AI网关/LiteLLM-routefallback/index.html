@@ -1,0 +1,3869 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="
+  LiteLLM 路由策略与 Fallback 机制源码剖析
+  #
+
+
+版本: v0.1 | 状态: 正文
+源码版本: LiteLLM v1.90.x
+核心文件: router.py（~7200 行）、router_strategy/（13 个文件）、router_utils/（17 个文件）
+风格: DDIA 式 — 每项主张均有源码行号支撑
+
+
+  一、引言：为什么需要路由与 Fallback
+  #
+
+
+  1.1 大模型时代的&quot;分布式系统&quot;问题
+  #
+
+传统分布式系统需要负载均衡器来解决三个问题：流量分配、故障转移、容量管理。在大模型时代，这三个问题以更复杂的形式重现：
+流量分配: 一个 model=&quot;gpt-4&quot; 的背后可能有 10 个 deployment（不同 Provider、不同区域、不同 API Key），如何将请求分配给最合适的 deployment？
+故障转移: 某个 deployment 可能因为 API 限流（RateLimit）、网络超时（Timeout）、内容审查拦截（ContentPolicyViolation）而失败，如何自动切换到备用 deployment？
+容量管理: 每个 deployment 有 TPM/RPM 限额，如何在限额内最大化利用率，同时避免超限？
+LiteLLM Router 的本质就是 LLM 层的负载均衡器 &#43; 断路器 &#43; 降级引擎。
+
+  1.2 本文范围
+  #
+
+本文聚焦 Router 的两个核心机制：">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://www6v.github.io/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/AI%E7%BD%91%E5%85%B3/LiteLLM-routefallback/">
+  <meta property="og:site_name" content="MLSys">
+  <meta property="og:title" content="MLSys">
+  <meta property="og:description" content="LiteLLM 路由策略与 Fallback 机制源码剖析 # 版本: v0.1 | 状态: 正文
+源码版本: LiteLLM v1.90.x
+核心文件: router.py（~7200 行）、router_strategy/（13 个文件）、router_utils/（17 个文件）
+风格: DDIA 式 — 每项主张均有源码行号支撑
+一、引言：为什么需要路由与 Fallback # 1.1 大模型时代的&#34;分布式系统&#34;问题 # 传统分布式系统需要负载均衡器来解决三个问题：流量分配、故障转移、容量管理。在大模型时代，这三个问题以更复杂的形式重现：
+流量分配: 一个 model=&#34;gpt-4&#34; 的背后可能有 10 个 deployment（不同 Provider、不同区域、不同 API Key），如何将请求分配给最合适的 deployment？
+故障转移: 某个 deployment 可能因为 API 限流（RateLimit）、网络超时（Timeout）、内容审查拦截（ContentPolicyViolation）而失败，如何自动切换到备用 deployment？
+容量管理: 每个 deployment 有 TPM/RPM 限额，如何在限额内最大化利用率，同时避免超限？
+LiteLLM Router 的本质就是 LLM 层的负载均衡器 &#43; 断路器 &#43; 降级引擎。
+1.2 本文范围 # 本文聚焦 Router 的两个核心机制：">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="website">
+<title>Lite Llm Route&amp;fallback | MLSys</title>
+<link rel="icon" href="/www6vMLSys/favicon.png" >
+<link rel="manifest" href="/www6vMLSys/manifest.json">
+<link rel="canonical" href="https://www6v.github.io/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/AI%E7%BD%91%E5%85%B3/LiteLLM-routefallback/">
+<link rel="stylesheet" href="/www6vMLSys/book.min.6c8b9d2a1fc95075ed7da46ca81060b39add8fff6741ac51259f768929281e2c.css" integrity="sha256-bIudKh/JUHXtfaRsqBBgs5rdj/9nQaxRJZ92iSkoHiw=" crossorigin="anonymous">
+  <script defer src="/www6vMLSys/fuse.min.js"></script>
+  <script defer src="/www6vMLSys/en.search.min.218072405666796fe6a684efcb1d690de7affcf65c670eb16b1d7679f4f1bd9e.js" integrity="sha256-IYByQFZmeW/mpoTvyx1pDeev/PZcZw6xax12efTxvZ4=" crossorigin="anonymous"></script>
+<link rel="alternate" type="application/rss+xml" href="https://www6v.github.io/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/AI%E7%BD%91%E5%85%B3/LiteLLM-routefallback/index.xml" title="MLSys" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/www6vMLSys/"><span>MLSys</span>
+  </a>
+</h2>
+
+
+<div class="book-search hidden">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+<script>document.querySelector(".book-search").classList.remove("hidden")</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-bf23c006d2140684cc90ded82ec74653" class="toggle"  />
+    <label for="section-bf23c006d2140684cc90ded82ec74653" class="flex justify-between">
+      <a role="button" class="">Inference</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-e2782e122236beb02b611a4b4376c5ba" class="toggle"  />
+    <label for="section-e2782e122236beb02b611a4b4376c5ba" class="flex justify-between">
+      <a role="button" class="">框架</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/Framework/" class="">(原理)推理-框架</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/FrameworkPractice/" class="">(实战)推理-lmdeploy</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/TensorRT/" class="">(原理|实战) TensorRT-LLM &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/Ray/" class="">(原理)推理 Ray</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/RayPractice/" class="">(实战)推理 Ray</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-280e12f1588c5189fc8326fb4998fa2a" class="toggle"  />
+    <label for="section-280e12f1588c5189fc8326fb4998fa2a" class="flex justify-between">
+      <a role="button" class="">框架vLLM</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLM/" class="">(原理) vLLM  &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMPractice/" class="">(实战) vLLM &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/SpeculativeDecodingvLLM/" class="">(实战)[vLLM]投机解码 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/KVCacheRadixAttention/" class="">(原理|实战) [vLLM]Prefix Cache &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMCode/" class="">(实现)[vLLM]整体架构 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMDist/" class="">(实现)[vLLM]分布式 *</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMPD/" class="">(实现)[vLLM]PD分离 *</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMSpeculativeDecode/" class="">(实现)[vLLM]投机解码 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMPrefixCaching/" class="">(实现)[vLLM]Prefix Caching &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMv1/" class="">(实现)[vLLM]V1 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-d659e6fde8f172d5e6d65a0b2bc79031" class="toggle"  />
+    <label for="section-d659e6fde8f172d5e6d65a0b2bc79031" class="flex justify-between">
+      <a role="button" class="">Inference 优化</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-8cc4904ea51a1aff793d6755622ea54b" class="toggle"  />
+    <label for="section-8cc4904ea51a1aff793d6755622ea54b" class="flex justify-between">
+      <a role="button" class="">Overview</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/Overview/Inference/" class="">(总结)推理优化</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/Overview/InferenceSurvey/" class="">(综述)推理优化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/Overview/InferenceSurvey1/" class="">(综述)推理优化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-75fffd45c4e3af9b253513bcf99a1e7e" class="toggle"  />
+    <label for="section-75fffd45c4e3af9b253513bcf99a1e7e" class="flex justify-between">
+      <a role="button" class="">系统层优化</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-2c31e36f5b0e9f84d75738e603bcdfd3" class="toggle"  />
+    <label for="section-2c31e36f5b0e9f84d75738e603bcdfd3" class="flex justify-between">
+      <a role="button" class="">FlashAttention</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/FlashAttention/FlashAttention/" class="">(原理)Flash Attention &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/FlashAttention/FlashAttention2/" class="">(原理)FlashAttention2 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/FlashAttention/FlashDecoding/" class="">(原理)Flash Decoding &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-903dc4762e53fc23899b8b41e24d4e3d" class="toggle"  />
+    <label for="section-903dc4762e53fc23899b8b41e24d4e3d" class="flex justify-between">
+      <a role="button" class="">SpeculativeDecoding</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/SpeculativeDecoding/" class="">Speculative Decoding &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/SpeculativeDecodingSurvey/" class="">(Survey)Speculative Decoding &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/Medusa/" class="">(原理|实现)Medusa &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/Eagle/" class="">EAGLE &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/SpecInfer/" class="">SpecInfer &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-9c3aeee5bee9d8a45b6959715db1f460" class="toggle"  />
+    <label for="section-9c3aeee5bee9d8a45b6959715db1f460" class="flex justify-between">
+      <a role="button" class="">KVCache</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/KVCache/KVCache/" class="">(原理|实现) KV Cache &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/KVCache/KVCacheOptimize/" class="">(原理)KV Cache 优化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-a0d66f65a2c7b4e05694f79579d1f686" class="toggle"  />
+    <label for="section-a0d66f65a2c7b4e05694f79579d1f686" class="flex justify-between">
+      <a role="button" class="">Compress</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/KVCache/Compress/gptInferKVCacheQuantization/" class="">(原理)KV Cache 量化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-cc89fec5cef17da80426c3ab29dc55f2" class="toggle"  />
+    <label for="section-cc89fec5cef17da80426c3ab29dc55f2" class="flex justify-between">
+      <a role="button" class="">Batch</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/Batch/ContinuousBatching/" class="">Continuous Batching &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/Batch/ChunkedPrefill/" class="">Chunked Prefill &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-a86001c551f91c9d6742692d85235ce9" class="toggle"  />
+    <label for="section-a86001c551f91c9d6742692d85235ce9" class="flex justify-between">
+      <a role="button" class="">PD 分离</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/DistServe/" class="">DistServe &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/Mooncake/" class="">(原理|实现)Mooncake &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/MooncakeA1/" class="">(A1)Mooncake 架构 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/PD%E5%88%86%E7%A6%BB/" class="">(A1)PD分离 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/Llumnix/" class="">(原理)Llumnix &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0a8aa3616751d94d876ab5a7638dfee2" class="toggle"  />
+    <label for="section-0a8aa3616751d94d876ab5a7638dfee2" class="flex justify-between">
+      <a role="button" class="">模型层优化</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-5a6462bfaadf7adfe8b66d09bc58303b" class="toggle"  />
+    <label for="section-5a6462bfaadf7adfe8b66d09bc58303b" class="flex justify-between">
+      <a role="button" class="">量化</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-2d87a22f91be75b78e6616958283b668" class="toggle"  />
+    <label for="section-2d87a22f91be75b78e6616958283b668" class="flex justify-between">
+      <a role="button" class="">Overview</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/Overview/QuantizationSurvey/" class="">(Survey)Quantization &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/Overview/Quantization/" class="">(原理)量化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-88d52cf49c9a5295f0c154e14ccc03a5" class="toggle"  />
+    <label for="section-88d52cf49c9a5295f0c154e14ccc03a5" class="flex justify-between">
+      <a role="button" class="">PTQ</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/QuantizationWeight/" class="">(原理)PTQ-Weight Only &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-359a9d256fc5cc0b6a903de93454a7d5" class="toggle"  />
+    <label for="section-359a9d256fc5cc0b6a903de93454a7d5" class="flex justify-between">
+      <a role="button" class="">Weight Only</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/Weight-Only/QuantizationGPTQ/" class="">(原理|实战|实现)GPTQ &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/Weight-Only/QuantizationAWQ/" class="">(原理|实战)AWQ &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-80f1cfdbb0d11740a87708737d9705d1" class="toggle"  />
+    <label for="section-80f1cfdbb0d11740a87708737d9705d1" class="flex justify-between">
+      <a role="button" class="">Weight&amp;Activation</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/QuantizationInt8/gptQuantizationInt8/" class="">(原理|实战)LLM.int8() &#43;</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/QuantizationSmoothQuant/gptQuantizationSmoothQuant/" class="">(原理)SmoothQuant &#43;</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/QuantizationFP8/gptQuantizationFP8/" class="">(原理)FP8 &#43;</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0fae359329dcf38fe41928a875455a3a" class="toggle"  />
+    <label for="section-0fae359329dcf38fe41928a875455a3a" class="flex justify-between">
+      <a role="button" class="">Practice</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/Practice/QuantizationPractice/" class="">(实战)量化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-1bda5152ea8335d4cdc6a16fa79ec8a2" class="toggle"  />
+    <label for="section-1bda5152ea8335d4cdc6a16fa79ec8a2" class="flex justify-between">
+      <a role="button" class="">Sparse Attention</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/Sparse-Attention/KVCacheStreamingLLM/" class="">(原理)Streaming LLM &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0e872e900c80202bf8d3f77fb2b652dd" class="toggle"  />
+    <label for="section-0e872e900c80202bf8d3f77fb2b652dd" class="flex justify-between">
+      <a role="button" class="">TTFT</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/TTFT/TTFT/" class="">LLM 首字延迟（TTFT）优化方案</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/TTFT/TTFT1/" class="">LLM 首字延迟（TTFT）优化方案</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-f4030e06a7cd0b4d4f01c69f804511e3" class="toggle"  />
+    <label for="section-f4030e06a7cd0b4d4f01c69f804511e3" class="flex justify-between">
+      <a role="button" class="">Training</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-a3302ad31d47b6b33edaefb16b9595c8" class="toggle"  />
+    <label for="section-a3302ad31d47b6b33edaefb16b9595c8" class="flex justify-between">
+      <a role="button" class="">分布式</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-ca35777dc3dc1df2cd1c182701911ffb" class="toggle"  />
+    <label for="section-ca35777dc3dc1df2cd1c182701911ffb" class="flex justify-between">
+      <a role="button" class="">Overview</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/Overview/TrainParallelism/" class="">(原理)分布式训练 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-ae4385c3230d5a72d0fd739cfe337330" class="toggle"  />
+    <label for="section-ae4385c3230d5a72d0fd739cfe337330" class="flex justify-between">
+      <a role="button" class="">DP</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainZeroDeepspeed/" class="">(原理) Deepspeed Zero &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainDistributedPractice/" class="">(实战)DeepSpeed Training &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainDDP/" class="">(原理|实战)DDP &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainFSDP/" class="">(原理|实战)FSDP &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0cfa5a342351431197e06859d2a0b5dd" class="toggle"  />
+    <label for="section-0cfa5a342351431197e06859d2a0b5dd" class="flex justify-between">
+      <a role="button" class="">TP</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/TP/TrainTensorParallelism/" class="">(原理)张量并行(TP) &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-bf4278f3920999fc3bb13908e22d34bb" class="toggle"  />
+    <label for="section-bf4278f3920999fc3bb13908e22d34bb" class="flex justify-between">
+      <a role="button" class="">PP</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/PP/TrainPipelineParallelism/" class="">(原理|实战)流水线并行(PP) &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-30fd02881b0903fc1d9b6c52304de566" class="toggle"  />
+    <label for="section-30fd02881b0903fc1d9b6c52304de566" class="flex justify-between">
+      <a role="button" class="">混合并行</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/%E6%B7%B7%E5%90%88%E5%B9%B6%E8%A1%8C/TrainMegatron/" class="">(原理)Megatron &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/%E6%B7%B7%E5%90%88%E5%B9%B6%E8%A1%8C/TrainHybridParallel/" class="">(原理)混合并行 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-25028652b0e6469d4e603a946ea402c4" class="toggle"  />
+    <label for="section-25028652b0e6469d4e603a946ea402c4" class="flex justify-between">
+      <a role="button" class="">低精度</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/LowPrecision/gptLowPrecision/" class="">低精度训练 &#43;</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/Precision/gptPrecision/" class="">(原理|实战)混合精度 &#43;</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-644e6fa45ba6f6c0dcdfc190025a39fb" class="toggle" checked />
+    <label for="section-644e6fa45ba6f6c0dcdfc190025a39fb" class="flex justify-between">
+      <a role="button" class="">AI平台</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/aiPlatform/" class="">(原理)AI平台</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/aiObserve/" class="">(阿里)AI 应用观测</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-f61cbb1f2645b362442da027a971ba18" class="toggle" checked />
+    <label for="section-f61cbb1f2645b362442da027a971ba18" class="flex justify-between">
+      <a role="button" class="">AI网关</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/AI%E7%BD%91%E5%85%B3/LiteLLM/" class="">(实现)LiteLLM</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/AI%E7%BD%91%E5%85%B3/gateway/" class="">(阿里) AI 网关</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/AI%E7%BD%91%E5%85%B3/LiteLLM-routefallback/" class="active">Lite Llm Route&amp;fallback</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/LLMOps/" class="">LLMOps</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-327fb05179acab9fa2e8db471e2465cd" class="toggle"  />
+    <label for="section-327fb05179acab9fa2e8db471e2465cd" class="flex justify-between">
+      <a role="button" class="">MaaS</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/MaaS/MaaS1/" class="">MaaS</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/MaaS/MaaS2/" class="">MaaS</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/MaaS/MaaS3/" class="">智算中心[A1]</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/MaaS/MaaS-observe/" class="">MaaS 监控</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/MaaS/MaaSali/" class="">智能体基础设施[阿里][A1]</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/MaaS/MaaS-command/" class="">Maa S Command</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-e5df6522c4b2ff6188291204672608c8" class="toggle"  />
+    <label for="section-e5df6522c4b2ff6188291204672608c8" class="flex justify-between">
+      <a role="button" class="">Infra</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Infra/LLamaFactory/" class="">LLama-Factory</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-79fcd731bc33432daba619103c18a87a" class="toggle"  />
+    <label for="section-79fcd731bc33432daba619103c18a87a" class="flex justify-between">
+      <a role="button" class="">GPU</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Infra/GPU/GPUk8s/" class="">(实战)K8s部署GPU</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Infra/GPU/GPU%E6%9E%B6%E6%9E%84A1/" class="">(A1)GPU 架构 *</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Infra/GPU/GPUMetrics/" class="">GPU 指标&amp;监控</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Infra/GPU/GPU/" class="">GPU 算力平台</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-1048340579f6168f3a532057403baf28" class="toggle"  />
+    <label for="section-1048340579f6168f3a532057403baf28" class="flex justify-between">
+      <a role="button" class="">显存估算</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Infra/%E6%98%BE%E5%AD%98%E4%BC%B0%E7%AE%97/GPU-InferA1/" class="">(A1)推理显存估算 *</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Infra/%E6%98%BE%E5%AD%98%E4%BC%B0%E7%AE%97/GPUComputing/" class="">显存估算</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/www6vMLSys/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <h3>Lite Llm Route&amp;fallback</h3>
+
+  <label for="toc-control">
+    
+    <img src="/www6vMLSys/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#litellm-路由策略与-fallback-机制源码剖析">LiteLLM 路由策略与 Fallback 机制源码剖析</a>
+      <ul>
+        <li><a href="#一引言为什么需要路由与-fallback">一、引言：为什么需要路由与 Fallback</a>
+          <ul>
+            <li><a href="#11-大模型时代的分布式系统问题">1.1 大模型时代的&quot;分布式系统&quot;问题</a></li>
+            <li><a href="#12-本文范围">1.2 本文范围</a></li>
+          </ul>
+        </li>
+        <li><a href="#二router-整体架构">二、Router 整体架构</a>
+          <ul>
+            <li><a href="#21-四层架构总览">2.1 四层架构总览</a></li>
+            <li><a href="#22-router-初始化关键参数">2.2 Router 初始化关键参数</a></li>
+            <li><a href="#23-请求生命周期完整链路">2.3 请求生命周期（完整链路）</a></li>
+          </ul>
+        </li>
+        <li><a href="#三路由策略详解">三、路由策略详解</a>
+          <ul>
+            <li><a href="#31-策略注册与调度引擎">3.1 策略注册与调度引擎</a></li>
+            <li><a href="#32-simple-shuffle默认策略">3.2 simple-shuffle（默认策略）</a></li>
+            <li><a href="#33-least-busy最少繁忙">3.3 least-busy（最少繁忙）</a></li>
+            <li><a href="#34-usage-based-routingtpmrpm-最低优先">3.4 usage-based-routing（TPM/RPM 最低优先）</a></li>
+            <li><a href="#35-latency-based-routing延迟最低优先">3.5 latency-based-routing（延迟最低优先）</a></li>
+            <li><a href="#36-cost-based-routing成本最低优先">3.6 cost-based-routing（成本最低优先）</a></li>
+            <li><a href="#37-高级路由策略">3.7 高级路由策略</a></li>
+            <li><a href="#38-routing-groups分组路由">3.8 Routing Groups（分组路由）</a></li>
+          </ul>
+        </li>
+        <li><a href="#四fallback-机制详解">四、Fallback 机制详解</a>
+          <ul>
+            <li><a href="#41-fallback-的三层架构">4.1 Fallback 的三层架构</a></li>
+            <li><a href="#42-retry-机制同-deployment-重试">4.2 Retry 机制（同 deployment 重试）</a></li>
+            <li><a href="#43-常规-fallback切换-model_group">4.3 常规 Fallback（切换 model_group）</a></li>
+            <li><a href="#44-context-window-fallback">4.4 Context Window Fallback</a></li>
+            <li><a href="#45-content-policy-fallback">4.5 Content Policy Fallback</a></li>
+            <li><a href="#46-fallback-的异常判定表">4.6 Fallback 的异常判定表</a></li>
+            <li><a href="#47-enable_weighted_failover同组内权重故障转移">4.7 enable_weighted_failover（同组内权重故障转移）</a></li>
+            <li><a href="#48-fallback-响应头可观测性">4.8 Fallback 响应头（可观测性）</a></li>
+          </ul>
+        </li>
+        <li><a href="#五cooldown-机制失败隔离与自动恢复">五、Cooldown 机制（失败隔离与自动恢复）</a>
+          <ul>
+            <li><a href="#51-cooldown-原理">5.1 Cooldown 原理</a></li>
+            <li><a href="#52-cooldown-关键参数">5.2 Cooldown 关键参数</a></li>
+            <li><a href="#53-pre-call-health-check">5.3 Pre-call Health Check</a></li>
+            <li><a href="#54-health-state-cache">5.4 Health State Cache</a></li>
+          </ul>
+        </li>
+        <li><a href="#六源码关键路径解读">六、源码关键路径解读</a>
+          <ul>
+            <li><a href="#61-核心调用链路源码行号标注">6.1 核心调用链路（源码行号标注）</a></li>
+            <li><a href="#62-关键数据结构">6.2 关键数据结构</a></li>
+          </ul>
+        </li>
+        <li><a href="#七最佳实践与陷阱">七、最佳实践与陷阱</a>
+          <ul>
+            <li><a href="#71-路由策略选型指南">7.1 路由策略选型指南</a></li>
+            <li><a href="#72-fallback-链设计原则">7.2 Fallback 链设计原则</a></li>
+            <li><a href="#73-常见陷阱">7.3 常见陷阱</a></li>
+          </ul>
+        </li>
+        <li><a href="#八总结">八、总结</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><h1 id="litellm-路由策略与-fallback-机制源码剖析">
+  LiteLLM 路由策略与 Fallback 机制源码剖析
+  <a class="anchor" href="#litellm-%e8%b7%af%e7%94%b1%e7%ad%96%e7%95%a5%e4%b8%8e-fallback-%e6%9c%ba%e5%88%b6%e6%ba%90%e7%a0%81%e5%89%96%e6%9e%90">#</a>
+</h1>
+<blockquote>
+<p><strong>版本</strong>: v0.1 | <strong>状态</strong>: 正文<br>
+<strong>源码版本</strong>: LiteLLM v1.90.x<br>
+<strong>核心文件</strong>: <code>router.py</code>（~7200 行）、<code>router_strategy/</code>（13 个文件）、<code>router_utils/</code>（17 个文件）<br>
+<strong>风格</strong>: DDIA 式 — 每项主张均有源码行号支撑</p></blockquote>
+<hr>
+<h2 id="一引言为什么需要路由与-fallback">
+  一、引言：为什么需要路由与 Fallback
+  <a class="anchor" href="#%e4%b8%80%e5%bc%95%e8%a8%80%e4%b8%ba%e4%bb%80%e4%b9%88%e9%9c%80%e8%a6%81%e8%b7%af%e7%94%b1%e4%b8%8e-fallback">#</a>
+</h2>
+<h3 id="11-大模型时代的分布式系统问题">
+  1.1 大模型时代的&quot;分布式系统&quot;问题
+  <a class="anchor" href="#11-%e5%a4%a7%e6%a8%a1%e5%9e%8b%e6%97%b6%e4%bb%a3%e7%9a%84%e5%88%86%e5%b8%83%e5%bc%8f%e7%b3%bb%e7%bb%9f%e9%97%ae%e9%a2%98">#</a>
+</h3>
+<p>传统分布式系统需要负载均衡器来解决三个问题：<strong>流量分配、故障转移、容量管理</strong>。在大模型时代，这三个问题以更复杂的形式重现：</p>
+<p><strong>流量分配</strong>: 一个 <code>model=&quot;gpt-4&quot;</code> 的背后可能有 10 个 deployment（不同 Provider、不同区域、不同 API Key），如何将请求分配给最合适的 deployment？</p>
+<p><strong>故障转移</strong>: 某个 deployment 可能因为 API 限流（RateLimit）、网络超时（Timeout）、内容审查拦截（ContentPolicyViolation）而失败，如何自动切换到备用 deployment？</p>
+<p><strong>容量管理</strong>: 每个 deployment 有 TPM/RPM 限额，如何在限额内最大化利用率，同时避免超限？</p>
+<p>LiteLLM Router 的本质就是 <strong>LLM 层的负载均衡器 + 断路器 + 降级引擎</strong>。</p>
+<h3 id="12-本文范围">
+  1.2 本文范围
+  <a class="anchor" href="#12-%e6%9c%ac%e6%96%87%e8%8c%83%e5%9b%b4">#</a>
+</h3>
+<p>本文聚焦 Router 的两个核心机制：</p>
+<ul>
+<li><strong>路由策略</strong>：5 种基础策略 + 4 种高级策略的源码实现</li>
+<li><strong>Fallback 机制</strong>：Retry → 常规 Fallback → 专用 Fallback 的三层架构</li>
+</ul>
+<p>不覆盖：Provider 适配（<code>llms/</code> 目录）、成本计算（<code>cost_calculator.py</code>）、Caching（<code>caching/</code> 目录）。</p>
+<hr>
+<h2 id="二router-整体架构">
+  二、Router 整体架构
+  <a class="anchor" href="#%e4%ba%8crouter-%e6%95%b4%e4%bd%93%e6%9e%b6%e6%9e%84">#</a>
+</h2>
+<h3 id="21-四层架构总览">
+  2.1 四层架构总览
+  <a class="anchor" href="#21-%e5%9b%9b%e5%b1%82%e6%9e%b6%e6%9e%84%e6%80%bb%e8%a7%88">#</a>
+</h3>
+<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph TB
+    subgraph &#34;L1: 入口层&#34;
+        E1[router.acompletion]
+        E2[router.completion]
+        E3[router.atext_completion&lt;br/&gt;router.aembedding / ...]
+    end
+
+    subgraph &#34;L2: Fallback + Retry 层&#34;
+        F1[async_function_with_fallbacks&lt;br/&gt;router.py:6756]
+        F2[async_function_with_retries&lt;br/&gt;router.py:6901]
+    end
+
+    subgraph &#34;L3: 调度层&#34;
+        S1[_select_deployment_async&lt;br/&gt;router.py:1091]
+        S2[Cooldown Cache 过滤]
+        S3[Pre-call Health Check]
+    end
+
+    subgraph &#34;L4: 策略层&#34;
+        P1[simple-shuffle]
+        P2[least-busy]
+        P3[usage-based-routing]
+        P4[latency-based-routing]
+        P5[cost-based-routing]
+    end
+
+    E1 --&gt; F1
+    F1 --&gt; F2
+    F2 --&gt; S1
+    S1 --&gt; S2
+    S2 --&gt; S3
+    S3 --&gt; P1
+    S3 --&gt; P2
+    S3 --&gt; P3
+    S3 --&gt; P4
+    S3 --&gt; P5
+
+    style E1 fill:#4a90d9,color:#fff
+    style F1 fill:#50c878,color:#fff
+    style S1 fill:#ffd93d
+    style P1 fill:#ff6b6b,color:#fff
+    style P5 fill:#ff6b6b,color:#fff
+</code></pre><p><strong>四层职责</strong>：</p>
+<table>
+  <thead>
+      <tr>
+          <th>层级</th>
+          <th>职责</th>
+          <th>核心文件</th>
+          <th>关键方法</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><strong>L1 入口层</strong></td>
+          <td>接收用户请求，统一参数格式</td>
+          <td><code>router.py:1851-2150</code></td>
+          <td><code>completion()</code>, <code>acompletion()</code></td>
+      </tr>
+      <tr>
+          <td><strong>L2 Fallback+Retry</strong></td>
+          <td>重试（同 deployment）+ 降级（换 model_group）</td>
+          <td><code>router.py:6756-7200</code></td>
+          <td><code>async_function_with_fallbacks()</code>, <code>async_function_with_retries()</code></td>
+      </tr>
+      <tr>
+          <td><strong>L3 调度层</strong></td>
+          <td>过滤冷却 deployment → 选目标 deployment</td>
+          <td><code>router.py:1091-1647</code></td>
+          <td><code>_select_deployment_async()</code></td>
+      </tr>
+      <tr>
+          <td><strong>L4 策略层</strong></td>
+          <td>执行具体路由策略，返回最优 deployment</td>
+          <td><code>router_strategy/*.py</code></td>
+          <td>各策略的 <code>async_get_available_deployments()</code></td>
+      </tr>
+  </tbody>
+</table>
+<h3 id="22-router-初始化关键参数">
+  2.2 Router 初始化关键参数
+  <a class="anchor" href="#22-router-%e5%88%9d%e5%a7%8b%e5%8c%96%e5%85%b3%e9%94%ae%e5%8f%82%e6%95%b0">#</a>
+</h3>
+<p><code>Router.__init__</code>（<code>router.py:192-676</code>）接受超过 60 个参数，按功能分为 6 组：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>router <span style="color:#f92672">=</span> litellm<span style="color:#f92672">.</span>Router(
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># ====== 1. 模型注册 ======</span>
+</span></span><span style="display:flex;"><span>    model_list<span style="color:#f92672">=</span>[
+</span></span><span style="display:flex;"><span>        {
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;model_name&#34;</span>: <span style="color:#e6db74">&#34;gpt-4&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;litellm_params&#34;</span>: {
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;model&#34;</span>: <span style="color:#e6db74">&#34;azure/gpt-4&#34;</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;api_key&#34;</span>: os<span style="color:#f92672">.</span>environ[<span style="color:#e6db74">&#34;AZURE_API_KEY&#34;</span>],
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;api_base&#34;</span>: <span style="color:#e6db74">&#34;https://xxx.openai.azure.com/&#34;</span>,
+</span></span><span style="display:flex;"><span>            },
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;tpm&#34;</span>: <span style="color:#ae81ff">100000</span>,      <span style="color:#75715e"># 每分钟 token 限额</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;rpm&#34;</span>: <span style="color:#ae81ff">1000</span>,         <span style="color:#75715e"># 每分钟请求限额</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;weight&#34;</span>: <span style="color:#ae81ff">1</span>,         <span style="color:#75715e"># 权重（simple-shuffle 用）</span>
+</span></span><span style="display:flex;"><span>        },
+</span></span><span style="display:flex;"><span>        {
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;model_name&#34;</span>: <span style="color:#e6db74">&#34;gpt-4&#34;</span>,  <span style="color:#75715e"># 同名 = 同一 model_group</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;litellm_params&#34;</span>: {
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;model&#34;</span>: <span style="color:#e6db74">&#34;openai/gpt-4&#34;</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;api_key&#34;</span>: os<span style="color:#f92672">.</span>environ[<span style="color:#e6db74">&#34;OPENAI_API_KEY&#34;</span>],
+</span></span><span style="display:flex;"><span>            },
+</span></span><span style="display:flex;"><span>        },
+</span></span><span style="display:flex;"><span>    ],
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># ====== 2. 路由策略 ======</span>
+</span></span><span style="display:flex;"><span>    routing_strategy<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;latency-based-routing&#34;</span>,  <span style="color:#75715e"># 5 种之一</span>
+</span></span><span style="display:flex;"><span>    routing_groups<span style="color:#f92672">=</span>[<span style="color:#f92672">...</span>],                       <span style="color:#75715e"># 按模型名分组独立路由（可选）</span>
+</span></span><span style="display:flex;"><span>    routing_strategy_args<span style="color:#f92672">=</span>{<span style="color:#e6db74">&#34;ttl&#34;</span>: <span style="color:#ae81ff">3600</span>},        <span style="color:#75715e"># 策略参数</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># ====== 3. 重试 ======</span>
+</span></span><span style="display:flex;"><span>    num_retries<span style="color:#f92672">=</span><span style="color:#ae81ff">3</span>,                              <span style="color:#75715e"># 同 deployment 重试次数</span>
+</span></span><span style="display:flex;"><span>    retry_after<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>,                              <span style="color:#75715e"># 失败后最小等待秒数</span>
+</span></span><span style="display:flex;"><span>    retry_policy<span style="color:#f92672">=</span>litellm<span style="color:#f92672">.</span>RetryPolicy(           <span style="color:#75715e"># 按异常类型定制</span>
+</span></span><span style="display:flex;"><span>        RateLimitErrorRetries<span style="color:#f92672">=</span><span style="color:#ae81ff">5</span>,
+</span></span><span style="display:flex;"><span>        TimeoutErrorRetries<span style="color:#f92672">=</span><span style="color:#ae81ff">3</span>,
+</span></span><span style="display:flex;"><span>        ContentPolicyViolationErrorRetries<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>,
+</span></span><span style="display:flex;"><span>    ),
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># ====== 4. Fallback ======</span>
+</span></span><span style="display:flex;"><span>    fallbacks<span style="color:#f92672">=</span>[
+</span></span><span style="display:flex;"><span>        {<span style="color:#e6db74">&#34;gpt-4&#34;</span>: <span style="color:#e6db74">&#34;gpt-3.5-turbo&#34;</span>},             <span style="color:#75715e"># 特定模型 fallback</span>
+</span></span><span style="display:flex;"><span>        {<span style="color:#e6db74">&#34;*&#34;</span>: <span style="color:#e6db74">&#34;gpt-4o-mini&#34;</span>},                    <span style="color:#75715e"># 全局兜底</span>
+</span></span><span style="display:flex;"><span>    ],
+</span></span><span style="display:flex;"><span>    max_fallbacks<span style="color:#f92672">=</span><span style="color:#ae81ff">5</span>,                            <span style="color:#75715e"># 最大 fallback 深度</span>
+</span></span><span style="display:flex;"><span>    context_window_fallbacks<span style="color:#f92672">=</span>[                  <span style="color:#75715e"># 上下文超长自动降级</span>
+</span></span><span style="display:flex;"><span>        {<span style="color:#e6db74">&#34;gpt-3.5-turbo&#34;</span>: <span style="color:#e6db74">&#34;gpt-4-turbo&#34;</span>}
+</span></span><span style="display:flex;"><span>    ],
+</span></span><span style="display:flex;"><span>    content_policy_fallbacks<span style="color:#f92672">=</span>[                  <span style="color:#75715e"># 内容审查拦截自动降级</span>
+</span></span><span style="display:flex;"><span>        {<span style="color:#e6db74">&#34;azure-gpt-4&#34;</span>: <span style="color:#e6db74">&#34;openai-gpt-4&#34;</span>}
+</span></span><span style="display:flex;"><span>    ],
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># ====== 5. Cooldown ======</span>
+</span></span><span style="display:flex;"><span>    allowed_fails<span style="color:#f92672">=</span><span style="color:#ae81ff">3</span>,                            <span style="color:#75715e"># 失败 N 次后进入冷却</span>
+</span></span><span style="display:flex;"><span>    cooldown_time<span style="color:#f92672">=</span><span style="color:#ae81ff">60</span>,                           <span style="color:#75715e"># 冷却时长（秒）</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># ====== 6. 高可用 ======</span>
+</span></span><span style="display:flex;"><span>    redis_url<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;redis://localhost:6379&#34;</span>,         <span style="color:#75715e"># 多实例共享状态</span>
+</span></span><span style="display:flex;"><span>    enable_pre_call_checks<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>,                <span style="color:#75715e"># 调用前健康检查</span>
+</span></span><span style="display:flex;"><span>    enable_weighted_failover<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>,              <span style="color:#75715e"># 同组内权重故障转移</span>
+</span></span><span style="display:flex;"><span>)
+</span></span></code></pre></div><p><strong>关键概念澄清</strong>：</p>
+<ul>
+<li><strong><code>model_name</code></strong> = 路由别名（用户看到的名字）。相同 <code>model_name</code> 的 deployment 属于同一 <strong>model_group</strong>。</li>
+<li><strong><code>litellm_params.model</code></strong> = 实际 Provider 模型名（如 <code>azure/gpt-4</code>、<code>openai/gpt-4</code>）。</li>
+<li>路由策略在 <strong>model_group 内</strong>执行，选择最优 deployment；Fallback 在 <strong>model_group 之间</strong>执行，切换到其他 model_group。</li>
+</ul>
+<h3 id="23-请求生命周期完整链路">
+  2.3 请求生命周期（完整链路）
+  <a class="anchor" href="#23-%e8%af%b7%e6%b1%82%e7%94%9f%e5%91%bd%e5%91%a8%e6%9c%9f%e5%ae%8c%e6%95%b4%e9%93%be%e8%b7%af">#</a>
+</h3>
+<pre tabindex="0"><code>用户调用 router.acompletion(model=&#34;gpt-4&#34;, messages=[...])
+  │
+  │  L1: 入口层（router.py:2074）
+  ├─ acompletion()
+  │   ├─ 参数校验 + 默认值填充
+  │   ├─ _update_kwargs_before_fallbacks()    # 注入 fallback 参数
+  │   │
+  │   │  L2: Fallback 层（router.py:6756）
+  │   ├─ async_function_with_fallbacks()
+  │   │   │
+  │   │   │  L2: Retry 层（router.py:6901）
+  │   │   ├─ async_function_with_retries()
+  │   │   │   │
+  │   │   │   │  L3: 调度层（router.py:1091）
+  │   │   │   ├─ _select_deployment_async()
+  │   │   │   │   ├─ ① Cooldown 过滤（排除冷却中 deployment）
+  │   │   │   │   ├─ ② Pre-call Health Check（可选）
+  │   │   │   │   │
+  │   │   │   │   │  L4: 策略层（router_strategy/*.py）
+  │   │   │   │   ├─ ③ Routing Strategy Engine → 选最优 deployment
+  │   │   │   │   │
+  │   │   │   │   └─ 返回 Deployment 对象
+  │   │   │   │
+  │   │   │   ├─ 调用 litellm.acompletion(deployment, ...)
+  │   │   │   │
+  │   │   │   └─ 成功 → 记录成功事件（更新策略状态）
+  │   │   │   └─ 失败 → 重试（同 deployment，最多 num_retries 次）
+  │   │   │
+  │   │   └─ 重试耗尽 → 触发 Fallback
+  │   │       ├─ 按异常类型查找匹配的 fallback 列表
+  │   │       ├─ 对每个 fallback model_group 递归调用
+  │   │       │   async_function_with_fallbacks()
+  │   │       └─ 所有 fallback 耗尽 → 抛出最终异常
+  │   │
+  │   └─ 成功 → 添加 x-litellm-* 响应头
+  │
+  └─ 返回 ModelResponse
+</code></pre><p><strong>关键设计洞察</strong>: Retry 和 Fallback 是<strong>两层独立机制</strong>。Retry 是在<strong>同一个 deployment</strong> 内重复尝试（适用于瞬时故障如网络抖动）；Fallback 是<strong>切换到不同 model_group</strong>（适用于持久性故障如限流、内容审查）。</p>
+<hr>
+<h2 id="三路由策略详解">
+  三、路由策略详解
+  <a class="anchor" href="#%e4%b8%89%e8%b7%af%e7%94%b1%e7%ad%96%e7%95%a5%e8%af%a6%e8%a7%a3">#</a>
+</h2>
+<h3 id="31-策略注册与调度引擎">
+  3.1 策略注册与调度引擎
+  <a class="anchor" href="#31-%e7%ad%96%e7%95%a5%e6%b3%a8%e5%86%8c%e4%b8%8e%e8%b0%83%e5%ba%a6%e5%bc%95%e6%93%8e">#</a>
+</h3>
+<p>Router 启动时，<code>routing_strategy_init()</code>（<code>router.py:949-1089</code>）将字符串参数映射为具体策略实例：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># router.py:949-1089 核心逻辑</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">routing_strategy_init</span>(self, routing_strategy, routing_strategy_args):
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;&#34;&#34;初始化路由策略引擎&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    strategy_map <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;simple-shuffle&#34;</span>:       self<span style="color:#f92672">.</span>_init_simple_shuffle,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;least-busy&#34;</span>:           self<span style="color:#f92672">.</span>_init_least_busy,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;usage-based-routing&#34;</span>:  self<span style="color:#f92672">.</span>_init_lowest_tpm_rpm,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;latency-based-routing&#34;</span>: self<span style="color:#f92672">.</span>_init_lowest_latency,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;cost-based-routing&#34;</span>:   self<span style="color:#f92672">.</span>_init_lowest_cost,
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    init_fn <span style="color:#f92672">=</span> strategy_map<span style="color:#f92672">.</span>get(routing_strategy)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> init_fn:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">raise</span> <span style="color:#a6e22e">ValueError</span>(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;Unknown routing strategy: </span><span style="color:#e6db74">{</span>routing_strategy<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># 初始化策略实例，注入 DualCache（In-Memory + Redis）</span>
+</span></span><span style="display:flex;"><span>    init_fn(routing_strategy_args)
+</span></span></code></pre></div><p>所有策略继承 <code>BaseRoutingStrategy</code>（<code>router_strategy/base_routing_strategy.py</code>），核心抽象是：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">BaseRoutingStrategy</span>(ABC):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">__init__</span>(self, dual_cache: DualCache, <span style="color:#f92672">...</span>):
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>dual_cache <span style="color:#f92672">=</span> dual_cache  <span style="color:#75715e"># In-Memory + Redis 双缓存</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># 子类必须实现：</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># async def async_get_available_deployments(...) -&gt; List[Deployment]</span>
+</span></span></code></pre></div><p><strong>双缓存架构</strong>（<code>caching/caching.py</code>）：</p>
+<ul>
+<li><strong>In-Memory Cache</strong>: 进程内，延迟 &lt; 1ms，但多实例不共享</li>
+<li><strong>Redis Cache</strong>: 跨实例共享，延迟 ~5ms</li>
+<li><strong>同步机制</strong>: 后台定时任务 <code>_sync_in_memory_spend_with_redis()</code> 批量同步（<code>base_routing_strategy.py:75-120</code>）</li>
+</ul>
+<h3 id="32-simple-shuffle默认策略">
+  3.2 simple-shuffle（默认策略）
+  <a class="anchor" href="#32-simple-shuffle%e9%bb%98%e8%ae%a4%e7%ad%96%e7%95%a5">#</a>
+</h3>
+<p><strong>源码</strong>: <code>router_strategy/simple_shuffle.py</code>（~2700 字节，最轻量）</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># router_strategy/simple_shuffle.py</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">simple_shuffle</span>(deployments: List[Deployment]) <span style="color:#f92672">-&gt;</span> List[Deployment]:
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    随机打乱 deployment 列表，支持权重
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">import</span> random
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># 分离有权重和无权重的 deployment</span>
+</span></span><span style="display:flex;"><span>    weighted <span style="color:#f92672">=</span> [d <span style="color:#66d9ef">for</span> d <span style="color:#f92672">in</span> deployments <span style="color:#66d9ef">if</span> d<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#34;weight&#34;</span>, <span style="color:#ae81ff">1</span>) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span>    unweighted <span style="color:#f92672">=</span> [d <span style="color:#66d9ef">for</span> d <span style="color:#f92672">in</span> deployments <span style="color:#66d9ef">if</span> d<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#34;weight&#34;</span>, <span style="color:#ae81ff">1</span>) <span style="color:#f92672">==</span> <span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> weighted:
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 按权重概率选择</span>
+</span></span><span style="display:flex;"><span>        weights <span style="color:#f92672">=</span> [d[<span style="color:#e6db74">&#34;weight&#34;</span>] <span style="color:#66d9ef">for</span> d <span style="color:#f92672">in</span> weighted]
+</span></span><span style="display:flex;"><span>        total <span style="color:#f92672">=</span> sum(weights)
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 权重归一化为概率</span>
+</span></span><span style="display:flex;"><span>        probs <span style="color:#f92672">=</span> [w <span style="color:#f92672">/</span> total <span style="color:#66d9ef">for</span> w <span style="color:#f92672">in</span> weights]
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 按概率打乱</span>
+</span></span><span style="display:flex;"><span>        random<span style="color:#f92672">.</span>shuffle(weighted, <span style="color:#66d9ef">lambda</span>: random<span style="color:#f92672">.</span>choices(range(len(weighted)), weights<span style="color:#f92672">=</span>probs)[<span style="color:#ae81ff">0</span>])
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>        random<span style="color:#f92672">.</span>shuffle(unweighted)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> weighted <span style="color:#f92672">+</span> unweighted
+</span></span></code></pre></div><p><strong>特点</strong>：</p>
+<ul>
+<li>零状态维护：不记录历史请求，不做性能分析</li>
+<li>权重感知：支持 <code>weight</code> 字段，按权重概率分配</li>
+<li>适用场景：deployment 同质化（如同一区域的多 API Key 部署）</li>
+</ul>
+<p><strong>配置示例</strong>：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>router <span style="color:#f92672">=</span> Router(
+</span></span><span style="display:flex;"><span>    model_list<span style="color:#f92672">=</span>[
+</span></span><span style="display:flex;"><span>        {<span style="color:#e6db74">&#34;model_name&#34;</span>: <span style="color:#e6db74">&#34;gpt-4&#34;</span>, <span style="color:#e6db74">&#34;litellm_params&#34;</span>: {<span style="color:#f92672">...</span>}, <span style="color:#e6db74">&#34;weight&#34;</span>: <span style="color:#ae81ff">3</span>},  <span style="color:#75715e"># 3/5 概率</span>
+</span></span><span style="display:flex;"><span>        {<span style="color:#e6db74">&#34;model_name&#34;</span>: <span style="color:#e6db74">&#34;gpt-4&#34;</span>, <span style="color:#e6db74">&#34;litellm_params&#34;</span>: {<span style="color:#f92672">...</span>}, <span style="color:#e6db74">&#34;weight&#34;</span>: <span style="color:#ae81ff">1</span>},  <span style="color:#75715e"># 1/5 概率</span>
+</span></span><span style="display:flex;"><span>        {<span style="color:#e6db74">&#34;model_name&#34;</span>: <span style="color:#e6db74">&#34;gpt-4&#34;</span>, <span style="color:#e6db74">&#34;litellm_params&#34;</span>: {<span style="color:#f92672">...</span>}, <span style="color:#e6db74">&#34;weight&#34;</span>: <span style="color:#ae81ff">1</span>},  <span style="color:#75715e"># 1/5 概率</span>
+</span></span><span style="display:flex;"><span>    ],
+</span></span><span style="display:flex;"><span>    routing_strategy<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;simple-shuffle&#34;</span>,  <span style="color:#75715e"># 可省略，这是默认值</span>
+</span></span><span style="display:flex;"><span>)
+</span></span></code></pre></div><h3 id="33-least-busy最少繁忙">
+  3.3 least-busy（最少繁忙）
+  <a class="anchor" href="#33-least-busy%e6%9c%80%e5%b0%91%e7%b9%81%e5%bf%99">#</a>
+</h3>
+<p><strong>源码</strong>: <code>router_strategy/least_busy.py</code>（~9600 字节）</p>
+<p><strong>原理</strong>: 选择<strong>当前活跃请求数最少</strong>的 deployment。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># router_strategy/least_busy.py 核心逻辑</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">LeastBusyLoggingHandler</span>(CustomLogger):
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;&#34;&#34;跟踪每个 deployment 的并发请求数&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">log_success_event</span>(self, kwargs, response_obj, start_time, end_time):
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;&#34;&#34;请求成功: 递减并发计数&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>        deployment_id <span style="color:#f92672">=</span> kwargs[<span style="color:#e6db74">&#34;litellm_params&#34;</span>][<span style="color:#e6db74">&#34;model_info&#34;</span>][<span style="color:#e6db74">&#34;id&#34;</span>]
+</span></span><span style="display:flex;"><span>        key <span style="color:#f92672">=</span> <span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;leastbusy:</span><span style="color:#e6db74">{</span>deployment_id<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>dual_cache<span style="color:#f92672">.</span>in_memory_cache<span style="color:#f92672">.</span>async_increment(key, value<span style="color:#f92672">=-</span><span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">log_failure_event</span>(self, kwargs, response_obj, start_time, end_time):
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;&#34;&#34;请求失败: 同样递减并发计数&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">...</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get_least_busy_deployments</span>(self, deployments):
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;&#34;&#34;返回按并发数升序排序的 deployment 列表&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> d <span style="color:#f92672">in</span> deployments:
+</span></span><span style="display:flex;"><span>            dep_id <span style="color:#f92672">=</span> d[<span style="color:#e6db74">&#34;model_info&#34;</span>][<span style="color:#e6db74">&#34;id&#34;</span>]
+</span></span><span style="display:flex;"><span>            concurrency <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>dual_cache<span style="color:#f92672">.</span>in_memory_cache<span style="color:#f92672">.</span>get(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;leastbusy:</span><span style="color:#e6db74">{</span>dep_id<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>) <span style="color:#f92672">or</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>            d[<span style="color:#e6db74">&#34;_concurrency&#34;</span>] <span style="color:#f92672">=</span> concurrency
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> sorted(deployments, key<span style="color:#f92672">=</span><span style="color:#66d9ef">lambda</span> d: d[<span style="color:#e6db74">&#34;_concurrency&#34;</span>])
+</span></span></code></pre></div><p><strong>关键细节</strong>：</p>
+<ul>
+<li>并发计数在请求发起时 +1，成功/失败回调时 -1</li>
+<li>不需要等待响应完成，只要请求发出就计数</li>
+<li>适合 deployment 性能相近、需要均匀分配的场景</li>
+</ul>
+<h3 id="34-usage-based-routingtpmrpm-最低优先">
+  3.4 usage-based-routing（TPM/RPM 最低优先）
+  <a class="anchor" href="#34-usage-based-routingtpmrpm-%e6%9c%80%e4%bd%8e%e4%bc%98%e5%85%88">#</a>
+</h3>
+<p><strong>源码</strong>: <code>router_strategy/lowest_tpm_rpm.py</code> + <code>lowest_tpm_rpm_v2.py</code></p>
+<p><strong>原理</strong>: 选择<strong>当前分钟 TPM（Token Per Minute）/ RPM（Request Per Minute）用量最低</strong>的 deployment。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># router_strategy/lowest_tpm_rpm.py 核心逻辑</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">LowestTPMLoggingHandler</span>(CustomLogger):
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;&#34;&#34;跟踪每个 deployment 的 TPM/RPM 用量&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">log_success_event</span>(self, kwargs, response_obj, start_time, end_time):
+</span></span><span style="display:flex;"><span>        model_group <span style="color:#f92672">=</span> kwargs[<span style="color:#e6db74">&#34;litellm_params&#34;</span>][<span style="color:#e6db74">&#34;model_group&#34;</span>]
+</span></span><span style="display:flex;"><span>        dep_id <span style="color:#f92672">=</span> kwargs[<span style="color:#e6db74">&#34;litellm_params&#34;</span>][<span style="color:#e6db74">&#34;model_info&#34;</span>][<span style="color:#e6db74">&#34;id&#34;</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 时间粒度: 日期-小时-分钟</span>
+</span></span><span style="display:flex;"><span>        precise_minute <span style="color:#f92672">=</span> datetime<span style="color:#f92672">.</span>now()<span style="color:#f92672">.</span>strftime(<span style="color:#e6db74">&#34;%Y-%m-</span><span style="color:#e6db74">%d</span><span style="color:#e6db74">-%H-%M&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 获取 token 数</span>
+</span></span><span style="display:flex;"><span>        total_tokens <span style="color:#f92672">=</span> response_obj<span style="color:#f92672">.</span>usage<span style="color:#f92672">.</span>total_tokens <span style="color:#66d9ef">if</span> response_obj<span style="color:#f92672">.</span>usage <span style="color:#66d9ef">else</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 更新缓存: {model_group}_map: {dep_id: {&#34;tpm&#34;: N, &#34;rpm&#34;: M, &#34;minute&#34;: &#34;...&#34;}}</span>
+</span></span><span style="display:flex;"><span>        latency_key <span style="color:#f92672">=</span> <span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">{</span>model_group<span style="color:#e6db74">}</span><span style="color:#e6db74">_map&#34;</span>
+</span></span><span style="display:flex;"><span>        current_data <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>dual_cache<span style="color:#f92672">.</span>in_memory_cache<span style="color:#f92672">.</span>get(latency_key) <span style="color:#f92672">or</span> {}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> dep_id <span style="color:#f92672">not</span> <span style="color:#f92672">in</span> current_data:
+</span></span><span style="display:flex;"><span>            current_data[dep_id] <span style="color:#f92672">=</span> {}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> current_data[dep_id]<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#34;minute&#34;</span>) <span style="color:#f92672">!=</span> precise_minute:
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># 新分钟，重置计数</span>
+</span></span><span style="display:flex;"><span>            current_data[dep_id] <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;minute&#34;</span>: precise_minute,
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;tpm&#34;</span>: total_tokens,
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;rpm&#34;</span>: <span style="color:#ae81ff">1</span>,
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>            current_data[dep_id][<span style="color:#e6db74">&#34;tpm&#34;</span>] <span style="color:#f92672">+=</span> total_tokens
+</span></span><span style="display:flex;"><span>            current_data[dep_id][<span style="color:#e6db74">&#34;rpm&#34;</span>] <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>dual_cache<span style="color:#f92672">.</span>in_memory_cache<span style="color:#f92672">.</span>set(latency_key, current_data)
+</span></span></code></pre></div><p><strong>v2 改进</strong>（<code>lowest_tpm_rpm_v2.py</code>）：</p>
+<ul>
+<li>更精确的滑动窗口计算（不是严格按分钟切分）</li>
+<li>Redis Pipeline 批量同步，减少网络开销</li>
+<li>支持按 <code>rpm</code> 或 <code>tpm</code> 分别排序</li>
+</ul>
+<p><strong>适用场景</strong>: 有 TPM/RPM 限额的部署（如 Azure OpenAI 的 tier 限制），最大化利用配额而不超限。</p>
+<h3 id="35-latency-based-routing延迟最低优先">
+  3.5 latency-based-routing（延迟最低优先）
+  <a class="anchor" href="#35-latency-based-routing%e5%bb%b6%e8%bf%9f%e6%9c%80%e4%bd%8e%e4%bc%98%e5%85%88">#</a>
+</h3>
+<p><strong>源码</strong>: <code>router_strategy/lowest_latency.py</code>（~24000 字节，最复杂的策略）</p>
+<p><strong>原理</strong>: 选择<strong>历史平均响应延迟最低</strong>的 deployment。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># router_strategy/lowest_latency.py 核心逻辑</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">LowestLatencyLoggingHandler</span>(CustomLogger):
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;&#34;&#34;跟踪每个 deployment 的响应延迟&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">log_success_event</span>(self, kwargs, response_obj, start_time, end_time):
+</span></span><span style="display:flex;"><span>        model_group <span style="color:#f92672">=</span> kwargs[<span style="color:#e6db74">&#34;litellm_params&#34;</span>][<span style="color:#e6db74">&#34;model_group&#34;</span>]
+</span></span><span style="display:flex;"><span>        dep_id <span style="color:#f92672">=</span> kwargs[<span style="color:#e6db74">&#34;litellm_params&#34;</span>][<span style="color:#e6db74">&#34;model_info&#34;</span>][<span style="color:#e6db74">&#34;id&#34;</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 计算响应时间（毫秒）</span>
+</span></span><span style="display:flex;"><span>        response_ms <span style="color:#f92672">=</span> end_time <span style="color:#f92672">-</span> start_time
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 流式请求：使用 Time-To-First-Token (TTFT) 而非总耗时</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> kwargs<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#34;stream&#34;</span>):
+</span></span><span style="display:flex;"><span>            ttft <span style="color:#f92672">=</span> kwargs<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#34;completion_start_time&#34;</span>, end_time) <span style="color:#f92672">-</span> start_time
+</span></span><span style="display:flex;"><span>            time_to_first_token <span style="color:#f92672">=</span> ttft
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 存储到缓存: {model_group}_map: {dep_id: {&#34;latency&#34;: [t1, t2, ...]}}</span>
+</span></span><span style="display:flex;"><span>        latency_key <span style="color:#f92672">=</span> <span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">{</span>model_group<span style="color:#e6db74">}</span><span style="color:#e6db74">_map&#34;</span>
+</span></span><span style="display:flex;"><span>        current_data <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>dual_cache<span style="color:#f92672">.</span>in_memory_cache<span style="color:#f92672">.</span>get(latency_key) <span style="color:#f92672">or</span> {}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> dep_id <span style="color:#f92672">not</span> <span style="color:#f92672">in</span> current_data:
+</span></span><span style="display:flex;"><span>            current_data[dep_id] <span style="color:#f92672">=</span> {<span style="color:#e6db74">&#34;latency&#34;</span>: []}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        current_data[dep_id][<span style="color:#e6db74">&#34;latency&#34;</span>]<span style="color:#f92672">.</span>append(response_ms)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 限制历史列表大小（默认 10），防止内存膨胀</span>
+</span></span><span style="display:flex;"><span>        max_size <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>routing_args<span style="color:#f92672">.</span>max_latency_list_size  <span style="color:#75715e"># 默认 10</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> len(current_data[dep_id][<span style="color:#e6db74">&#34;latency&#34;</span>]) <span style="color:#f92672">&gt;</span> max_size:
+</span></span><span style="display:flex;"><span>            current_data[dep_id][<span style="color:#e6db74">&#34;latency&#34;</span>] <span style="color:#f92672">=</span> current_data[dep_id][<span style="color:#e6db74">&#34;latency&#34;</span>][<span style="color:#f92672">-</span>max_size:]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>dual_cache<span style="color:#f92672">.</span>in_memory_cache<span style="color:#f92672">.</span>set(latency_key, current_data)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get_lowest_latency_deployments</span>(self, deployments):
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;&#34;&#34;返回按平均延迟升序排序的 deployment 列表&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>        model_group <span style="color:#f92672">=</span> <span style="color:#f92672">...</span>  <span style="color:#75715e"># 获取当前 model_group</span>
+</span></span><span style="display:flex;"><span>        latency_key <span style="color:#f92672">=</span> <span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">{</span>model_group<span style="color:#e6db74">}</span><span style="color:#e6db74">_map&#34;</span>
+</span></span><span style="display:flex;"><span>        data <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>dual_cache<span style="color:#f92672">.</span>in_memory_cache<span style="color:#f92672">.</span>get(latency_key) <span style="color:#f92672">or</span> {}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> d <span style="color:#f92672">in</span> deployments:
+</span></span><span style="display:flex;"><span>            dep_id <span style="color:#f92672">=</span> d[<span style="color:#e6db74">&#34;model_info&#34;</span>][<span style="color:#e6db74">&#34;id&#34;</span>]
+</span></span><span style="display:flex;"><span>            latencies <span style="color:#f92672">=</span> data<span style="color:#f92672">.</span>get(dep_id, {})<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#34;latency&#34;</span>, [])
+</span></span><span style="display:flex;"><span>            d[<span style="color:#e6db74">&#34;_avg_latency&#34;</span>] <span style="color:#f92672">=</span> sum(latencies) <span style="color:#f92672">/</span> len(latencies) <span style="color:#66d9ef">if</span> latencies <span style="color:#66d9ef">else</span> float(<span style="color:#e6db74">&#39;inf&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> sorted(deployments, key<span style="color:#f92672">=</span><span style="color:#66d9ef">lambda</span> d: d[<span style="color:#e6db74">&#34;_avg_latency&#34;</span>])
+</span></span></code></pre></div><p><strong>关键细节</strong>：</p>
+<ul>
+<li><strong>TTFT（Time-To-First-Token）</strong>: 流式请求使用首 token 延迟，而非总耗时。这更准确地反映了用户体验。</li>
+<li><strong>滑动窗口</strong>: 默认保留最近 10 次请求的延迟数据，TTL 默认 1 小时。</li>
+<li><strong>冷启动</strong>: 新 deployment 无历史数据时，延迟为 <code>inf</code>，排在最后，直到有足够样本。</li>
+</ul>
+<p><strong>配置示例</strong>：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>router <span style="color:#f92672">=</span> Router(
+</span></span><span style="display:flex;"><span>    model_list<span style="color:#f92672">=</span>[
+</span></span><span style="display:flex;"><span>        {<span style="color:#e6db74">&#34;model_name&#34;</span>: <span style="color:#e6db74">&#34;gpt-4&#34;</span>, <span style="color:#e6db74">&#34;litellm_params&#34;</span>: {<span style="color:#e6db74">&#34;model&#34;</span>: <span style="color:#e6db74">&#34;azure/gpt-4&#34;</span>, <span style="color:#f92672">...</span>}},
+</span></span><span style="display:flex;"><span>        {<span style="color:#e6db74">&#34;model_name&#34;</span>: <span style="color:#e6db74">&#34;gpt-4&#34;</span>, <span style="color:#e6db74">&#34;litellm_params&#34;</span>: {<span style="color:#e6db74">&#34;model&#34;</span>: <span style="color:#e6db74">&#34;openai/gpt-4&#34;</span>, <span style="color:#f92672">...</span>}},
+</span></span><span style="display:flex;"><span>        {<span style="color:#e6db74">&#34;model_name&#34;</span>: <span style="color:#e6db74">&#34;gpt-4&#34;</span>, <span style="color:#e6db74">&#34;litellm_params&#34;</span>: {<span style="color:#e6db74">&#34;model&#34;</span>: <span style="color:#e6db74">&#34;vertex_ai/gpt-4&#34;</span>, <span style="color:#f92672">...</span>}},
+</span></span><span style="display:flex;"><span>    ],
+</span></span><span style="display:flex;"><span>    routing_strategy<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;latency-based-routing&#34;</span>,
+</span></span><span style="display:flex;"><span>    routing_strategy_args<span style="color:#f92672">=</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;ttl&#34;</span>: <span style="color:#ae81ff">3600</span>,                <span style="color:#75715e"># 延迟数据 TTL（1 小时）</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;lowest_latency_buffer&#34;</span>: <span style="color:#ae81ff">0</span>,  <span style="color:#75715e"># 延迟容忍缓冲（0 = 严格选最低）</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>)
+</span></span></code></pre></div><h3 id="36-cost-based-routing成本最低优先">
+  3.6 cost-based-routing（成本最低优先）
+  <a class="anchor" href="#36-cost-based-routing%e6%88%90%e6%9c%ac%e6%9c%80%e4%bd%8e%e4%bc%98%e5%85%88">#</a>
+</h3>
+<p><strong>源码</strong>: <code>router_strategy/lowest_cost.py</code>（~12000 字节）</p>
+<p><strong>原理</strong>: 选择<strong>单位 token 成本最低</strong>的 deployment。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># router_strategy/lowest_cost.py 核心逻辑</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">LowestCostLoggingHandler</span>(CustomLogger):
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;&#34;&#34;按成本排序 deployment&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get_lowest_cost_deployments</span>(self, deployments):
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;&#34;&#34;返回按成本升序排序的 deployment 列表&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">from</span> litellm <span style="color:#f92672">import</span> cost_per_token
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> d <span style="color:#f92672">in</span> deployments:
+</span></span><span style="display:flex;"><span>            model <span style="color:#f92672">=</span> d[<span style="color:#e6db74">&#34;litellm_params&#34;</span>][<span style="color:#e6db74">&#34;model&#34;</span>]
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># 从 model_prices_and_context_window_backup.json 查价格</span>
+</span></span><span style="display:flex;"><span>            input_cost, output_cost <span style="color:#f92672">=</span> cost_per_token(model<span style="color:#f92672">=</span>model, prompt_tokens<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>, completion_tokens<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>            d[<span style="color:#e6db74">&#34;_cost_per_token&#34;</span>] <span style="color:#f92672">=</span> (input_cost <span style="color:#f92672">+</span> output_cost) <span style="color:#f92672">/</span> <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> sorted(deployments, key<span style="color:#f92672">=</span><span style="color:#66d9ef">lambda</span> d: d[<span style="color:#e6db74">&#34;_cost_per_token&#34;</span>])
+</span></span></code></pre></div><p><strong>价格数据源</strong>: <code>model_prices_and_context_window_backup.json</code>（~1.5MB，覆盖 2000+ 模型）。</p>
+<h3 id="37-高级路由策略">
+  3.7 高级路由策略
+  <a class="anchor" href="#37-%e9%ab%98%e7%ba%a7%e8%b7%af%e7%94%b1%e7%ad%96%e7%95%a5">#</a>
+</h3>
+<table>
+  <thead>
+      <tr>
+          <th>策略</th>
+          <th>源码目录</th>
+          <th>原理</th>
+          <th>适用场景</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><strong>Complexity Router</strong></td>
+          <td><code>complexity_router/</code></td>
+          <td>先由小模型评估 prompt 复杂度，再决定用哪个模型</td>
+          <td>简单问题用便宜模型，复杂问题用强模型</td>
+      </tr>
+      <tr>
+          <td><strong>Quality Router</strong></td>
+          <td><code>quality_router/</code></td>
+          <td>按历史输出质量评分路由</td>
+          <td>对输出质量有严格要求的场景</td>
+      </tr>
+      <tr>
+          <td><strong>Adaptive Router</strong></td>
+          <td><code>adaptive_router/</code></td>
+          <td>动态感知环境（负载、错误率）自动调整策略</td>
+          <td>环境变化频繁的场景</td>
+      </tr>
+      <tr>
+          <td><strong>Auto Router</strong></td>
+          <td><code>auto_router/</code></td>
+          <td>ML 驱动的自动路由，学习历史请求模式</td>
+          <td>大规模生产环境</td>
+      </tr>
+  </tbody>
+</table>
+<h3 id="38-routing-groups分组路由">
+  3.8 Routing Groups（分组路由）
+  <a class="anchor" href="#38-routing-groups%e5%88%86%e7%bb%84%e8%b7%af%e7%94%b1">#</a>
+</h3>
+<p><code>routing_strategy</code> 是全局策略，作用于所有未被显式分组的模型。<code>routing_groups</code> 允许为特定模型组指定独立策略：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">from</span> litellm.types.router <span style="color:#f92672">import</span> RoutingGroup
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>router <span style="color:#f92672">=</span> Router(
+</span></span><span style="display:flex;"><span>    model_list<span style="color:#f92672">=</span>[
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># GPT 系列</span>
+</span></span><span style="display:flex;"><span>        {<span style="color:#e6db74">&#34;model_name&#34;</span>: <span style="color:#e6db74">&#34;gpt-4&#34;</span>, <span style="color:#e6db74">&#34;litellm_params&#34;</span>: {<span style="color:#e6db74">&#34;model&#34;</span>: <span style="color:#e6db74">&#34;openai/gpt-4&#34;</span>, <span style="color:#f92672">...</span>}},
+</span></span><span style="display:flex;"><span>        {<span style="color:#e6db74">&#34;model_name&#34;</span>: <span style="color:#e6db74">&#34;gpt-4&#34;</span>, <span style="color:#e6db74">&#34;litellm_params&#34;</span>: {<span style="color:#e6db74">&#34;model&#34;</span>: <span style="color:#e6db74">&#34;azure/gpt-4&#34;</span>, <span style="color:#f92672">...</span>}},
+</span></span><span style="display:flex;"><span>        {<span style="color:#e6db74">&#34;model_name&#34;</span>: <span style="color:#e6db74">&#34;gpt-3.5-turbo&#34;</span>, <span style="color:#e6db74">&#34;litellm_params&#34;</span>: {<span style="color:#e6db74">&#34;model&#34;</span>: <span style="color:#e6db74">&#34;openai/gpt-3.5-turbo&#34;</span>, <span style="color:#f92672">...</span>}},
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># Claude 系列</span>
+</span></span><span style="display:flex;"><span>        {<span style="color:#e6db74">&#34;model_name&#34;</span>: <span style="color:#e6db74">&#34;claude-3-opus&#34;</span>, <span style="color:#e6db74">&#34;litellm_params&#34;</span>: {<span style="color:#e6db74">&#34;model&#34;</span>: <span style="color:#e6db74">&#34;anthropic/claude-3-opus&#34;</span>, <span style="color:#f92672">...</span>}},
+</span></span><span style="display:flex;"><span>        {<span style="color:#e6db74">&#34;model_name&#34;</span>: <span style="color:#e6db74">&#34;claude-3-sonnet&#34;</span>, <span style="color:#e6db74">&#34;litellm_params&#34;</span>: {<span style="color:#e6db74">&#34;model&#34;</span>: <span style="color:#e6db74">&#34;anthropic/claude-3-sonnet&#34;</span>, <span style="color:#f92672">...</span>}},
+</span></span><span style="display:flex;"><span>    ],
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># 全局默认策略</span>
+</span></span><span style="display:flex;"><span>    routing_strategy<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;simple-shuffle&#34;</span>,
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># GPT 系列独立使用 latency-based 策略</span>
+</span></span><span style="display:flex;"><span>    routing_groups<span style="color:#f92672">=</span>[
+</span></span><span style="display:flex;"><span>        RoutingGroup(
+</span></span><span style="display:flex;"><span>            group_name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;gpt-models&#34;</span>,
+</span></span><span style="display:flex;"><span>            model_names<span style="color:#f92672">=</span>[<span style="color:#e6db74">&#34;gpt-4&#34;</span>, <span style="color:#e6db74">&#34;gpt-3.5-turbo&#34;</span>],
+</span></span><span style="display:flex;"><span>            routing_strategy<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;latency-based-routing&#34;</span>,
+</span></span><span style="display:flex;"><span>            routing_strategy_args<span style="color:#f92672">=</span>{<span style="color:#e6db74">&#34;ttl&#34;</span>: <span style="color:#ae81ff">1800</span>},
+</span></span><span style="display:flex;"><span>        ),
+</span></span><span style="display:flex;"><span>    ],
+</span></span><span style="display:flex;"><span>)
+</span></span></code></pre></div><p><strong>分组规则</strong>：每个 deployment 最多属于一个显式 group，其余归入 &ldquo;default&rdquo; 组（受 <code>routing_strategy</code> 控制）。</p>
+<hr>
+<h2 id="四fallback-机制详解">
+  四、Fallback 机制详解
+  <a class="anchor" href="#%e5%9b%9bfallback-%e6%9c%ba%e5%88%b6%e8%af%a6%e8%a7%a3">#</a>
+</h2>
+<h3 id="41-fallback-的三层架构">
+  4.1 Fallback 的三层架构
+  <a class="anchor" href="#41-fallback-%e7%9a%84%e4%b8%89%e5%b1%82%e6%9e%b6%e6%9e%84">#</a>
+</h3>
+<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph LR
+    A[请求失败] --&gt; B{重试阶段&lt;br/&gt;async_function_with_retries}
+    B --&gt;|同 deployment 重试| C[重试成功?]
+    C --&gt;|是| D[返回结果]
+    C --&gt;|否, 重试耗尽| E{Fallback 阶段&lt;br/&gt;async_function_with_fallbacks}
+
+    E --&gt;|常规 fallback| F[fallbacks 列表]
+    E --&gt;|上下文超长| G[context_window_fallbacks]
+    E --&gt;|内容审查| H[content_policy_fallbacks]
+
+    F --&gt; I[下一 model_group]
+    G --&gt; J[更大上下文窗口模型]
+    H --&gt; K[审查更宽松模型]
+
+    I --&gt; L{成功?}
+    J --&gt; L
+    K --&gt; L
+    L --&gt;|是| D
+    L --&gt;|否 + depth &lt; max_fallbacks| E
+    L --&gt;|否 + depth &gt;= max_fallbacks| M[抛出最终异常]
+</code></pre><h3 id="42-retry-机制同-deployment-重试">
+  4.2 Retry 机制（同 deployment 重试）
+  <a class="anchor" href="#42-retry-%e6%9c%ba%e5%88%b6%e5%90%8c-deployment-%e9%87%8d%e8%af%95">#</a>
+</h3>
+<p><strong>源码</strong>: <code>router.py:6901-7175</code>，<code>async_function_with_retries()</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># router.py:6901 核心签名</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">async</span> <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">async_function_with_retries</span>(self, <span style="color:#f92672">*</span>args, <span style="color:#f92672">**</span>kwargs):
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    对同一个 deployment 进行重试。
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    重试次数由 num_retries 和 retry_policy 共同决定。
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    original_function <span style="color:#f92672">=</span> kwargs<span style="color:#f92672">.</span>pop(<span style="color:#e6db74">&#34;original_function&#34;</span>)
+</span></span><span style="display:flex;"><span>    num_retries <span style="color:#f92672">=</span> kwargs<span style="color:#f92672">.</span>pop(<span style="color:#e6db74">&#34;num_retries&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># 重试策略解析</span>
+</span></span><span style="display:flex;"><span>    model_group <span style="color:#f92672">=</span> kwargs<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#34;model&#34;</span>)
+</span></span><span style="display:flex;"><span>    model_group_retry_policy <span style="color:#f92672">=</span> kwargs<span style="color:#f92672">.</span>pop(<span style="color:#e6db74">&#34;model_group_retry_policy&#34;</span>, self<span style="color:#f92672">.</span>model_group_retry_policy)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    _metadata[<span style="color:#e6db74">&#34;attempted_retries&#34;</span>] <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>    _metadata[<span style="color:#e6db74">&#34;max_retries&#34;</span>] <span style="color:#f92672">=</span> num_retries
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 第一次调用</span>
+</span></span><span style="display:flex;"><span>        response <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> self<span style="color:#f92672">.</span>make_call(original_function, <span style="color:#f92672">*</span>args, <span style="color:#f92672">**</span>kwargs)
+</span></span><span style="display:flex;"><span>        response <span style="color:#f92672">=</span> add_retry_headers_to_response(
+</span></span><span style="display:flex;"><span>            response<span style="color:#f92672">=</span>response, attempted_retries<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>, max_retries<span style="color:#f92672">=</span><span style="color:#66d9ef">None</span>
+</span></span><span style="display:flex;"><span>        )
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> response
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">except</span> <span style="color:#a6e22e">Exception</span> <span style="color:#66d9ef">as</span> e:
+</span></span><span style="display:flex;"><span>        current_attempt <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>        original_exception <span style="color:#f92672">=</span> e
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 获取该异常类型允许的重试次数</span>
+</span></span><span style="display:flex;"><span>        num_retries_from_policy <span style="color:#f92672">=</span> _get_num_retries_from_retry_policy(
+</span></span><span style="display:flex;"><span>            exception<span style="color:#f92672">=</span>e,
+</span></span><span style="display:flex;"><span>            retry_policy<span style="color:#f92672">=</span>self<span style="color:#f92672">.</span>retry_policy,
+</span></span><span style="display:flex;"><span>            model_group_retry_policy<span style="color:#f92672">=</span>model_group_retry_policy,
+</span></span><span style="display:flex;"><span>            model_group<span style="color:#f92672">=</span>model_group,
+</span></span><span style="display:flex;"><span>        )
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 取两者中的最大值</span>
+</span></span><span style="display:flex;"><span>        num_retries <span style="color:#f92672">=</span> max(num_retries, num_retries_from_policy)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span> current_attempt <span style="color:#f92672">&lt;</span> num_retries:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>                current_attempt <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>                _metadata[<span style="color:#e6db74">&#34;attempted_retries&#34;</span>] <span style="color:#f92672">=</span> current_attempt
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e"># 等待 retry_after 秒</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>retry_after <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span>:
+</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">await</span> asyncio<span style="color:#f92672">.</span>sleep(self<span style="color:#f92672">.</span>retry_after)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                response <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> self<span style="color:#f92672">.</span>make_call(original_function, <span style="color:#f92672">*</span>args, <span style="color:#f92672">**</span>kwargs)
+</span></span><span style="display:flex;"><span>                response <span style="color:#f92672">=</span> add_retry_headers_to_response(
+</span></span><span style="display:flex;"><span>                    response<span style="color:#f92672">=</span>response, attempted_retries<span style="color:#f92672">=</span>current_attempt, max_retries<span style="color:#f92672">=</span>num_retries
+</span></span><span style="display:flex;"><span>                )
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> response
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">except</span> <span style="color:#a6e22e">Exception</span> <span style="color:#66d9ef">as</span> retry_e:
+</span></span><span style="display:flex;"><span>                last_exception <span style="color:#f92672">=</span> retry_e
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 所有重试耗尽</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">raise</span> last_exception
+</span></span></code></pre></div><p><strong>重试策略解析</strong>（<code>router_utils/get_retry_from_policy.py</code>）：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get_num_retries_from_retry_policy</span>(exception, retry_policy, model_group_retry_policy, model_group):
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;&#34;&#34;根据异常类型确定重试次数&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># 优先级: model_group_retry_policy &gt; retry_policy &gt; 默认值</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># 检查模型组定制策略</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> model_group <span style="color:#f92672">in</span> model_group_retry_policy:
+</span></span><span style="display:flex;"><span>        policy <span style="color:#f92672">=</span> model_group_retry_policy[model_group]
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>        policy <span style="color:#f92672">=</span> retry_policy <span style="color:#f92672">or</span> RetryPolicy()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># 按异常类型匹配</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> isinstance(exception, litellm<span style="color:#f92672">.</span>RateLimitError):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> policy<span style="color:#f92672">.</span>RateLimitErrorRetries <span style="color:#f92672">or</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">elif</span> isinstance(exception, litellm<span style="color:#f92672">.</span>Timeout):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> policy<span style="color:#f92672">.</span>TimeoutErrorRetries <span style="color:#f92672">or</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">elif</span> isinstance(exception, litellm<span style="color:#f92672">.</span>ContentPolicyViolationError):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> policy<span style="color:#f92672">.</span>ContentPolicyViolationErrorRetries <span style="color:#f92672">or</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">elif</span> isinstance(exception, litellm<span style="color:#f92672">.</span>BadRequestError):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> policy<span style="color:#f92672">.</span>BadRequestErrorRetries <span style="color:#f92672">or</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">...</span>
+</span></span></code></pre></div><p><strong>RetryPolicy 默认值</strong>（<code>types/router.py</code>）：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">RetryPolicy</span>(BaseModel):
+</span></span><span style="display:flex;"><span>    TimeoutErrorRetries: Optional[int] <span style="color:#f92672">=</span> <span style="color:#66d9ef">None</span>
+</span></span><span style="display:flex;"><span>    RateLimitErrorRetries: Optional[int] <span style="color:#f92672">=</span> <span style="color:#66d9ef">None</span>
+</span></span><span style="display:flex;"><span>    BadRequestErrorRetries: Optional[int] <span style="color:#f92672">=</span> <span style="color:#66d9ef">None</span>
+</span></span><span style="display:flex;"><span>    ContentPolicyViolationErrorRetries: Optional[int] <span style="color:#f92672">=</span> <span style="color:#66d9ef">None</span>
+</span></span></code></pre></div><h3 id="43-常规-fallback切换-model_group">
+  4.3 常规 Fallback（切换 model_group）
+  <a class="anchor" href="#43-%e5%b8%b8%e8%a7%84-fallback%e5%88%87%e6%8d%a2-model_group">#</a>
+</h3>
+<p><strong>源码</strong>: <code>router_utils/fallback_event_handlers.py:run_async_fallback()</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># router_utils/fallback_event_handlers.py 核心逻辑</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">async</span> <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">run_async_fallback</span>(
+</span></span><span style="display:flex;"><span>    litellm_router,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">*</span>args,
+</span></span><span style="display:flex;"><span>    fallback_model_group: List[str],
+</span></span><span style="display:flex;"><span>    original_model_group: str,
+</span></span><span style="display:flex;"><span>    original_exception: <span style="color:#a6e22e">Exception</span>,
+</span></span><span style="display:flex;"><span>    fallback_depth: int,
+</span></span><span style="display:flex;"><span>    max_fallbacks: int,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">**</span>kwargs,
+</span></span><span style="display:flex;"><span>):
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    递归 fallback：尝试 fallback_model_group 列表中的每个模型组。
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    参数:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        fallback_model_group: fallback 模型组列表，如 [&#34;gpt-4&#34;, &#34;gpt-3.5-turbo&#34;]
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        fallback_depth: 当前 fallback 深度（递归层级）
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        max_fallbacks: 最大 fallback 深度
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># ====== 终止条件：达到最大 fallback 深度 ======</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> fallback_depth <span style="color:#f92672">&gt;=</span> max_fallbacks:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">raise</span> original_exception
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    error_from_fallbacks <span style="color:#f92672">=</span> original_exception
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> mg <span style="color:#f92672">in</span> fallback_model_group:
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 跳过原始模型组（避免死循环）</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> mg <span style="color:#f92672">==</span> original_model_group:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">continue</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># 记录 fallback 日志</span>
+</span></span><span style="display:flex;"><span>            kwargs <span style="color:#f92672">=</span> litellm_router<span style="color:#f92672">.</span>log_retry(kwargs<span style="color:#f92672">=</span>kwargs, e<span style="color:#f92672">=</span>original_exception)
+</span></span><span style="display:flex;"><span>            verbose_router_logger<span style="color:#f92672">.</span>info(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;Falling back to model_group = </span><span style="color:#e6db74">{</span>mg<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># 更新 model 参数</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> isinstance(mg, str):
+</span></span><span style="display:flex;"><span>                kwargs[<span style="color:#e6db74">&#34;model&#34;</span>] <span style="color:#f92672">=</span> mg
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">elif</span> isinstance(mg, dict):
+</span></span><span style="display:flex;"><span>                kwargs<span style="color:#f92672">.</span>update(mg)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># 递增 fallback 深度</span>
+</span></span><span style="display:flex;"><span>            fallback_depth <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>            kwargs[<span style="color:#e6db74">&#34;fallback_depth&#34;</span>] <span style="color:#f92672">=</span> fallback_depth
+</span></span><span style="display:flex;"><span>            kwargs[<span style="color:#e6db74">&#34;max_fallbacks&#34;</span>] <span style="color:#f92672">=</span> max_fallbacks
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># 递归调用 async_function_with_fallbacks（支持嵌套 fallback）</span>
+</span></span><span style="display:flex;"><span>            response <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> litellm_router<span style="color:#f92672">.</span>async_function_with_fallbacks(
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">*</span>args, <span style="color:#f92672">**</span>kwargs
+</span></span><span style="display:flex;"><span>            )
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># 成功：添加 fallback 响应头</span>
+</span></span><span style="display:flex;"><span>            response <span style="color:#f92672">=</span> add_fallback_headers_to_response(
+</span></span><span style="display:flex;"><span>                response<span style="color:#f92672">=</span>response,
+</span></span><span style="display:flex;"><span>                attempted_fallbacks<span style="color:#f92672">=</span>fallback_depth,
+</span></span><span style="display:flex;"><span>            )
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> response
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">except</span> <span style="color:#a6e22e">Exception</span> <span style="color:#66d9ef">as</span> fallback_e:
+</span></span><span style="display:flex;"><span>            error_from_fallbacks <span style="color:#f92672">=</span> fallback_e
+</span></span><span style="display:flex;"><span>            verbose_router_logger<span style="color:#f92672">.</span>warning(
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;Fallback to </span><span style="color:#e6db74">{</span>mg<span style="color:#e6db74">}</span><span style="color:#e6db74"> also failed: </span><span style="color:#e6db74">{</span>fallback_e<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>            )
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># 所有 fallback 都失败</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">raise</span> error_from_fallbacks
+</span></span></code></pre></div><p><strong>Fallback 格式</strong>（<code>router.py:1648-1850</code>，<code>validate_fallbacks()</code>）：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># 格式 1: 字符串映射</span>
+</span></span><span style="display:flex;"><span>fallbacks <span style="color:#f92672">=</span> [{<span style="color:#e6db74">&#34;gpt-4&#34;</span>: <span style="color:#e6db74">&#34;gpt-3.5-turbo&#34;</span>}]
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># → gpt-4 失败时 fallback 到 gpt-3.5-turbo</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 格式 2: 列表（多个 fallback 选项，按顺序尝试）</span>
+</span></span><span style="display:flex;"><span>fallbacks <span style="color:#f92672">=</span> [{<span style="color:#e6db74">&#34;gpt-4&#34;</span>: [<span style="color:#e6db74">&#34;gpt-3.5-turbo&#34;</span>, <span style="color:#e6db74">&#34;claude-sonnet&#34;</span>]}]
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># → gpt-4 失败时先试 gpt-3.5-turbo，再试 claude-sonnet</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 格式 3: 通配符（全局兜底）</span>
+</span></span><span style="display:flex;"><span>fallbacks <span style="color:#f92672">=</span> [{<span style="color:#e6db74">&#34;*&#34;</span>: <span style="color:#e6db74">&#34;gpt-4o-mini&#34;</span>}]
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># → 任何模型失败时都 fallback 到 gpt-4o-mini</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># default_fallbacks 自动追加为通配符</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 如果设置了 default_fallbacks=[&#34;gpt-4o-mini&#34;]</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 则实际 fallbacks 变为: [..., {&#34;*&#34;: [&#34;gpt-4o-mini&#34;]}]</span>
+</span></span></code></pre></div><h3 id="44-context-window-fallback">
+  4.4 Context Window Fallback
+  <a class="anchor" href="#44-context-window-fallback">#</a>
+</h3>
+<p><strong>触发条件</strong>: <code>ContextWindowExceededError</code> 异常。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># router.py 中的处理逻辑</span>
+</span></span><span style="display:flex;"><span>context_window_fallbacks <span style="color:#f92672">=</span> [
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;gpt-3.5-turbo&#34;</span>: <span style="color:#e6db74">&#34;gpt-4-turbo&#34;</span>},    <span style="color:#75715e"># 16K → 128K</span>
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;claude-sonnet&#34;</span>: <span style="color:#e6db74">&#34;claude-opus&#34;</span>},     <span style="color:#75715e"># 200K → 200K（但更强）</span>
+</span></span><span style="display:flex;"><span>]
+</span></span></code></pre></div><p><strong>工作原理</strong>:</p>
+<ol>
+<li><code>async_function_with_retries()</code> 捕获到 <code>ContextWindowExceededError</code></li>
+<li>查 <code>context_window_fallbacks</code> 表，找到对应的 fallback model_group</li>
+<li>调用 <code>run_async_fallback()</code> 切换到新模型</li>
+<li><strong>注意</strong>: Context Window Fallback 不走常规 retry（因为重试无意义，必须换大窗口模型）</li>
+</ol>
+<h3 id="45-content-policy-fallback">
+  4.5 Content Policy Fallback
+  <a class="anchor" href="#45-content-policy-fallback">#</a>
+</h3>
+<p><strong>触发条件</strong>: <code>ContentPolicyViolationError</code> 异常。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>content_policy_fallbacks <span style="color:#f92672">=</span> [
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;azure-gpt-4&#34;</span>: <span style="color:#e6db74">&#34;openai-gpt-4&#34;</span>},     <span style="color:#75715e"># Azure 审核过严 → OpenAI 直连</span>
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;azure-gpt-3.5&#34;</span>: <span style="color:#e6db74">&#34;openai-gpt-3.5-turbo&#34;</span>},
+</span></span><span style="display:flex;"><span>]
+</span></span></code></pre></div><p><strong>工作原理</strong>:</p>
+<ol>
+<li>Azure OpenAI 的内容审查（Content Filter）拦截了请求</li>
+<li>抛出 <code>ContentPolicyViolationError</code></li>
+<li>查 <code>content_policy_fallbacks</code> 表，切换到审查更宽松的 provider</li>
+</ol>
+<h3 id="46-fallback-的异常判定表">
+  4.6 Fallback 的异常判定表
+  <a class="anchor" href="#46-fallback-%e7%9a%84%e5%bc%82%e5%b8%b8%e5%88%a4%e5%ae%9a%e8%a1%a8">#</a>
+</h3>
+<table>
+  <thead>
+      <tr>
+          <th>异常类型</th>
+          <th style="text-align: center">触发 Retry?</th>
+          <th style="text-align: center">触发 Fallback?</th>
+          <th>原因</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>RateLimitError</code></td>
+          <td style="text-align: center">✅</td>
+          <td style="text-align: center">✅</td>
+          <td>限流是瞬时的，重试可能成功；换模型也可能不超限</td>
+      </tr>
+      <tr>
+          <td><code>Timeout</code></td>
+          <td style="text-align: center">✅</td>
+          <td style="text-align: center">✅</td>
+          <td>超时可能是网络抖动；换模型可能更快</td>
+      </tr>
+      <tr>
+          <td><code>APIConnectionError</code></td>
+          <td style="text-align: center">✅</td>
+          <td style="text-align: center">✅</td>
+          <td>网络问题</td>
+      </tr>
+      <tr>
+          <td><code>ContextWindowExceededError</code></td>
+          <td style="text-align: center">❌</td>
+          <td style="text-align: center">✅（专用）</td>
+          <td>重试无意义，必须换大窗口模型</td>
+      </tr>
+      <tr>
+          <td><code>ContentPolicyViolationError</code></td>
+          <td style="text-align: center">❌</td>
+          <td style="text-align: center">✅（专用）</td>
+          <td>重试无意义，必须换审查策略</td>
+      </tr>
+      <tr>
+          <td><code>BadRequestError</code></td>
+          <td style="text-align: center">❌</td>
+          <td style="text-align: center">❌</td>
+          <td>请求本身有问题，换模型也一样失败</td>
+      </tr>
+      <tr>
+          <td><code>AuthenticationError</code></td>
+          <td style="text-align: center">❌</td>
+          <td style="text-align: center">❌</td>
+          <td>认证问题，换模型需要新 API Key</td>
+      </tr>
+      <tr>
+          <td><code>InternalServerError</code></td>
+          <td style="text-align: center">✅</td>
+          <td style="text-align: center">✅</td>
+          <td>Provider 内部错误</td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>关键洞察</strong>: LiteLLM 的异常分类器（<code>litellm_core_utils/exception_mapping_utils</code>）将上游 Provider 的错误码映射为统一的 LiteLLM 异常类型，然后由 Retry Policy 和 Fallback 机制分别处理。</p>
+<h3 id="47-enable_weighted_failover同组内权重故障转移">
+  4.7 enable_weighted_failover（同组内权重故障转移）
+  <a class="anchor" href="#47-enable_weighted_failover%e5%90%8c%e7%bb%84%e5%86%85%e6%9d%83%e9%87%8d%e6%95%85%e9%9a%9c%e8%bd%ac%e7%a7%bb">#</a>
+</h3>
+<p>这是 v1.90 新增的功能（<code>router.py:370</code>）：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>router <span style="color:#f92672">=</span> Router(
+</span></span><span style="display:flex;"><span>    model_list<span style="color:#f92672">=</span>[
+</span></span><span style="display:flex;"><span>        {<span style="color:#e6db74">&#34;model_name&#34;</span>: <span style="color:#e6db74">&#34;gpt-4&#34;</span>, <span style="color:#e6db74">&#34;litellm_params&#34;</span>: {<span style="color:#e6db74">&#34;model&#34;</span>: <span style="color:#e6db74">&#34;azure/gpt-4&#34;</span>, <span style="color:#f92672">...</span>}, <span style="color:#e6db74">&#34;weight&#34;</span>: <span style="color:#ae81ff">3</span>},
+</span></span><span style="display:flex;"><span>        {<span style="color:#e6db74">&#34;model_name&#34;</span>: <span style="color:#e6db74">&#34;gpt-4&#34;</span>, <span style="color:#e6db74">&#34;litellm_params&#34;</span>: {<span style="color:#e6db74">&#34;model&#34;</span>: <span style="color:#e6db74">&#34;openai/gpt-4&#34;</span>, <span style="color:#f92672">...</span>}, <span style="color:#e6db74">&#34;weight&#34;</span>: <span style="color:#ae81ff">1</span>},
+</span></span><span style="display:flex;"><span>    ],
+</span></span><span style="display:flex;"><span>    routing_strategy<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;simple-shuffle&#34;</span>,
+</span></span><span style="display:flex;"><span>    enable_weighted_failover<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>,  <span style="color:#75715e"># 新增</span>
+</span></span><span style="display:flex;"><span>)
+</span></span></code></pre></div><p><strong>工作流程</strong>:</p>
+<ol>
+<li>请求首先按权重随机分配到 azure/gpt-4（权重 3/4）</li>
+<li>如果 azure/gpt-4 失败且异常可重试</li>
+<li><strong>不是直接进入跨组 fallback</strong>，而是先在<strong>同 model_group 内</strong>重新按权重分配</li>
+<li>这次可能分配到 openai/gpt-4（权重 1/3）</li>
+<li>同组内所有 deployment 都失败后，才进入跨组 fallback</li>
+</ol>
+<p><strong>优势</strong>: 减少不必要的跨组 fallback，优先在同组内解决。</p>
+<h3 id="48-fallback-响应头可观测性">
+  4.8 Fallback 响应头（可观测性）
+  <a class="anchor" href="#48-fallback-%e5%93%8d%e5%ba%94%e5%a4%b4%e5%8f%af%e8%a7%82%e6%b5%8b%e6%80%a7">#</a>
+</h3>
+<p><strong>源码</strong>: <code>router_utils/add_retry_fallback_headers.py</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">add_fallback_headers_to_response</span>(response, attempted_fallbacks):
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;&#34;&#34;添加 fallback 次数到响应头&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    response<span style="color:#f92672">.</span>_hidden_params[<span style="color:#e6db74">&#34;attempted_fallbacks&#34;</span>] <span style="color:#f92672">=</span> attempted_fallbacks
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> response
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">add_retry_headers_to_response</span>(response, attempted_retries, max_retries):
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;&#34;&#34;添加重试次数到响应头&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    response<span style="color:#f92672">.</span>_hidden_params[<span style="color:#e6db74">&#34;attempted_retries&#34;</span>] <span style="color:#f92672">=</span> attempted_retries
+</span></span><span style="display:flex;"><span>    response<span style="color:#f92672">.</span>_hidden_params[<span style="color:#e6db74">&#34;max_retries&#34;</span>] <span style="color:#f92672">=</span> max_retries
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> response
+</span></span></code></pre></div><p><strong>响应头</strong>：</p>
+<ul>
+<li><code>x-litellm-attempted-retries</code>: 实际重试次数</li>
+<li><code>x-litellm-attempted-fallbacks</code>: 实际 fallback 次数</li>
+</ul>
+<p>可用于监控 fallback 频率，如果某个模型频繁触发 fallback，说明需要调整 fallback 链或修复底层问题。</p>
+<hr>
+<h2 id="五cooldown-机制失败隔离与自动恢复">
+  五、Cooldown 机制（失败隔离与自动恢复）
+  <a class="anchor" href="#%e4%ba%94cooldown-%e6%9c%ba%e5%88%b6%e5%a4%b1%e8%b4%a5%e9%9a%94%e7%a6%bb%e4%b8%8e%e8%87%aa%e5%8a%a8%e6%81%a2%e5%a4%8d">#</a>
+</h2>
+<h3 id="51-cooldown-原理">
+  5.1 Cooldown 原理
+  <a class="anchor" href="#51-cooldown-%e5%8e%9f%e7%90%86">#</a>
+</h3>
+<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph LR
+    A[Deployment 失败] --&gt; B{失败次数 &gt;=&lt;br/&gt;allowed_fails?}
+    B --&gt;|否| C[记录失败计数&lt;br/&gt;继续调度到此 deployment]
+    B --&gt;|是| D[加入 Cooldown 列表&lt;br/&gt;_select_deployment_async 过滤掉]
+    D --&gt; E[等待 cooldown_time 秒]
+    E --&gt; F[从 Cooldown 移除&lt;br/&gt;恢复调度]
+
+    style D fill:#ff6b6b,color:#fff
+    style F fill:#50c878,color:#fff
+</code></pre><p><strong>源码</strong>: <code>router_utils/cooldown_handlers.py</code> + <code>router_utils/cooldown_cache.py</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># router_utils/cooldown_handlers.py</span>
+</span></span><span style="display:flex;"><span>DEFAULT_COOLDOWN_TIME_SECONDS <span style="color:#f92672">=</span> <span style="color:#ae81ff">60</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">async</span> <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">_async_get_cooldown_deployments</span>(cache, model_group, current_time):
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;&#34;&#34;获取当前处于 cooldown 状态的 deployment 列表&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    key <span style="color:#f92672">=</span> <span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;lite:cooldowndeployments:</span><span style="color:#e6db74">{</span>model_group<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>    cooldown_list <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> cache<span style="color:#f92672">.</span>async_get_cache(key) <span style="color:#f92672">or</span> []
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># 过滤掉已过期的 cooldown</span>
+</span></span><span style="display:flex;"><span>    active_cooldowns <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> item <span style="color:#f92672">in</span> cooldown_list:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> isinstance(item, dict):
+</span></span><span style="display:flex;"><span>            cooldown_time <span style="color:#f92672">=</span> item<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#34;cooldown_time&#34;</span>, DEFAULT_COOLDOWN_TIME_SECONDS)
+</span></span><span style="display:flex;"><span>            cooldown_start <span style="color:#f92672">=</span> item<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#34;cooldown_start_time&#34;</span>, <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> current_time <span style="color:#f92672">-</span> cooldown_start <span style="color:#f92672">&lt;</span> cooldown_time:
+</span></span><span style="display:flex;"><span>                active_cooldowns<span style="color:#f92672">.</span>append(item[<span style="color:#e6db74">&#34;deployment_id&#34;</span>])
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> active_cooldowns
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">async</span> <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">_set_cooldown_deployments</span>(cache, model_group, deployment_id, cooldown_time):
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;&#34;&#34;将 deployment 加入 cooldown 列表&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    key <span style="color:#f92672">=</span> <span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;lite:cooldowndeployments:</span><span style="color:#e6db74">{</span>model_group<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>    cooldown_list <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> cache<span style="color:#f92672">.</span>async_get_cache(key) <span style="color:#f92672">or</span> []
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    cooldown_list<span style="color:#f92672">.</span>append({
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;deployment_id&#34;</span>: deployment_id,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;cooldown_time&#34;</span>: cooldown_time,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;cooldown_start_time&#34;</span>: time<span style="color:#f92672">.</span>time(),
+</span></span><span style="display:flex;"><span>    })
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">await</span> cache<span style="color:#f92672">.</span>async_set_cache(
+</span></span><span style="display:flex;"><span>        key<span style="color:#f92672">=</span>key,
+</span></span><span style="display:flex;"><span>        value<span style="color:#f92672">=</span>cooldown_list,
+</span></span><span style="display:flex;"><span>        ttl<span style="color:#f92672">=</span>cooldown_time <span style="color:#f92672">*</span> <span style="color:#ae81ff">2</span>,  <span style="color:#75715e"># TTL 设为 cooldown_time 的 2 倍，保证过期后自动清理</span>
+</span></span><span style="display:flex;"><span>    )
+</span></span></code></pre></div><h3 id="52-cooldown-关键参数">
+  5.2 Cooldown 关键参数
+  <a class="anchor" href="#52-cooldown-%e5%85%b3%e9%94%ae%e5%8f%82%e6%95%b0">#</a>
+</h3>
+<table>
+  <thead>
+      <tr>
+          <th>参数</th>
+          <th>默认值</th>
+          <th>说明</th>
+          <th>源码位置</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>allowed_fails</code></td>
+          <td><code>model_tpm * 0.01</code>（自动计算）</td>
+          <td>失败 N 次后进入冷却</td>
+          <td><code>router.py:304</code></td>
+      </tr>
+      <tr>
+          <td><code>cooldown_time</code></td>
+          <td>60 秒</td>
+          <td>冷却时长</td>
+          <td><code>router.py:308</code></td>
+      </tr>
+      <tr>
+          <td><code>disable_cooldowns</code></td>
+          <td>False</td>
+          <td>完全禁用冷却机制</td>
+          <td><code>router.py:311</code></td>
+      </tr>
+      <tr>
+          <td><code>retry_after</code></td>
+          <td>0 秒</td>
+          <td>失败后最小重试间隔</td>
+          <td><code>router.py:295</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>allowed_fails 自动计算逻辑</strong>（<code>router.py</code>）：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># 如果没显式设置 allowed_fails，根据 TPM 自动计算</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> allowed_fails <span style="color:#f92672">is</span> <span style="color:#66d9ef">None</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># 默认: TPM 的 1%（最少 3 次）</span>
+</span></span><span style="display:flex;"><span>    allowed_fails <span style="color:#f92672">=</span> max(<span style="color:#ae81ff">3</span>, int(model_tpm <span style="color:#f92672">*</span> <span style="color:#ae81ff">0.01</span>))
+</span></span></code></pre></div><h3 id="53-pre-call-health-check">
+  5.3 Pre-call Health Check
+  <a class="anchor" href="#53-pre-call-health-check">#</a>
+</h3>
+<p><strong>源码</strong>: <code>router_utils/pre_call_checks/</code></p>
+<p>在 <code>_select_deployment_async()</code> 选 deployment <strong>之前</strong>执行的健康检查：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># router.py: _select_deployment_async() 中的 pre-call 检查</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>enable_pre_call_checks:
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># 1. 部署亲和性检查</span>
+</span></span><span style="display:flex;"><span>    deployment_affinity_check <span style="color:#f92672">=</span> DeploymentAffinityCheck(<span style="color:#f92672">...</span>)
+</span></span><span style="display:flex;"><span>    healthy_deployments <span style="color:#f92672">=</span> deployment_affinity_check<span style="color:#f92672">.</span>filter(deployments)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># 2. 模型限流检查</span>
+</span></span><span style="display:flex;"><span>    rate_limit_check <span style="color:#f92672">=</span> ModelRateLimitingCheck(<span style="color:#f92672">...</span>)
+</span></span><span style="display:flex;"><span>    healthy_deployments <span style="color:#f92672">=</span> rate_limit_check<span style="color:#f92672">.</span>filter(healthy_deployments)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># 3. Prompt Caching 可用性检查</span>
+</span></span><span style="display:flex;"><span>    caching_check <span style="color:#f92672">=</span> PromptCachingDeploymentCheck(<span style="color:#f92672">...</span>)
+</span></span><span style="display:flex;"><span>    healthy_deployments <span style="color:#f92672">=</span> caching_check<span style="color:#f92672">.</span>filter(healthy_deployments)
+</span></span></code></pre></div><p><strong>三个检查的作用</strong>：</p>
+<table>
+  <thead>
+      <tr>
+          <th>检查</th>
+          <th>文件</th>
+          <th>作用</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>DeploymentAffinityCheck</td>
+          <td><code>pre_call_checks/deployment_affinity_check.py</code></td>
+          <td>确保 deployment 与请求的区域/偏好匹配</td>
+      </tr>
+      <tr>
+          <td>ModelRateLimitingCheck</td>
+          <td><code>pre_call_checks/model_rate_limit_check.py</code></td>
+          <td>预测是否即将触发限流，提前跳过</td>
+      </tr>
+      <tr>
+          <td>PromptCachingDeploymentCheck</td>
+          <td><code>pre_call_checks/prompt_caching_deployment_check.py</code></td>
+          <td>检查 deployment 是否支持 Prompt Caching</td>
+      </tr>
+  </tbody>
+</table>
+<h3 id="54-health-state-cache">
+  5.4 Health State Cache
+  <a class="anchor" href="#54-health-state-cache">#</a>
+</h3>
+<p><strong>源码</strong>: <code>router_utils/health_state_cache.py</code></p>
+<p>维护每个 deployment 的健康状态，支持 Redis 多实例同步：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">DeploymentHealthCache</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    维护 deployment 健康状态:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    - healthy: 正常调度
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    - unhealthy: 失败次数接近 allowed_fails 阈值
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    - cooldown: 已进入冷却，不参与调度
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">record_failure</span>(self, deployment_id, model_group):
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;&#34;&#34;记录一次失败&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>        key <span style="color:#f92672">=</span> <span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;health:</span><span style="color:#e6db74">{</span>model_group<span style="color:#e6db74">}</span><span style="color:#e6db74">:</span><span style="color:#e6db74">{</span>deployment_id<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>        failures <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>cache<span style="color:#f92672">.</span>get(key, <span style="color:#ae81ff">0</span>) <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>cache<span style="color:#f92672">.</span>set(key, failures, ttl<span style="color:#f92672">=</span>self<span style="color:#f92672">.</span>cooldown_time <span style="color:#f92672">*</span> <span style="color:#ae81ff">2</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> failures <span style="color:#f92672">&gt;=</span> self<span style="color:#f92672">.</span>allowed_fails:
+</span></span><span style="display:flex;"><span>            self<span style="color:#f92672">.</span>set_cooldown(deployment_id, model_group)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">is_healthy</span>(self, deployment_id, model_group):
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;&#34;&#34;检查 deployment 是否健康&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>        key <span style="color:#f92672">=</span> <span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;health:</span><span style="color:#e6db74">{</span>model_group<span style="color:#e6db74">}</span><span style="color:#e6db74">:</span><span style="color:#e6db74">{</span>deployment_id<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>        failures <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>cache<span style="color:#f92672">.</span>get(key, <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> failures <span style="color:#f92672">&lt;</span> self<span style="color:#f92672">.</span>allowed_fails
+</span></span></code></pre></div><hr>
+<h2 id="六源码关键路径解读">
+  六、源码关键路径解读
+  <a class="anchor" href="#%e5%85%ad%e6%ba%90%e7%a0%81%e5%85%b3%e9%94%ae%e8%b7%af%e5%be%84%e8%a7%a3%e8%af%bb">#</a>
+</h2>
+<h3 id="61-核心调用链路源码行号标注">
+  6.1 核心调用链路（源码行号标注）
+  <a class="anchor" href="#61-%e6%a0%b8%e5%bf%83%e8%b0%83%e7%94%a8%e9%93%be%e8%b7%af%e6%ba%90%e7%a0%81%e8%a1%8c%e5%8f%b7%e6%a0%87%e6%b3%a8">#</a>
+</h3>
+<table>
+  <thead>
+      <tr>
+          <th>步骤</th>
+          <th>方法</th>
+          <th>源码位置</th>
+          <th>关键逻辑</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>1</td>
+          <td><code>acompletion()</code></td>
+          <td><code>router.py:2074-2150</code></td>
+          <td>入口：参数校验 + fallback 参数注入</td>
+      </tr>
+      <tr>
+          <td>2</td>
+          <td><code>async_function_with_fallbacks()</code></td>
+          <td><code>router.py:6756-6900</code></td>
+          <td>Fallback 外层包装</td>
+      </tr>
+      <tr>
+          <td>3</td>
+          <td><code>async_function_with_retries()</code></td>
+          <td><code>router.py:6901-7175</code></td>
+          <td>Retry 内层包装 + 重试策略解析</td>
+      </tr>
+      <tr>
+          <td>4</td>
+          <td><code>make_call()</code></td>
+          <td><code>router.py</code></td>
+          <td>调用 <code>_select_deployment_async()</code> → 选 deployment → 调 <code>litellm.acompletion()</code></td>
+      </tr>
+      <tr>
+          <td>5</td>
+          <td><code>_select_deployment_async()</code></td>
+          <td><code>router.py:1091-1300</code></td>
+          <td>Cooldown 过滤 → Pre-call 检查 → Routing Strategy</td>
+      </tr>
+      <tr>
+          <td>6</td>
+          <td>Routing Strategy Engine</td>
+          <td><code>router_strategy/*.py</code></td>
+          <td>执行具体路由策略，返回最优 deployment 列表</td>
+      </tr>
+      <tr>
+          <td>7</td>
+          <td><code>run_async_fallback()</code></td>
+          <td><code>router_utils/fallback_event_handlers.py</code></td>
+          <td>递归 fallback</td>
+      </tr>
+      <tr>
+          <td>8</td>
+          <td>Cooldown 管理</td>
+          <td><code>router_utils/cooldown_handlers.py</code></td>
+          <td>失败计数 + 冷却状态维护</td>
+      </tr>
+  </tbody>
+</table>
+<h3 id="62-关键数据结构">
+  6.2 关键数据结构
+  <a class="anchor" href="#62-%e5%85%b3%e9%94%ae%e6%95%b0%e6%8d%ae%e7%bb%93%e6%9e%84">#</a>
+</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># ====== Deployment 定义 ======</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 每个 deployment 代表一个模型实例</span>
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;model_name&#34;</span>: <span style="color:#e6db74">&#34;gpt-4&#34;</span>,                    <span style="color:#75715e"># 路由别名（同一 model_name = 同一 model_group）</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;litellm_params&#34;</span>: {
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;model&#34;</span>: <span style="color:#e6db74">&#34;azure/gpt-4&#34;</span>,               <span style="color:#75715e"># 实际 Provider 模型名</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;api_key&#34;</span>: <span style="color:#e6db74">&#34;***&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;api_base&#34;</span>: <span style="color:#e6db74">&#34;https://xxx.openai.azure.com/&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;api_version&#34;</span>: <span style="color:#e6db74">&#34;2024-02-01&#34;</span>,
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;model_info&#34;</span>: {
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;id&#34;</span>: <span style="color:#e6db74">&#34;unique-deployment-id&#34;</span>,          <span style="color:#75715e"># 唯一标识（用于 Cooldown 跟踪）</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;region&#34;</span>: <span style="color:#e6db74">&#34;us-east&#34;</span>,
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;tpm&#34;</span>: <span style="color:#ae81ff">100000</span>,                             <span style="color:#75715e"># 每分钟 token 限额（usage-based 用）</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;rpm&#34;</span>: <span style="color:#ae81ff">1000</span>,                               <span style="color:#75715e"># 每分钟请求限额</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;weight&#34;</span>: <span style="color:#ae81ff">1</span>,                               <span style="color:#75715e"># 权重（simple-shuffle 用）</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;tags&#34;</span>: [<span style="color:#e6db74">&#34;production&#34;</span>, <span style="color:#e6db74">&#34;high-priority&#34;</span>],   <span style="color:#75715e"># 标签（tag-based 用）</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># ====== Fallback 格式 ======</span>
+</span></span><span style="display:flex;"><span>fallbacks <span style="color:#f92672">=</span> [
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;gpt-4&#34;</span>: <span style="color:#e6db74">&#34;gpt-3.5-turbo&#34;</span>},                <span style="color:#75715e"># 字符串映射: 单个 fallback</span>
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;gpt-4&#34;</span>: [<span style="color:#e6db74">&#34;gpt-3.5-turbo&#34;</span>, <span style="color:#e6db74">&#34;claude&#34;</span>]},    <span style="color:#75715e"># 列表: 多个 fallback，按顺序尝试</span>
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;*&#34;</span>: <span style="color:#e6db74">&#34;gpt-4o-mini&#34;</span>},                       <span style="color:#75715e"># 通配符: 全局兜底</span>
+</span></span><span style="display:flex;"><span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># ====== RetryPolicy ======</span>
+</span></span><span style="display:flex;"><span>RetryPolicy(
+</span></span><span style="display:flex;"><span>    TimeoutErrorRetries<span style="color:#f92672">=</span><span style="color:#ae81ff">3</span>,                      <span style="color:#75715e"># 超时重试 3 次</span>
+</span></span><span style="display:flex;"><span>    RateLimitErrorRetries<span style="color:#f92672">=</span><span style="color:#ae81ff">5</span>,                    <span style="color:#75715e"># 限流重试 5 次</span>
+</span></span><span style="display:flex;"><span>    ContentPolicyViolationErrorRetries<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>,       <span style="color:#75715e"># 内容违规不重试</span>
+</span></span><span style="display:flex;"><span>    BadRequestErrorRetries<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>,                   <span style="color:#75715e"># 请求错误不重试</span>
+</span></span><span style="display:flex;"><span>)
+</span></span></code></pre></div><hr>
+<h2 id="七最佳实践与陷阱">
+  七、最佳实践与陷阱
+  <a class="anchor" href="#%e4%b8%83%e6%9c%80%e4%bd%b3%e5%ae%9e%e8%b7%b5%e4%b8%8e%e9%99%b7%e9%98%b1">#</a>
+</h2>
+<h3 id="71-路由策略选型指南">
+  7.1 路由策略选型指南
+  <a class="anchor" href="#71-%e8%b7%af%e7%94%b1%e7%ad%96%e7%95%a5%e9%80%89%e5%9e%8b%e6%8c%87%e5%8d%97">#</a>
+</h3>
+<table>
+  <thead>
+      <tr>
+          <th>场景</th>
+          <th>推荐策略</th>
+          <th>理由</th>
+          <th>不推荐</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>同构部署（多 API Key）</td>
+          <td>simple-shuffle</td>
+          <td>最简单，零状态维护开销</td>
+          <td>latency-based（无差异场景下无意义）</td>
+      </tr>
+      <tr>
+          <td>多区域部署</td>
+          <td>latency-based-routing</td>
+          <td>自动选最近/最快区域</td>
+          <td>simple-shuffle（可能选到远端区域）</td>
+      </tr>
+      <tr>
+          <td>有 TPM/RPM 限额</td>
+          <td>usage-based-routing</td>
+          <td>最大化利用配额不超限</td>
+          <td>cost-based（不关心限额）</td>
+      </tr>
+      <tr>
+          <td>成本敏感</td>
+          <td>cost-based-routing</td>
+          <td>自动选最便宜的</td>
+          <td>least-busy（不关心成本）</td>
+      </tr>
+      <tr>
+          <td>混合负载</td>
+          <td>least-busy</td>
+          <td>均匀分配，防止热点</td>
+          <td>simple-shuffle（可能热点集中）</td>
+      </tr>
+  </tbody>
+</table>
+<h3 id="72-fallback-链设计原则">
+  7.2 Fallback 链设计原则
+  <a class="anchor" href="#72-fallback-%e9%93%be%e8%ae%be%e8%ae%a1%e5%8e%9f%e5%88%99">#</a>
+</h3>
+<p><strong>原则 1: 不要设计过长的 fallback 链</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># ❌ 错误：fallback 链过长，延迟累积</span>
+</span></span><span style="display:flex;"><span>fallbacks <span style="color:#f92672">=</span> [
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;gpt-4&#34;</span>: <span style="color:#e6db74">&#34;gpt-3.5-turbo&#34;</span>},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;gpt-3.5-turbo&#34;</span>: <span style="color:#e6db74">&#34;claude-sonnet&#34;</span>},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;claude-sonnet&#34;</span>: <span style="color:#e6db74">&#34;claude-haiku&#34;</span>},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;claude-haiku&#34;</span>: <span style="color:#e6db74">&#34;gpt-4o-mini&#34;</span>},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;gpt-4o-mini&#34;</span>: <span style="color:#e6db74">&#34;gemini-flash&#34;</span>},
+</span></span><span style="display:flex;"><span>]
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 如果 gpt-4 失败，可能需要 5 次 fallback 才能得到结果，延迟 = 5 × 平均响应时间</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># ✅ 正确：扁平化 fallback 链</span>
+</span></span><span style="display:flex;"><span>fallbacks <span style="color:#f92672">=</span> [
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;gpt-4&#34;</span>: [<span style="color:#e6db74">&#34;gpt-3.5-turbo&#34;</span>, <span style="color:#e6db74">&#34;claude-sonnet&#34;</span>]},  <span style="color:#75715e"># 先试 gpt-3.5，再试 claude</span>
+</span></span><span style="display:flex;"><span>]
+</span></span><span style="display:flex;"><span>max_fallbacks <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>  <span style="color:#75715e"># 限制最大深度</span>
+</span></span></code></pre></div><p><strong>原则 2: Context Window 和 Content Policy fallback 互斥使用</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># 不要混用，它们针对不同的异常类型</span>
+</span></span><span style="display:flex;"><span>context_window_fallbacks <span style="color:#f92672">=</span> [
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;gpt-3.5-turbo&#34;</span>: <span style="color:#e6db74">&#34;gpt-4-turbo&#34;</span>}   <span style="color:#75715e"># 只在 ContextWindowExceededError 时触发</span>
+</span></span><span style="display:flex;"><span>]
+</span></span><span style="display:flex;"><span>content_policy_fallbacks <span style="color:#f92672">=</span> [
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;azure-gpt-4&#34;</span>: <span style="color:#e6db74">&#34;openai-gpt-4&#34;</span>}     <span style="color:#75715e"># 只在 ContentPolicyViolationError 时触发</span>
+</span></span><span style="display:flex;"><span>]
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 两者可以同时设置，不会冲突</span>
+</span></span></code></pre></div><p><strong>原则 3: 监控 fallback 频率</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># 通过响应头监控</span>
+</span></span><span style="display:flex;"><span>response <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> router<span style="color:#f92672">.</span>acompletion(<span style="color:#f92672">...</span>)
+</span></span><span style="display:flex;"><span>attempted_fallbacks <span style="color:#f92672">=</span> response<span style="color:#f92672">.</span>_hidden_params<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#34;attempted_fallbacks&#34;</span>, <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> attempted_fallbacks <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span>:
+</span></span><span style="display:flex;"><span>    logging<span style="color:#f92672">.</span>warning(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;Request required </span><span style="color:#e6db74">{</span>attempted_fallbacks<span style="color:#e6db74">}</span><span style="color:#e6db74"> fallbacks&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># 如果某模型频繁触发 fallback，考虑:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># 1. 调整 fallback 链顺序</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># 2. 检查底层 deployment 健康状态</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># 3. 增加 Cooldown 敏感度</span>
+</span></span></code></pre></div><h3 id="73-常见陷阱">
+  7.3 常见陷阱
+  <a class="anchor" href="#73-%e5%b8%b8%e8%a7%81%e9%99%b7%e9%98%b1">#</a>
+</h3>
+<p><strong>陷阱 1: fallbacks 和 default_fallbacks 混用导致 fallback 链过长</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># 如果同时设置了 fallbacks 和 default_fallbacks</span>
+</span></span><span style="display:flex;"><span>router <span style="color:#f92672">=</span> Router(
+</span></span><span style="display:flex;"><span>    fallbacks<span style="color:#f92672">=</span>[{<span style="color:#e6db74">&#34;gpt-4&#34;</span>: <span style="color:#e6db74">&#34;gpt-3.5-turbo&#34;</span>}],
+</span></span><span style="display:flex;"><span>    default_fallbacks<span style="color:#f92672">=</span>[<span style="color:#e6db74">&#34;gpt-4o-mini&#34;</span>],  <span style="color:#75715e"># 自动追加为 {&#34;*&#34;: [&#34;gpt-4o-mini&#34;]}</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 实际 fallback 链: gpt-4 → gpt-3.5-turbo → gpt-4o-mini</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 如果 gpt-3.5-turbo 也失败，会再 fallback 到 gpt-4o-mini</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 建议: 只用 fallbacks 或只用 default_fallbacks，不要混用</span>
+</span></span></code></pre></div><p><strong>陷阱 2: 未设置 allowed_fails 导致健康 deployment 被误冷却</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># allowed_fails 默认根据 TPM 自动计算，但如果没设置 TPM:</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># allowed_fails = max(3, int(model_tpm * 0.01))</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 如果 tpm=0，allowed_fails=3，意味着 3 次失败就进入 60 秒冷却</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 建议: 显式设置 allowed_fails</span>
+</span></span><span style="display:flex;"><span>router <span style="color:#f92672">=</span> Router(
+</span></span><span style="display:flex;"><span>    allowed_fails<span style="color:#f92672">=</span><span style="color:#ae81ff">5</span>,        <span style="color:#75715e"># 至少允许 5 次失败</span>
+</span></span><span style="display:flex;"><span>    cooldown_time<span style="color:#f92672">=</span><span style="color:#ae81ff">30</span>,       <span style="color:#75715e"># 冷却时间不要太长</span>
+</span></span><span style="display:flex;"><span>)
+</span></span></code></pre></div><p><strong>陷阱 3: 同步 completion() 不支持 enable_weighted_failover</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># enable_weighted_failover 仅 async 路径支持</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 使用 sync 路径时:</span>
+</span></span><span style="display:flex;"><span>router<span style="color:#f92672">.</span>completion(model<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;gpt-4&#34;</span>, <span style="color:#f92672">...</span>)  <span style="color:#75715e"># ❌ weighted failover 不生效</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 应该使用:</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">await</span> router<span style="color:#f92672">.</span>acompletion(model<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;gpt-4&#34;</span>, <span style="color:#f92672">...</span>)  <span style="color:#75715e"># ✅ weighted failover 生效</span>
+</span></span></code></pre></div><p><strong>陷阱 4: Redis 未配置时多实例 Cooldown 状态不同步</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># 如果部署了多个 LiteLLM Router 实例，但没配置 Redis:</span>
+</span></span><span style="display:flex;"><span>router <span style="color:#f92672">=</span> Router(model_list<span style="color:#f92672">=...</span>, redis_url<span style="color:#f92672">=</span><span style="color:#66d9ef">None</span>)
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 每个实例独立维护 Cooldown 状态</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 可能导致: 实例 A 已将某 deployment 冷却，但实例 B 仍在调度到它</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 建议: 多实例环境必须配置 Redis</span>
+</span></span><span style="display:flex;"><span>router <span style="color:#f92672">=</span> Router(
+</span></span><span style="display:flex;"><span>    model_list<span style="color:#f92672">=...</span>,
+</span></span><span style="display:flex;"><span>    redis_url<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;redis://redis-cluster:6379&#34;</span>,
+</span></span><span style="display:flex;"><span>)
+</span></span></code></pre></div><p><strong>陷阱 5: ContextWindowExceededError 走专用 fallback，不走常规 retry</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># 当触发 ContextWindowExceededError 时:</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># - Retry: ❌ 不执行（因为重试无意义）</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># - 常规 fallback: ❌ 不走 fallbacks 列表</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># - Context Window Fallback: ✅ 走 context_window_fallbacks 列表</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 这意味着: 如果只设置了 fallbacks 而没有设置 context_window_fallbacks，</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 上下文超长的请求不会 fallback，直接报错。</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 建议: 如果模型可能遇到上下文超长，必须设置 context_window_fallbacks</span>
+</span></span><span style="display:flex;"><span>router <span style="color:#f92672">=</span> Router(
+</span></span><span style="display:flex;"><span>    context_window_fallbacks<span style="color:#f92672">=</span>[
+</span></span><span style="display:flex;"><span>        {<span style="color:#e6db74">&#34;gpt-3.5-turbo&#34;</span>: <span style="color:#e6db74">&#34;gpt-4-turbo&#34;</span>},
+</span></span><span style="display:flex;"><span>    ],
+</span></span><span style="display:flex;"><span>)
+</span></span></code></pre></div><hr>
+<h2 id="八总结">
+  八、总结
+  <a class="anchor" href="#%e5%85%ab%e6%80%bb%e7%bb%93">#</a>
+</h2>
+<p>LiteLLM Router 将分布式系统的三个经典模式迁移到了 LLM 层：</p>
+<table>
+  <thead>
+      <tr>
+          <th>分布式模式</th>
+          <th>传统实现</th>
+          <th>LiteLLM Router 实现</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><strong>负载均衡</strong></td>
+          <td>Nginx / HAProxy</td>
+          <td>5 种路由策略 + Routing Groups</td>
+      </tr>
+      <tr>
+          <td><strong>断路器</strong></td>
+          <td>Hystrix / Resilience4j</td>
+          <td>Cooldown 机制 + Pre-call Health Check</td>
+      </tr>
+      <tr>
+          <td><strong>降级引擎</strong></td>
+          <td>服务降级配置</td>
+          <td>3 层 Fallback（Retry → 常规 → 专用）</td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>核心设计公式</strong>：</p>
+<pre tabindex="0"><code>高可用 LLM 服务 = 路由策略（选最优）+ Cooldown（隔离故障）+ Retry（瞬时恢复）+ Fallback（持久降级）
+</code></pre><p><strong>源码行数统计</strong>：</p>
+<table>
+  <thead>
+      <tr>
+          <th>文件/目录</th>
+          <th>行数</th>
+          <th>职责</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>router.py</code></td>
+          <td>~7200</td>
+          <td>Router 核心（入口 + Fallback + Retry + 调度）</td>
+      </tr>
+      <tr>
+          <td><code>router_strategy/</code></td>
+          <td>~15000</td>
+          <td>9 种路由策略实现</td>
+      </tr>
+      <tr>
+          <td><code>router_utils/</code></td>
+          <td>~8000</td>
+          <td>Cooldown、Fallback、Health Check 等工具</td>
+      </tr>
+      <tr>
+          <td><strong>总计</strong></td>
+          <td><strong>~30000</strong></td>
+          <td>完整的路由与高可用体系</td>
+      </tr>
+  </tbody>
+</table>
+<p>理解这套机制，对于在生产环境中部署多模型、多 Provider 的 LLM 服务至关重要。Router 的设计哲学是：<strong>让故障在应用层被消化，而不是透传给终端用户</strong>。</p>
+<hr>
+<blockquote>
+<p><strong>源码版本</strong>: LiteLLM v1.90.x | <strong>GitHub</strong>: <a href="https://github.com/BerriAI/litellm">https://github.com/BerriAI/litellm</a></p></blockquote>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#litellm-路由策略与-fallback-机制源码剖析">LiteLLM 路由策略与 Fallback 机制源码剖析</a>
+      <ul>
+        <li><a href="#一引言为什么需要路由与-fallback">一、引言：为什么需要路由与 Fallback</a>
+          <ul>
+            <li><a href="#11-大模型时代的分布式系统问题">1.1 大模型时代的&quot;分布式系统&quot;问题</a></li>
+            <li><a href="#12-本文范围">1.2 本文范围</a></li>
+          </ul>
+        </li>
+        <li><a href="#二router-整体架构">二、Router 整体架构</a>
+          <ul>
+            <li><a href="#21-四层架构总览">2.1 四层架构总览</a></li>
+            <li><a href="#22-router-初始化关键参数">2.2 Router 初始化关键参数</a></li>
+            <li><a href="#23-请求生命周期完整链路">2.3 请求生命周期（完整链路）</a></li>
+          </ul>
+        </li>
+        <li><a href="#三路由策略详解">三、路由策略详解</a>
+          <ul>
+            <li><a href="#31-策略注册与调度引擎">3.1 策略注册与调度引擎</a></li>
+            <li><a href="#32-simple-shuffle默认策略">3.2 simple-shuffle（默认策略）</a></li>
+            <li><a href="#33-least-busy最少繁忙">3.3 least-busy（最少繁忙）</a></li>
+            <li><a href="#34-usage-based-routingtpmrpm-最低优先">3.4 usage-based-routing（TPM/RPM 最低优先）</a></li>
+            <li><a href="#35-latency-based-routing延迟最低优先">3.5 latency-based-routing（延迟最低优先）</a></li>
+            <li><a href="#36-cost-based-routing成本最低优先">3.6 cost-based-routing（成本最低优先）</a></li>
+            <li><a href="#37-高级路由策略">3.7 高级路由策略</a></li>
+            <li><a href="#38-routing-groups分组路由">3.8 Routing Groups（分组路由）</a></li>
+          </ul>
+        </li>
+        <li><a href="#四fallback-机制详解">四、Fallback 机制详解</a>
+          <ul>
+            <li><a href="#41-fallback-的三层架构">4.1 Fallback 的三层架构</a></li>
+            <li><a href="#42-retry-机制同-deployment-重试">4.2 Retry 机制（同 deployment 重试）</a></li>
+            <li><a href="#43-常规-fallback切换-model_group">4.3 常规 Fallback（切换 model_group）</a></li>
+            <li><a href="#44-context-window-fallback">4.4 Context Window Fallback</a></li>
+            <li><a href="#45-content-policy-fallback">4.5 Content Policy Fallback</a></li>
+            <li><a href="#46-fallback-的异常判定表">4.6 Fallback 的异常判定表</a></li>
+            <li><a href="#47-enable_weighted_failover同组内权重故障转移">4.7 enable_weighted_failover（同组内权重故障转移）</a></li>
+            <li><a href="#48-fallback-响应头可观测性">4.8 Fallback 响应头（可观测性）</a></li>
+          </ul>
+        </li>
+        <li><a href="#五cooldown-机制失败隔离与自动恢复">五、Cooldown 机制（失败隔离与自动恢复）</a>
+          <ul>
+            <li><a href="#51-cooldown-原理">5.1 Cooldown 原理</a></li>
+            <li><a href="#52-cooldown-关键参数">5.2 Cooldown 关键参数</a></li>
+            <li><a href="#53-pre-call-health-check">5.3 Pre-call Health Check</a></li>
+            <li><a href="#54-health-state-cache">5.4 Health State Cache</a></li>
+          </ul>
+        </li>
+        <li><a href="#六源码关键路径解读">六、源码关键路径解读</a>
+          <ul>
+            <li><a href="#61-核心调用链路源码行号标注">6.1 核心调用链路（源码行号标注）</a></li>
+            <li><a href="#62-关键数据结构">6.2 关键数据结构</a></li>
+          </ul>
+        </li>
+        <li><a href="#七最佳实践与陷阱">七、最佳实践与陷阱</a>
+          <ul>
+            <li><a href="#71-路由策略选型指南">7.1 路由策略选型指南</a></li>
+            <li><a href="#72-fallback-链设计原则">7.2 Fallback 链设计原则</a></li>
+            <li><a href="#73-常见陷阱">7.3 常见陷阱</a></li>
+          </ul>
+        </li>
+        <li><a href="#八总结">八、总结</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
