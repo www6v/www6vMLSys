@@ -74,6 +74,14 @@
       
   
 
+
+
+
+
+  
+
+
+
 graph LR
     subgraph &#34;数据并行 DP — 跨节点高带宽&#34;
         A1[Node 1: 8×GPU] &lt;--&gt;|AllReduce, 200G IB| A2[Node 2: 8×GPU]
@@ -114,7 +122,7 @@ graph LR
 <link rel="canonical" href="https://www6v.github.io/www6vMLSys/docs/MaaS/MaaS1/">
 <link rel="stylesheet" href="/www6vMLSys/book.min.6c8b9d2a1fc95075ed7da46ca81060b39add8fff6741ac51259f768929281e2c.css" integrity="sha256-bIudKh/JUHXtfaRsqBBgs5rdj/9nQaxRJZ92iSkoHiw=" crossorigin="anonymous">
   <script defer src="/www6vMLSys/fuse.min.js"></script>
-  <script defer src="/www6vMLSys/en.search.min.218072405666796fe6a684efcb1d690de7affcf65c670eb16b1d7679f4f1bd9e.js" integrity="sha256-IYByQFZmeW/mpoTvyx1pDeev/PZcZw6xax12efTxvZ4=" crossorigin="anonymous"></script>
+  <script defer src="/www6vMLSys/en.search.min.db2b384d5b81b23e57c3928b924af72dfab74a96bcdb893c600ff8115b61d590.js" integrity="sha256-2ys4TVuBsj5Xw5KLkkr3Lfq3Spa824k8YA/4EVth1ZA=" crossorigin="anonymous"></script>
 <link rel="alternate" type="application/rss+xml" href="https://www6v.github.io/www6vMLSys/docs/MaaS/MaaS1/index.xml" title="MLSys" />
 <!--
 Made with Book Theme
@@ -2628,7 +2636,21 @@ https://github.com/alex-shpak/hugo-book
       </tr>
   </tbody>
 </table>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph LR
+
+
+<script src="/www6vMLSys/mermaid.min.js"></script>
+
+  <script>mermaid.initialize({
+  "flowchart": {
+    "useMaxWidth":true
+  },
+  "theme": "default"
+}
+)</script>
+
+
+
+<pre class="mermaid">graph LR
     subgraph &#34;数据并行 DP — 跨节点高带宽&#34;
         A1[Node 1: 8×GPU] &lt;--&gt;|AllReduce, 200G IB| A2[Node 2: 8×GPU]
         A2 &lt;--&gt;|AllReduce, 200G IB| A3[Node N: 8×GPU]
@@ -2647,8 +2669,8 @@ https://github.com/alex-shpak/hugo-book
 
     style A1 fill:#4a90d9
     style B1 fill:#50c878
-    style C1 fill:#ff6b6b
-</code></pre><p><strong>图表说明</strong>: 三种并行策略对网络的差异化需求。DP 是跨节点的高带宽 AllReduce；TP 是机内的超高带宽 NVLink 通信；PP 是跨节点的低延迟 P2P。</p>
+    style C1 fill:#ff6b6b</pre>
+<p><strong>图表说明</strong>: 三种并行策略对网络的差异化需求。DP 是跨节点的高带宽 AllReduce；TP 是机内的超高带宽 NVLink 通信；PP 是跨节点的低延迟 P2P。</p>
 <h4 id="理论分析通信-计算重叠">
   理论分析：通信-计算重叠
   <a class="anchor" href="#%e7%90%86%e8%ae%ba%e5%88%86%e6%9e%90%e9%80%9a%e4%bf%a1-%e8%ae%a1%e7%ae%97%e9%87%8d%e5%8f%a0">#</a>
@@ -2749,19 +2771,20 @@ https://github.com/alex-shpak/hugo-book
   <a class="anchor" href="#123-%e5%b9%b6%e5%8f%91%e4%b8%8e%e5%bb%b6%e8%bf%9f%e7%9a%84%e6%9d%83%e8%a1%a1">#</a>
 </h3>
 <p>推理服务的核心 SLO 指标：</p>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph TD
+
+<pre class="mermaid">graph TD
     A[推理请求] --&gt; B{并发策略}
     B --&gt;|低延迟优先| C[小批量 1-4]
     B --&gt;|高吞吐优先| D[大批量 32-64]
-    B --&gt;|折中| E[动态批量 + PagedAttention]
+    B --&gt;|折中| E[动态批量 &#43; PagedAttention]
 
     C --&gt; F[TTFT &lt; 50ms]
     D --&gt; G[吞吐 &gt; 1000 tok/s]
     E --&gt; H[TTFT &lt; 100ms, 吞吐 &gt; 500 tok/s]
 
     style E fill:#ffd93d
-    style A fill:#4a90d9
-</code></pre><p>vLLM 的 PagedAttention<sup id="fnref:11"><a href="#fn:11" class="footnote-ref" role="doc-noteref">11</a></sup> 通过分页管理 KV Cache，将碎片化内存浪费从 60%-80% 降至 &lt; 4%，使单卡可服务的并发请求数提升 2-4 倍。这是推理层的核心技术选型依据。</p>
+    style A fill:#4a90d9</pre>
+<p>vLLM 的 PagedAttention<sup id="fnref:11"><a href="#fn:11" class="footnote-ref" role="doc-noteref">11</a></sup> 通过分页管理 KV Cache，将碎片化内存浪费从 60%-80% 降至 &lt; 4%，使单卡可服务的并发请求数提升 2-4 倍。这是推理层的核心技术选型依据。</p>
 <h2 id="13-数据场景挑战">
   1.3 数据场景挑战
   <a class="anchor" href="#13-%e6%95%b0%e6%8d%ae%e5%9c%ba%e6%99%af%e6%8c%91%e6%88%98">#</a>
@@ -2966,7 +2989,8 @@ https://github.com/alex-shpak/hugo-book
   <a class="anchor" href="#21-%e4%ba%91%e7%9f%a5%e5%a3%b0%e5%9b%9b%e5%b1%82%e6%9e%b6%e6%9e%84%e6%80%bb%e8%a7%88">#</a>
 </h2>
 <p>云知声的 MaaS 平台架构<sup id="fnref5:3"><a href="#fn:3" class="footnote-ref" role="doc-noteref">3</a></sup>采用四层设计，每层职责清晰、接口明确：</p>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph TB
+
+<pre class="mermaid">graph TB
     subgraph &#34;L4: MaaS 服务层&#34;
         S1[API 网关] --&gt; S2[多租户管理]
         S2 --&gt; S3[模型集市]
@@ -2975,7 +2999,7 @@ https://github.com/alex-shpak/hugo-book
     end
 
     subgraph &#34;L3: 框架层&#34;
-        F1[数据工程: Spark + Ray]
+        F1[数据工程: Spark &#43; Ray]
         F2[训练框架: DeepSpeed / Megatron]
         F3[推理框架: vLLM / TGI]
         F4[微调框架: LoRA / QLoRA]
@@ -2990,9 +3014,9 @@ https://github.com/alex-shpak/hugo-book
 
     subgraph &#34;L1: 底层资源层&#34;
         R1[计算: GPU/CPU 节点]
-        R2[存储: NVMe SSD + 分布式文件系统]
-        R3[网络: 200G IB + 100G RoCE + 10G 管理]
-        R4[电源: 双路 PDU + UPS]
+        R2[存储: NVMe SSD &#43; 分布式文件系统]
+        R3[网络: 200G IB &#43; 100G RoCE &#43; 10G 管理]
+        R4[电源: 双路 PDU &#43; UPS]
     end
 
     S1 -.-&gt; F2
@@ -3009,8 +3033,8 @@ https://github.com/alex-shpak/hugo-book
     style F3 fill:#50c878,color:#fff
     style C3 fill:#ffd93d
     style R1 fill:#ff6b6b,color:#fff
-    style R3 fill:#ff6b6b,color:#fff
-</code></pre><p><strong>架构层次说明</strong>:</p>
+    style R3 fill:#ff6b6b,color:#fff</pre>
+<p><strong>架构层次说明</strong>:</p>
 <table>
   <thead>
       <tr>
@@ -3221,7 +3245,8 @@ https://github.com/alex-shpak/hugo-book
   <a class="anchor" href="#24-%e6%8e%a7%e5%88%b6%e9%9d%a2-vs-%e6%95%b0%e6%8d%ae%e9%9d%a2%e5%88%86%e7%a6%bb">#</a>
 </h2>
 <p><strong>核心设计原则</strong>: 控制流量（K8s API、调度决策、监控采集）与数据流量（训练数据、模型权重、推理请求）物理隔离。</p>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph LR
+
+<pre class="mermaid">graph LR
     subgraph &#34;控制面 Control Plane&#34;
         CP1[K8s API Server]
         CP2[Scheduler]
@@ -3248,8 +3273,8 @@ https://github.com/alex-shpak/hugo-book
 
     style CP1 fill:#4a90d9,color:#fff
     style DP1 fill:#ff6b6b,color:#fff
-    style DP2 fill:#ff6b6b,color:#fff
-</code></pre><p><strong>分离的好处</strong>:</p>
+    style DP2 fill:#ff6b6b,color:#fff</pre>
+<p><strong>分离的好处</strong>:</p>
 <ol>
 <li><strong>故障隔离</strong>: 数据面拥塞不影响 K8s 调度决策</li>
 <li><strong>安全隔离</strong>: 控制面可走内网，数据面走专用 RDMA 网络</li>
@@ -3266,7 +3291,8 @@ https://github.com/alex-shpak/hugo-book
   3.1 四网物理分离
   <a class="anchor" href="#31-%e5%9b%9b%e7%bd%91%e7%89%a9%e7%90%86%e5%88%86%e7%a6%bb">#</a>
 </h2>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph TB
+
+<pre class="mermaid">graph TB
     subgraph &#34;节点 N&#34;
         NIC_M[eth0: 管理网 10G\nK8s/SSH/监控]
         NIC_C1[NW1: 计算网 200G IB\nNCCL AllReduce]
@@ -3306,8 +3332,8 @@ https://github.com/alex-shpak/hugo-book
     style NIC_C2 fill:#50c878,color:#fff
     style NIC_S1 fill:#ff6b6b,color:#fff
     style NIC_S2 fill:#ff6b6b,color:#fff
-    style NIC_M fill:#4a90d9,color:#fff
-</code></pre><table>
+    style NIC_M fill:#4a90d9,color:#fff</pre>
+<table>
   <thead>
       <tr>
           <th>网络</th>
@@ -3402,7 +3428,8 @@ HCCS (Ascend)      392            100          全互联
   3.2.2 NVLink 与 NVSwitch 拓扑
   <a class="anchor" href="#322-nvlink-%e4%b8%8e-nvswitch-%e6%8b%93%e6%89%91">#</a>
 </h3>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph TB
+
+<pre class="mermaid">graph TB
     subgraph &#34;8×GPU NVSwitch 全互联拓扑 (HGX A800)&#34;
         G0[GPU 0] &lt;--&gt;|NVLink 900GB/s| G1[GPU 1]
         G0 &lt;--&gt;|NVLink| G2[GPU 2]
@@ -3438,8 +3465,8 @@ HCCS (Ascend)      392            100          全互联
 
     style G0 fill:#50c878,color:#fff
     style NVA fill:#ffd93d
-    style NVB fill:#ffd93d
-</code></pre><p><strong>关键数据</strong>:</p>
+    style NVB fill:#ffd93d</pre>
+<p><strong>关键数据</strong>:</p>
 <ul>
 <li>HGX A800 采用 <strong>2 颗 NVSwitch</strong>，每颗连接 4 张 GPU</li>
 <li>单 GPU 通过 NVLink 可获得 <strong>600 GB/s</strong>（A100）或 <strong>900 GB/s</strong>（H100）的聚合带宽</li>
@@ -3526,7 +3553,8 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
   3.3.3 200G IB + SuperPOD Spine-Leaf 拓扑
   <a class="anchor" href="#333-200g-ib--superpod-spine-leaf-%e6%8b%93%e6%89%91">#</a>
 </h3>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph TB
+
+<pre class="mermaid">graph TB
     subgraph &#34;Leaf 层 (Rack Switches)&#34;
         L1[Leaf 1: 32×200G]
         L2[Leaf 2: 32×200G]
@@ -3567,8 +3595,8 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
     L4 --&gt;|4×200G| S4
 
     style S1 fill:#ff6b6b,color:#fff
-    style N1 fill:#50c878,color:#fff
-</code></pre><p><strong>Spine-Leaf 的关键优势</strong>:</p>
+    style N1 fill:#50c878,color:#fff</pre>
+<p><strong>Spine-Leaf 的关键优势</strong>:</p>
 <ol>
 <li><strong>任意到任意等距</strong>: 任意两个 Leaf 之间的跳数相同（2 跳），避免 Hotspot</li>
 <li><strong>无收敛比 (Non-blocking)</strong>: 每个 Spine 到 Leaf 的带宽 = 全部 Leaf 上行带宽总和</li>
@@ -3581,7 +3609,8 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
   <a class="anchor" href="#34-%e9%9b%86%e7%be%a4%e5%88%86%e7%bb%84%e8%a7%84%e5%88%92%e5%9b%9b%e9%9b%86%e7%be%a4">#</a>
 </h2>
 <p>基于不同场景的网络需求差异，将 100 节点划分为四个独立集群：</p>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph LR
+
+<pre class="mermaid">graph LR
     subgraph &#34;集群 A: 高性能训练&#34;
         A1[50 节点 × 8×A800]
         A2[200G IB Spine-Leaf]
@@ -3592,7 +3621,7 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
         A1 -.-&gt; A4
     end
 
-    subgraph &#34;集群 B: 推理+微调&#34;
+    subgraph &#34;集群 B: 推理&#43;微调&#34;
         B1[25 节点 × A10/A6000]
         B2[25G/100G RoCE]
         B3[vLLM 推理服务]
@@ -3625,8 +3654,8 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
     style A1 fill:#ff6b6b,color:#fff
     style B1 fill:#50c878,color:#fff
     style C1 fill:#4a90d9,color:#fff
-    style D1 fill:#ffd93d
-</code></pre><h3 id="集群详细规格">
+    style D1 fill:#ffd93d</pre>
+<h3 id="集群详细规格">
   集群详细规格
   <a class="anchor" href="#%e9%9b%86%e7%be%a4%e8%af%a6%e7%bb%86%e8%a7%84%e6%a0%bc">#</a>
 </h3>
@@ -3871,7 +3900,8 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
   3.7.1 VLAN + VRF 隔离
   <a class="anchor" href="#371-vlan--vrf-%e9%9a%94%e7%a6%bb">#</a>
 </h3>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph TB
+
+<pre class="mermaid">graph TB
     subgraph &#34;物理网络&#34;
         PHY[物理交换机端口]
     end
@@ -3895,8 +3925,8 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
 
     PHY --&gt; VLAN_A --&gt; VRF_A --&gt; NCCL_A
     PHY --&gt; VLAN_B --&gt; VRF_B --&gt; NCCL_B
-    PHY --&gt; VLAN_C --&gt; VRF_C
-</code></pre><h3 id="372-calico-networkpolicy">
+    PHY --&gt; VLAN_C --&gt; VRF_C</pre>
+<h3 id="372-calico-networkpolicy">
   3.7.2 Calico NetworkPolicy
   <a class="anchor" href="#372-calico-networkpolicy">#</a>
 </h3>
@@ -3946,7 +3976,8 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
   3.8 网络冗余设计
   <a class="anchor" href="#38-%e7%bd%91%e7%bb%9c%e5%86%97%e4%bd%99%e8%ae%be%e8%ae%a1">#</a>
 </h2>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph LR
+
+<pre class="mermaid">graph LR
     subgraph &#34;计算节点&#34;
         HCA1[HCA 0: mlx5_0]
         HCA2[HCA 1: mlx5_1]
@@ -3975,8 +4006,8 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
     SP2 &lt;--&gt; SP3
 
     style HCA1 fill:#50c878,color:#fff
-    style HCA2 fill:#50c878,color:#fff
-</code></pre><p><strong>冗余策略</strong>:</p>
+    style HCA2 fill:#50c878,color:#fff</pre>
+<p><strong>冗余策略</strong>:</p>
 <ol>
 <li><strong>双 HCA 卡</strong>: 每个节点配备 2 张 200G HCA，分别连接不同的 Leaf 交换机</li>
 <li><strong>NCCL 多路径</strong>: NCCL 自动检测多条 IB 路径，单链路故障时自动切换</li>
@@ -4150,7 +4181,8 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
   4.1 三级缓存体系
   <a class="anchor" href="#41-%e4%b8%89%e7%ba%a7%e7%bc%93%e5%ad%98%e4%bd%93%e7%b3%bb">#</a>
 </h2>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph TB
+
+<pre class="mermaid">graph TB
     subgraph &#34;L1: NVMe 本地缓存 (每台节点)&#34;
         L1A[本地 NVMe SSD 3.84TB]
         L1B[训练热数据]
@@ -4183,8 +4215,8 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
 
     style L1A fill:#ff6b6b,color:#fff
     style L2A fill:#50c878,color:#fff
-    style L3A fill:#4a90d9,color:#fff
-</code></pre><h3 id="各级缓存详细规格">
+    style L3A fill:#4a90d9,color:#fff</pre>
+<h3 id="各级缓存详细规格">
   各级缓存详细规格
   <a class="anchor" href="#%e5%90%84%e7%ba%a7%e7%bc%93%e5%ad%98%e8%af%a6%e7%bb%86%e8%a7%84%e6%a0%bc">#</a>
 </h3>
@@ -4307,7 +4339,8 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
 <li><strong>一致性风险</strong>: 不同训练任务可能使用不同版本的数据</li>
 </ol>
 <p>云知声的解决方案<sup id="fnref7:3"><a href="#fn:3" class="footnote-ref" role="doc-noteref">3</a></sup>：构建<strong>统一数据湖底座</strong>，所有阶段从同一 POSIX 挂载点读取：</p>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph LR
+
+<pre class="mermaid">graph LR
     subgraph &#34;数据采集&#34;
         D1[爬虫/日志/API]
     end
@@ -4344,8 +4377,8 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
     style D3 fill:#4a90d9,color:#fff
     style D4 fill:#50c878,color:#fff
     style D8 fill:#ff6b6b,color:#fff
-    style D9 fill:#ff6b6b,color:#fff
-</code></pre><h3 id="数据流转路径无冗余复制">
+    style D9 fill:#ff6b6b,color:#fff</pre>
+<h3 id="数据流转路径无冗余复制">
   数据流转路径（无冗余复制）
   <a class="anchor" href="#%e6%95%b0%e6%8d%ae%e6%b5%81%e8%bd%ac%e8%b7%af%e5%be%84%e6%97%a0%e5%86%97%e4%bd%99%e5%a4%8d%e5%88%b6">#</a>
 </h3>
@@ -4511,21 +4544,22 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
   4.4.2 独立扩容架构
   <a class="anchor" href="#442-%e7%8b%ac%e7%ab%8b%e6%89%a9%e5%ae%b9%e6%9e%b6%e6%9e%84">#</a>
 </h3>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph TB
+
+<pre class="mermaid">graph TB
     subgraph &#34;GPU 计算池 (可独立扩缩容)&#34;
         GPU1[训练节点: 50 节点]
         GPU2[推理节点: 25 节点]
-        GPU3[动态扩容: +N 节点]
+        GPU3[动态扩容: &#43;N 节点]
     end
 
     subgraph &#34;CPU 数据池 (可独立扩缩容)&#34;
         CPU1[Spark 节点: 15 节点]
-        CPU2[动态扩容: +M 节点]
+        CPU2[动态扩容: &#43;M 节点]
     end
 
     subgraph &#34;存储池 (可独立扩缩容)&#34;
         ST1[Ceph OSD: 10 节点]
-        ST2[动态扩容: +K 节点]
+        ST2[动态扩容: &#43;K 节点]
     end
 
     subgraph &#34;统一数据访问&#34;
@@ -4543,8 +4577,8 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
     style GPU1 fill:#ff6b6b,color:#fff
     style CPU1 fill:#4a90d9,color:#fff
     style ST1 fill:#50c878,color:#fff
-    style FS fill:#ffd93d
-</code></pre><h3 id="443-k8s-hpa--vpa-弹性扩缩容">
+    style FS fill:#ffd93d</pre>
+<h3 id="443-k8s-hpa--vpa-弹性扩缩容">
   4.4.3 K8s HPA + VPA 弹性扩缩容
   <a class="anchor" href="#443-k8s-hpa--vpa-%e5%bc%b9%e6%80%a7%e6%89%a9%e7%bc%a9%e5%ae%b9">#</a>
 </h3>
@@ -4702,7 +4736,8 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
 │              │ A100×64      │ A10×36                   │
 └──────────────┴──────────────┴─────────────────────────┘
 </code></pre><p><strong>GPU Device Plugin</strong> 是 Kubernetes 暴露 GPU 能力的标准机制。它以 DaemonSet 形式运行在每个 GPU 节点上，通过 gRPC 向 Kubelet 注册节点上的 GPU 资源（<code>nvidia.com/gpu: 8</code>）。Kubelet 收到注册后，将 GPU 数量作为节点可分配资源上报给 API Server，调度器据此进行调度决策。</p>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph TB
+
+<pre class="mermaid">graph TB
     subgraph &#34;GPU 资源池架构&#34;
         subgraph &#34;Kubernetes 控制面&#34;
             APIServer[&#34;API Server&#34;]
@@ -4735,8 +4770,8 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
     style GPU_Train fill:#ff6b6b
     style GPU_Infer fill:#4ecdc4
     style DP fill:#45b7d1
-    style NV fill:#96ceb3
-</code></pre><p><strong>Device Plugin 的局限性与突破</strong>：标准 Device Plugin 只暴露数量信息（<code>nvidia.com/gpu</code>），无法传递拓扑（GPU 在哪个 NUMA node、哪些 GPU 共享 NVLink）。云知声通过 <strong>Topology Manager</strong> + <strong>GPU Feature Discovery</strong> 补充了节点级拓扑标签：</p>
+    style NV fill:#96ceb3</pre>
+<p><strong>Device Plugin 的局限性与突破</strong>：标准 Device Plugin 只暴露数量信息（<code>nvidia.com/gpu</code>），无法传递拓扑（GPU 在哪个 NUMA node、哪些 GPU 共享 NVLink）。云知声通过 <strong>Topology Manager</strong> + <strong>GPU Feature Discovery</strong> 补充了节点级拓扑标签：</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#75715e"># 节点标签示例（由 gpu-feature-discovery 自动注入）</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">labels</span>:
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">nvidia.com/gpu.product</span>: <span style="color:#e6db74">&#34;NVIDIA-A100-SXM4-80GB&#34;</span>
@@ -4753,7 +4788,8 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
   从手工到自动化的演进路径
   <a class="anchor" href="#%e4%bb%8e%e6%89%8b%e5%b7%a5%e5%88%b0%e8%87%aa%e5%8a%a8%e5%8c%96%e7%9a%84%e6%bc%94%e8%bf%9b%e8%b7%af%e5%be%84">#</a>
 </h4>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph LR
+
+<pre class="mermaid">graph LR
     A[&#34;手工阶段&#34;] --&gt; B[&#34;脚本化阶段&#34;] --&gt; C[&#34;Operator 自动化阶段&#34;]
     
     subgraph &#34;手工阶段&#34;
@@ -4769,11 +4805,11 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
     end
     
     subgraph &#34;Operator 自动化阶段&#34;
-        C1[&#34;GPU Operator 自动&lt;br/&gt;探测 GPU + 安装驱动&#34;]
+        C1[&#34;GPU Operator 自动&lt;br/&gt;探测 GPU &#43; 安装驱动&#34;]
         C2[&#34;自动部署 container toolkit&lt;br/&gt;device plugin&lt;br/&gt;dcgm exporter&#34;]
         C3[&#34;自动滚动更新驱动&lt;br/&gt;健康检查&#34;]
-    end
-</code></pre><p><strong>GPU Operator 的核心组件</strong>：</p>
+    end</pre>
+<p><strong>GPU Operator 的核心组件</strong>：</p>
 <table>
   <thead>
       <tr>
@@ -4846,7 +4882,8 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
 </h4>
 <p><strong>问题</strong>：分布式训练需要所有 worker 同时就绪才能启动。如果调度器只调度了 7/8 个 worker，剩下的 1 个因资源不足被挂起，已调度的 7 个 worker 将无限等待——<strong>资源被锁定但训练无法开始</strong>。</p>
 <p><strong>Gang Scheduling 的原理</strong>：将一组 Pod（一个 PodGroup）视为一个原子调度单元。调度器对 PodGroup 进行&quot;模拟调度&quot;——先计算所有 Pod 是否能同时被调度到集群中，只有全部满足时才实际调度，否则一个都不调。</p>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">sequenceDiagram
+
+<pre class="mermaid">sequenceDiagram
     participant User as 用户提交训练任务
     participant APIS as API Server
     participant Sch as Volcano 调度器
@@ -4854,7 +4891,7 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
     participant Node2 as GPU 节点 B (4卡空闲)
     participant Node3 as GPU 节点 C (2卡空闲)
 
-    User-&gt;&gt;APIS: 创建 PodGroup(8 GPU) + 8 个 Worker Pod
+    User-&gt;&gt;APIS: 创建 PodGroup(8 GPU) &#43; 8 个 Worker Pod
     APIS-&gt;&gt;Sch: Pod 进入调度队列
     
     Sch-&gt;&gt;Sch: 模拟调度：尝试为 8 个 Pod 分配 GPU
@@ -4864,8 +4901,8 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
     Sch-&gt;&gt;Node2: 绑定 4 个 Worker Pod
     Sch-&gt;&gt;Node3: 跳过（不分配，保证 NVLink 域内）
     
-    Note over Node1,Node2: 8 个 Worker 同时启动&lt;br/&gt;分布式训练开始
-</code></pre><p><strong>Volcano PodGroup 配置</strong>：</p>
+    Note over Node1,Node2: 8 个 Worker 同时启动&lt;br/&gt;分布式训练开始</pre>
+<p><strong>Volcano PodGroup 配置</strong>：</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">scheduling.volcano.sh/v1beta1</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">PodGroup</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">metadata</span>:
@@ -5006,7 +5043,8 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
   弹性伸缩：Karpenter + Cluster Autoscaler
   <a class="anchor" href="#%e5%bc%b9%e6%80%a7%e4%bc%b8%e7%bc%a9karpenter--cluster-autoscaler">#</a>
 </h4>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph TB
+
+<pre class="mermaid">graph TB
     subgraph &#34;弹性伸缩架构&#34;
         Pend[&#34;Pending Pod&lt;br/&gt;(资源不足)&#34;] --&gt; CA[&#34;Cluster Autoscaler&lt;br/&gt;检测到 Pending&#34;]
         CA --&gt; KP[&#34;Karpenter&lt;br/&gt;计算最优实例类型&#34;]
@@ -5021,8 +5059,8 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
     
     style Pend fill:#ff6b6b
     style Done fill:#4ecdc4
-    style KP fill:#45b7d1
-</code></pre><p><strong>伸缩策略的关键参数</strong>：</p>
+    style KP fill:#45b7d1</pre>
+<p><strong>伸缩策略的关键参数</strong>：</p>
 <table>
   <thead>
       <tr>
@@ -5076,7 +5114,8 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
   <a class="anchor" href="#61-%e5%88%86%e5%b8%83%e5%bc%8f%e8%ae%ad%e7%bb%83%e6%9e%b6%e6%9e%843d-%e6%b7%b7%e5%90%88%e5%b9%b6%e8%a1%8c">#</a>
 </h3>
 <p>当模型参数量超过单卡显存（70B 模型 ≈ 280 GB FP16，远超 A100 的 80 GB），就必须拆分模型到多卡。云知声采用 <strong>3D 混合并行</strong>：</p>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph TB
+
+<pre class="mermaid">graph TB
     subgraph &#34;3D 混合并行架构 (8卡示例)&#34;
         subgraph &#34;DP=2 (数据并行)&#34;
             subgraph &#34;DP Group 0&#34;
@@ -5115,8 +5154,8 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
         PP0[&#34;Stage 0: Layer 0-20 → GPU 0,1,4,5&#34;]
         PP1[&#34;Stage 1: Layer 21-40 → GPU 2,3,6,7&#34;]
         PP0 ==&gt;|Send/Recv| PP1
-    end
-</code></pre><h4 id="数据并行data-parallelism-dp">
+    end</pre>
+<h4 id="数据并行data-parallelism-dp">
   数据并行（Data Parallelism, DP）
   <a class="anchor" href="#%e6%95%b0%e6%8d%ae%e5%b9%b6%e8%a1%8cdata-parallelism-dp">#</a>
 </h4>
@@ -5291,7 +5330,8 @@ Stage 3:  ... B0  B0
   Launch + Worker 模式
   <a class="anchor" href="#launch--worker-%e6%a8%a1%e5%bc%8f">#</a>
 </h4>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph TB
+
+<pre class="mermaid">graph TB
     subgraph &#34;多机多卡训练架构&#34;
         Launch[&#34;Launch Pod (GPU 节点 0)&lt;br/&gt;DeepSpeed Launcher&#34;]
         W1[&#34;Worker Pod (GPU 节点 1)&lt;br/&gt;GPU 0-7&#34;]
@@ -5310,8 +5350,8 @@ Stage 3:  ... B0  B0
     subgraph &#34;Hostfile 管理&#34;
         HF[&#34;/etc/deepspeed/hostfile&lt;br/&gt;node1 slots=8&lt;br/&gt;node2 slots=8&lt;br/&gt;node3 slots=8&#34;]
         Launch -.-&gt;|读取| HF
-    end
-</code></pre><p><strong>Hostfile 生成</strong>：</p>
+    end</pre>
+<p><strong>Hostfile 生成</strong>：</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># 自动生成 hostfile（由 Init Container 执行）</span>
 </span></span><span style="display:flex;"><span>kubectl get pods -l job<span style="color:#f92672">=</span>training-001,role<span style="color:#f92672">=</span>worker <span style="color:#ae81ff">\
 </span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -o custom-columns<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;NODE:.spec.nodeName&#39;</span> --no-headers | <span style="color:#ae81ff">\
@@ -5367,20 +5407,21 @@ Stage 3:  ... B0  B0
   小规模验证 → 大规模训练
   <a class="anchor" href="#%e5%b0%8f%e8%a7%84%e6%a8%a1%e9%aa%8c%e8%af%81--%e5%a4%a7%e8%a7%84%e6%a8%a1%e8%ae%ad%e7%bb%83">#</a>
 </h4>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph LR
+
+<pre class="mermaid">graph LR
     A[&#34;小规模验证&lt;br/&gt;2×A100, 1 epoch&#34;] --&gt; B{验证通过?}
     B --&gt;|✅ Loss 正常下降&lt;br/&gt;✅ 无 OOM&lt;br/&gt;✅ 通信正常| C[&#34;中规模验证&lt;br/&gt;16×A100, 3 epochs&#34;]
     B --&gt;|❌ Loss 不降/跑飞| FIX[&#34;修复: 调整学习率/&lt;br/&gt;检查数据/排查梯度&#34;]
     C --&gt; D{验证通过?}
     D --&gt;|✅ 收敛曲线一致&lt;br/&gt;✅ 吞吐量达标| E[&#34;大规模训练&lt;br/&gt;100×A800, 全量数据&#34;]
     D --&gt;|❌ 分布式通信异常| FIX2[&#34;排查: NCCL 拓扑/&lt;br/&gt;网络带宽/节点健康&#34;]
-    E --&gt; F[&#34;持续训练&lt;br/&gt;+ 监控 + 自动容错&#34;]
+    E --&gt; F[&#34;持续训练&lt;br/&gt;&#43; 监控 &#43; 自动容错&#34;]
     
     style A fill:#4ecdc4
     style C fill:#45b7d1
     style E fill:#ff6b6b
-    style F fill:#96ceb3
-</code></pre><p><strong>小规模验证检查清单</strong>：</p>
+    style F fill:#96ceb3</pre>
+<p><strong>小规模验证检查清单</strong>：</p>
 <table>
   <thead>
       <tr>
@@ -5469,17 +5510,18 @@ Stage 3:  ... B0  B0
   监控 Loss 下降曲线，避免梯度跑飞
   <a class="anchor" href="#%e7%9b%91%e6%8e%a7-loss-%e4%b8%8b%e9%99%8d%e6%9b%b2%e7%ba%bf%e9%81%bf%e5%85%8d%e6%a2%af%e5%ba%a6%e8%b7%91%e9%a3%9e">#</a>
 </h4>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph TB
+
+<pre class="mermaid">graph TB
     subgraph &#34;训练稳定性监控体系&#34;
         TC[&#34;训练进程&#34;] --&gt;|每 step 上报| Met[&#34;指标采集&lt;br/&gt;(Prometheus)&#34;]
         Met --&gt;|时序存储| TSDB[&#34;TSDB&#34;]
         TSDB --&gt;|Grafana 可视化| Dash[&#34;监控看板&#34;]
         
         Met --&gt;|阈值告警| AM[&#34;AlertManager&#34;]
-        AM --&gt;|触发| Rule1[&#34;Loss 突增 &gt; 10×&lt;br/&gt;→ 告警 + 自动降级学习率&#34;]
-        AM --&gt;|触发| Rule2[&#34;Loss = NaN/Inf&lt;br/&gt;→ 停止训练 + 告警&#34;]
-        AM --&gt;|触发| Rule3[&#34;GPU 温度 &gt; 85°C&lt;br/&gt;→ 降频 + 告警&#34;]
-        AM --&gt;|触发| Rule4[&#34;NCCL 通信超时&lt;br/&gt;→ 隔离节点 + 恢复&#34;]
+        AM --&gt;|触发| Rule1[&#34;Loss 突增 &gt; 10×&lt;br/&gt;→ 告警 &#43; 自动降级学习率&#34;]
+        AM --&gt;|触发| Rule2[&#34;Loss = NaN/Inf&lt;br/&gt;→ 停止训练 &#43; 告警&#34;]
+        AM --&gt;|触发| Rule3[&#34;GPU 温度 &gt; 85°C&lt;br/&gt;→ 降频 &#43; 告警&#34;]
+        AM --&gt;|触发| Rule4[&#34;NCCL 通信超时&lt;br/&gt;→ 隔离节点 &#43; 恢复&#34;]
         
         Dash --&gt;|可视化| Curve[&#34;Loss 曲线&#34;]
         Dash --&gt;|可视化| GPU[&#34;GPU 利用率/显存/温度&#34;]
@@ -5488,8 +5530,8 @@ Stage 3:  ... B0  B0
     
     style TC fill:#ff6b6b
     style AM fill:#ffd93d
-    style Dash fill:#4ecdc4
-</code></pre><p><strong>梯度跑飞（Gradient Explosion）的典型模式</strong>：</p>
+    style Dash fill:#4ecdc4</pre>
+<p><strong>梯度跑飞（Gradient Explosion）的典型模式</strong>：</p>
 <pre tabindex="0"><code>正常的 Loss 曲线:
   step 0     → loss = 12.5
   step 100   → loss = 8.3
@@ -5539,12 +5581,13 @@ Stage 3:  ... B0  B0
   <a class="anchor" href="#%e8%93%9d%e7%bb%bf%e9%83%a8%e7%bd%b2">#</a>
 </h4>
 <p>模型服务的蓝绿部署与传统的 Web 服务蓝绿部署不同——模型服务有<strong>显存预热</strong>和<strong>KV Cache 初始化</strong>的特殊需求。</p>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">sequenceDiagram
+
+<pre class="mermaid">sequenceDiagram
     participant User as 客户端请求
     participant LB as 负载均衡器
     participant Blue as 蓝环境&lt;br/&gt;(Model v1.0, A100×4)
     participant Green as 绿环境&lt;br/&gt;(Model v1.1, A100×4)
-    participant Mon as 监控 (Prometheus + Grafana)
+    participant Mon as 监控 (Prometheus &#43; Grafana)
 
     User-&gt;&gt;LB: 请求 (全部路由到 Blue)
     LB-&gt;&gt;Blue: 转发请求
@@ -5562,8 +5605,8 @@ Stage 3:  ... B0  B0
     
     Note over LB: 全量切换: 100% → Green
     LB-&gt;&gt;Green: 转发 100% 请求
-    LB-xBlue: 停止转发（保留 30 min 可回滚）
-</code></pre><p><strong>蓝绿部署的关键细节</strong>：</p>
+    LB-xBlue: 停止转发（保留 30 min 可回滚）</pre>
+<p><strong>蓝绿部署的关键细节</strong>：</p>
 <table>
   <thead>
       <tr>
@@ -5776,7 +5819,8 @@ A10/L4   → INT4 (GPTQ/AWQ)（显存受限，必须量化）
   7.3 多推理框架支持 &amp; 分布式推理
   <a class="anchor" href="#73-%e5%a4%9a%e6%8e%a8%e7%90%86%e6%a1%86%e6%9e%b6%e6%94%af%e6%8c%81--%e5%88%86%e5%b8%83%e5%bc%8f%e6%8e%a8%e7%90%86">#</a>
 </h3>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph TB
+
+<pre class="mermaid">graph TB
     subgraph &#34;多推理框架统一网关&#34;
         Client[&#34;API 客户端&lt;br/&gt;OpenAI 兼容接口&#34;]
         Gateway[&#34;推理网关&lt;br/&gt;(Kong / Envoy)&#34;]
@@ -5812,8 +5856,8 @@ A10/L4   → INT4 (GPTQ/AWQ)（显存受限，必须量化）
     style vLLM1 fill:#ff6b6b
     style TRT1 fill:#4ecdc4
     style TGI1 fill:#45b7d1
-    style Gateway fill:#96ceb3
-</code></pre><h4 id="推理框架对比">
+    style Gateway fill:#96ceb3</pre>
+<h4 id="推理框架对比">
   推理框架对比
   <a class="anchor" href="#%e6%8e%a8%e7%90%86%e6%a1%86%e6%9e%b6%e5%af%b9%e6%af%94">#</a>
 </h4>
@@ -5968,7 +6012,8 @@ A10/L4   → INT4 (GPTQ/AWQ)（显存受限，必须量化）
   <a class="anchor" href="#81-%e6%95%b0%e6%8d%ae%e9%a2%84%e5%a4%84%e7%90%86spark">#</a>
 </h3>
 <p>大语言模型的训练数据通常来自 PB 级的原始文本（Common Crawl、Wikipedia、GitHub 等），需要经历清洗、去重、分词等预处理步骤。</p>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph TB
+
+<pre class="mermaid">graph TB
     subgraph &#34;原始数据源&#34;
         CC[&#34;Common Crawl&lt;br/&gt;(PB 级 WARC)&#34;]
         Wiki[&#34;Wikipedia&lt;br/&gt;多语言 dump&#34;]
@@ -5987,7 +6032,7 @@ A10/L4   → INT4 (GPTQ/AWQ)（显存受限，必须量化）
         end
         
         subgraph &#34;Stage 2: 去重&#34;
-            S2_1[&#34;URL 级去重 (MinHash + LSH)&#34;]
+            S2_1[&#34;URL 级去重 (MinHash &#43; LSH)&#34;]
             S2_2[&#34;段落级去重&lt;br/&gt;(SimHash)&#34;]
             S2_3[&#34;近重复检测&#34;]
         end
@@ -6026,8 +6071,8 @@ A10/L4   → INT4 (GPTQ/AWQ)（显存受限，必须量化）
     
     style Spark fill:#45b7d1
     style Parquet fill:#4ecdc4
-    style Index fill:#96ceb3
-</code></pre><p><strong>Spark 数据预处理的关键参数</strong>：</p>
+    style Index fill:#96ceb3</pre>
+<p><strong>Spark 数据预处理的关键参数</strong>：</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># Spark 配置 (针对 PB 级数据处理)</span>
 </span></span><span style="display:flex;"><span>conf <span style="color:#f92672">=</span> SparkConf()
 </span></span><span style="display:flex;"><span>conf<span style="color:#f92672">.</span>set(<span style="color:#e6db74">&#34;spark.executor.instances&#34;</span>, <span style="color:#e6db74">&#34;200&#34;</span>)
@@ -6140,12 +6185,13 @@ A10/L4   → INT4 (GPTQ/AWQ)（显存受限，必须量化）
   8.3 数据集版本管理与缓存
   <a class="anchor" href="#83-%e6%95%b0%e6%8d%ae%e9%9b%86%e7%89%88%e6%9c%ac%e7%ae%a1%e7%90%86%e4%b8%8e%e7%bc%93%e5%ad%98">#</a>
 </h3>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph TB
+
+<pre class="mermaid">graph TB
     subgraph &#34;数据集版本管理&#34;
         Raw[&#34;原始数据&lt;br/&gt;v1.0&#34;] --&gt; Process[&#34;Spark 预处理&lt;br/&gt;Pipeline v2.1&#34;]
         Process --&gt; Dataset[&#34;训练数据集&lt;br/&gt;v3.0&#34;]
         
-        Dataset --&gt;|注册| Registry[&#34;数据集注册中心&lt;br/&gt;(元数据 + 哈希)&#34;]
+        Dataset --&gt;|注册| Registry[&#34;数据集注册中心&lt;br/&gt;(元数据 &#43; 哈希)&#34;]
         
         Registry --&gt; T1[&#34;训练任务 T1&lt;br/&gt;引用 dataset@v3.0&#34;]
         Registry --&gt; T2[&#34;训练任务 T2&lt;br/&gt;引用 dataset@v3.0&#34;]
@@ -6157,14 +6203,14 @@ A10/L4   → INT4 (GPTQ/AWQ)（显存受限，必须量化）
     end
     
     subgraph &#34;版本链&#34;
-        V1[&#34;v1.0: 2024-01 数据&#34;] --&gt; V2[&#34;v2.0: 2024-03 数据&lt;br/&gt;(+10TB CommonCrawl)&#34;]
-        V2 --&gt; V3[&#34;v3.0: 2024-06 数据&lt;br/&gt;(+ 代码数据 + 质量过滤改进)&#34;]
+        V1[&#34;v1.0: 2024-01 数据&#34;] --&gt; V2[&#34;v2.0: 2024-03 数据&lt;br/&gt;(&#43;10TB CommonCrawl)&#34;]
+        V2 --&gt; V3[&#34;v3.0: 2024-06 数据&lt;br/&gt;(&#43; 代码数据 &#43; 质量过滤改进)&#34;]
         V3 --&gt; V4[&#34;v3.1: hotfix&lt;br/&gt;(修复 PII 脱敏规则)&#34;]
     end
     
     style Registry fill:#45b7d1
-    style Cache fill:#ff6b6b
-</code></pre><p><strong>版本管理核心设计</strong>：</p>
+    style Cache fill:#ff6b6b</pre>
+<p><strong>版本管理核心设计</strong>：</p>
 <table>
   <thead>
       <tr>
@@ -6302,7 +6348,8 @@ A10/L4   → INT4 (GPTQ/AWQ)（显存受限，必须量化）
   </tbody>
 </table>
 <p>管理网采用 LACP (802.3ad) 双网卡绑定，提供链路级冗余：当单条链路中断时，MAC 层在 100ms 级别完成切换，对上层协议透明。计算网采用 NVIDIA 推荐的 Rail-Optimized 拓扑，每个 GPU 的 RDMA 通道连接到不同的交换机（Rail），单链路故障不影响全局 AllReduce 通信——这是 NCCL 2.17+ 内置的拓扑感知能力。</p>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph TB
+
+<pre class="mermaid">graph TB
     subgraph &#34;管理网 Management Network&#34;
         M1[交换机 A 10GbE] --- M2[交换机 B 10GbE]
         M3[控制节点] ---|LACP| M1
@@ -6339,8 +6386,8 @@ A10/L4   → INT4 (GPTQ/AWQ)（显存受限，必须量化）
     style C3 fill:#fff3e0
     style C4 fill:#fff3e0
     style S1 fill:#e8f5e9
-    style S2 fill:#e8f5e9
-</code></pre><h4 id="912-gpu-冗余与故障切换">
+    style S2 fill:#e8f5e9</pre>
+<h4 id="912-gpu-冗余与故障切换">
   9.1.2 GPU 冗余与故障切换
   <a class="anchor" href="#912-gpu-%e5%86%97%e4%bd%99%e4%b8%8e%e6%95%85%e9%9a%9c%e5%88%87%e6%8d%a2">#</a>
 </h4>
@@ -6357,7 +6404,8 @@ A10/L4   → INT4 (GPTQ/AWQ)（显存受限，必须量化）
 <li><strong>节点替换</strong>：K8s 将故障节点标记为 <code>Unschedulable</code>，调度器在新的健康节点上拉起 Training Job</li>
 <li><strong>从 Checkpoint 恢复</strong>：PyTorch FSDP/DeepSpeed 从最新 Checkpoint 恢复训练状态</li>
 </ol>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">sequenceDiagram
+
+<pre class="mermaid">sequenceDiagram
     participant M as 监控 Agent
     participant D as GPU Driver (nvidia-smi)
     participant T as 训练框架 (PyTorch/DeepSpeed)
@@ -6374,8 +6422,8 @@ A10/L4   → INT4 (GPTQ/AWQ)（显存受限，必须量化）
     K-&gt;&gt;K: 新节点分配资源
     K-&gt;&gt;T: 在健康节点恢复训练
     T-&gt;&gt;C: 加载最新 Checkpoint
-    T-&gt;&gt;T: 恢复训练循环
-</code></pre><h4 id="913-存储多副本--回收站">
+    T-&gt;&gt;T: 恢复训练循环</pre>
+<h4 id="913-存储多副本--回收站">
   9.1.3 存储多副本 + 回收站
   <a class="anchor" href="#913-%e5%ad%98%e5%82%a8%e5%a4%9a%e5%89%af%e6%9c%ac--%e5%9b%9e%e6%94%b6%e7%ab%99">#</a>
 </h4>
@@ -6568,7 +6616,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
   <a class="anchor" href="#923-%e6%8e%a7%e5%88%b6%e5%99%a8%e5%89%94%e9%99%a4%e6%95%85%e9%9a%9c%e8%8a%82%e7%82%b9--%e8%87%aa%e5%8a%a8%e5%bb%ba%e9%9b%86%e7%be%a4">#</a>
 </h4>
 <p>云知声在 K8s 层实现了一套 <strong>自动故障转移控制器</strong>（Auto-Healing Controller），其核心逻辑是：</p>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">flowchart TD
+
+<pre class="mermaid">flowchart TD
     A[Node Health Monitor&lt;br/&gt;每 30 秒检查] --&gt; B{节点健康?}
     B --&gt;|健康| A
     B --&gt;|异常| C[标记节点&lt;br/&gt;Unschedulable]
@@ -6585,8 +6634,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
     J --&gt;|有| K[拉起新节点&lt;br/&gt;自动加入集群]
     J --&gt;|无| L[告警 P0&lt;br/&gt;人工介入]
     K --&gt; M[恢复训练 Job&lt;br/&gt;从 Checkpoint]
-    M --&gt; A
-</code></pre><p>控制器的工作流程：</p>
+    M --&gt; A</pre>
+<p>控制器的工作流程：</p>
 <ol>
 <li>
 <p><strong>检测阶段</strong>：通过 Kubelet <code>NodeCondition</code> + 自定义 Health Agent（运行在 <code>/healthz</code> 端点）综合判断节点状态。Kubelet 的 <code>--node-monitor-grace-period</code> 默认 40 秒，超过此时间未收到节点心跳，Controller Manager 将节点标记为 <code>NotReady</code></p>
@@ -6622,7 +6671,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 <li>单节点失败 → 分布式通信问题</li>
 <li>全集群失败 → 网络拓扑/大规模同步问题</li>
 </ul>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">flowchart LR
+
+<pre class="mermaid">flowchart LR
     A[&#34;1 GPU 验证&lt;br/&gt;100-500 steps&#34;] --&gt;|通过| B[&#34;8 GPU 验证&lt;br/&gt;单节点&#34;]
     B --&gt;|通过| C[&#34;N GPU 验证&lt;br/&gt;全集群&#34;]
     C --&gt;|通过| D[&#34;正式训练&lt;br/&gt;全量数据&#34;]
@@ -6634,8 +6684,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
     style A fill:#e8f5e9
     style B fill:#fff3e0
     style C fill:#fce4ec
-    style D fill:#e1f5fe
-</code></pre><h4 id="932-checkpoint-间隔缩短">
+    style D fill:#e1f5fe</pre>
+<h4 id="932-checkpoint-间隔缩短">
   9.3.2 Checkpoint 间隔缩短
   <a class="anchor" href="#932-checkpoint-%e9%97%b4%e9%9a%94%e7%bc%a9%e7%9f%ad">#</a>
 </h4>
@@ -6692,7 +6742,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 <li>NCCL 通信可能超时（因为异常节点的计算时间变长）</li>
 </ol>
 <p>云知声实现了一套 <strong>Loss 监控与自动熔断</strong> 机制：</p>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">flowchart TD
+
+<pre class="mermaid">flowchart TD
     A[训练循环&lt;br/&gt;每 step 计算 Loss] --&gt; B[记录到&lt;br/&gt;Prometheus]
     B --&gt; C{Loss 异常检测}
     C --&gt;|正常| A
@@ -6711,8 +6762,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
     K --&gt; A
 
     style E fill:#ffcdd2
-    style G fill:#ffcdd2
-</code></pre><p>检测算法采用 <strong>移动平均 + 标准差</strong> 方法：</p>
+    style G fill:#ffcdd2</pre>
+<p>检测算法采用 <strong>移动平均 + 标准差</strong> 方法：</p>
 <ul>
 <li>维护最近 100 步的 loss 移动平均值 <code>μ</code> 和标准差 <code>σ</code></li>
 <li>当当前 step 的 loss 超过 <code>μ + 3σ</code> 时触发告警</li>
@@ -6724,7 +6775,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
   <a class="anchor" href="#94-%e6%95%85%e9%9a%9c%e5%88%87%e6%8d%a2%e7%bb%bc%e5%90%88%e6%b5%81%e7%a8%8b">#</a>
 </h3>
 <p>将硬件、K8s、训练三层的故障切换整合为统一的 <strong>故障切换决策树</strong>：</p>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">flowchart TD
+
+<pre class="mermaid">flowchart TD
     A[故障检测] --&gt; B{故障层级}
     B --&gt;|硬件层| H[GPU/网络/存储故障]
     B --&gt;|K8s 层| K[Node NotReady/Pod 异常]
@@ -6754,8 +6806,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
     style K2 fill:#e8f5e9
     style K3 fill:#ffcdd2
     style T2 fill:#e8f5e9
-    style T3 fill:#ffcdd2
-</code></pre><p>云知声的故障切换 SLA 目标：</p>
+    style T3 fill:#ffcdd2</pre>
+<p>云知声的故障切换 SLA 目标：</p>
 <table>
   <thead>
       <tr>
@@ -6811,7 +6863,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
   <a class="anchor" href="#101-%e5%a4%9a%e7%bb%b4%e5%ba%a6%e7%9b%91%e6%8e%a7%e6%9e%b6%e6%9e%84">#</a>
 </h3>
 <p>云知声的监控体系采用 <strong>三层架构</strong>，每层关注的指标和工具不同：</p>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">flowchart TB
+
+<pre class="mermaid">flowchart TB
     subgraph &#34;硬件层监控 Hardware Layer&#34;
         H1[DCGM Exporter&lt;br/&gt;GPU 温度/功耗/显存/ECC]
         H2[Node Exporter&lt;br/&gt;CPU/内存/磁盘/网络]
@@ -6834,9 +6887,9 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
     end
 
     subgraph &#34;监控基础设施&#34;
-        P[Prometheus&lt;br/&gt;指标采集 + 存储]
-        G[Grafana&lt;br/&gt;可视化 + Dashboard]
-        AM[AlertManager&lt;br/&gt;告警路由 + 通知]
+        P[Prometheus&lt;br/&gt;指标采集 &#43; 存储]
+        G[Grafana&lt;br/&gt;可视化 &#43; Dashboard]
+        AM[AlertManager&lt;br/&gt;告警路由 &#43; 通知]
         L[Loki&lt;br/&gt;日志聚合]
     end
 
@@ -6852,8 +6905,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
     style P fill:#e1f5fe
     style G fill:#e8f5e9
     style AM fill:#fff3e0
-    style L fill:#f3e5f5
-</code></pre><h4 id="1011-硬件层指标">
+    style L fill:#f3e5f5</pre>
+<h4 id="1011-硬件层指标">
   10.1.1 硬件层指标
   <a class="anchor" href="#1011-%e7%a1%ac%e4%bb%b6%e5%b1%82%e6%8c%87%e6%a0%87">#</a>
 </h4>
@@ -7258,7 +7311,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
   <a class="anchor" href="#103-%e6%97%a5%e5%bf%97%e4%bd%93%e7%b3%bb">#</a>
 </h3>
 <p>日志是故障排查的&quot;法医工具&quot;。在 GPU 集群中，日志来源分散在多个层级：</p>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">flowchart LR
+
+<pre class="mermaid">flowchart LR
     subgraph &#34;日志来源&#34;
         L1[K8s 组件日志&lt;br/&gt;API Server/Controller/Scheduler]
         L2[容器日志&lt;br/&gt;stdout/stderr]
@@ -7273,7 +7327,7 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
     end
 
     subgraph &#34;日志存储&#34;
-        L[ Loki&lt;br/&gt;索引 + 存储]
+        L[ Loki&lt;br/&gt;索引 &#43; 存储]
         S3[对象存储&lt;br/&gt;归档]
     end
 
@@ -7287,8 +7341,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
     P1 &amp; P2 --&gt; L
     L --&gt; S3
     L --&gt; G
-    L --&gt; CLI
-</code></pre><h4 id="1031-日志采集方案">
+    L --&gt; CLI</pre>
+<h4 id="1031-日志采集方案">
   10.3.1 日志采集方案
   <a class="anchor" href="#1031-%e6%97%a5%e5%bf%97%e9%87%87%e9%9b%86%e6%96%b9%e6%a1%88">#</a>
 </h4>
@@ -7468,7 +7522,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
   <a class="anchor" href="#1111-k8s-%e8%ae%a4%e8%af%81%e4%bd%93%e7%b3%bb">#</a>
 </h4>
 <p>Kubernetes 的认证和鉴权是整个平台安全的基础。云知声采用的认证方案：</p>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">flowchart TB
+
+<pre class="mermaid">flowchart TB
     U[用户/服务] --&gt; A{认证方式}
     A --&gt;|管理员| B[X.509 客户端证书]
     A --&gt;|开发人员| C[OIDC (Keycloak/Dex)]
@@ -7484,8 +7539,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
     G --&gt;|cluster-admin| H[完全控制权限]
     G --&gt;|namespace-admin| I[命名空间管理权限]
     G --&gt;|developer| J[创建/管理 Pod 权限]
-    G --&gt;|viewer| K[只读权限]
-</code></pre><p><strong>认证方案对比</strong>：</p>
+    G --&gt;|viewer| K[只读权限]</pre>
+<p><strong>认证方案对比</strong>：</p>
 <table>
   <thead>
       <tr>
@@ -7576,7 +7631,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 </h3>
 <p>在 GPU 训练集群中，训练节点之间需要 <strong>SSH 免密互联</strong>——这是 NCCL 初始化、分布式训练启动、Checkpoint 传输等操作的基础需求。但 SSH 密钥管理是安全体系中最容易被忽视的环节之一。</p>
 <p>云知声的 SSH 密钥管理方案：</p>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">flowchart TD
+
+<pre class="mermaid">flowchart TD
     A[密钥生成&lt;br/&gt;ed25519 算法] --&gt; B[存储为 K8s Secret]
     B --&gt; C[通过 Volume Mount&lt;br/&gt;注入训练 Pod]
     C --&gt; D[训练节点间&lt;br/&gt;SSH 免密互联]
@@ -7592,8 +7648,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
     style H fill:#ffcdd2
     style I fill:#ffcdd2
     style J fill:#ffcdd2
-    style B fill:#e8f5e9
-</code></pre><p><strong>具体实现</strong>：</p>
+    style B fill:#e8f5e9</pre>
+<p><strong>具体实现</strong>：</p>
 <ol>
 <li>
 <p><strong>密钥生成</strong>：使用 <code>ssh-keygen -t ed25519 -C &quot;training-cluster-key&quot;</code> 生成 ED25519 密钥对。ED25519 相比 RSA 更安全（不受弱随机数攻击影响）且更短小（64 字节 vs 2048+ 字节）</p>
@@ -7735,15 +7791,16 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
   <a class="anchor" href="#114-%e6%95%b0%e6%8d%ae%e5%8a%a0%e5%af%86">#</a>
 </h3>
 <p>GPU 集群中涉及三类需要加密的数据：</p>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">flowchart LR
+
+<pre class="mermaid">flowchart LR
     D1[&#34;训练数据&lt;br/&gt;数据集/语料&#34;] --&gt; E1[&#34;传输加密&lt;br/&gt;TLS/HTTPS&#34;]
     D2[&#34;模型权重&lt;br/&gt;训练产物&#34;] --&gt; E2[&#34;静态加密&lt;br/&gt;LUKS/CEPH 加密&#34;]
     D3[&#34;API 通信&lt;br/&gt;K8s API/推理 API&#34;] --&gt; E3[&#34;端到端加密&lt;br/&gt;mTLS&#34;]
 
     E1 --&gt; S[&#34;安全目标&lt;br/&gt;CIA 三要素&lt;br/&gt;机密性/完整性/可用性&#34;]
     E2 --&gt; S
-    E3 --&gt; S
-</code></pre><h4 id="1141-传输加密">
+    E3 --&gt; S</pre>
+<h4 id="1141-传输加密">
   11.4.1 传输加密
   <a class="anchor" href="#1141-%e4%bc%a0%e8%be%93%e5%8a%a0%e5%af%86">#</a>
 </h4>
@@ -7857,9 +7914,10 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
   <a class="anchor" href="#1143-kms-%e9%9b%86%e6%88%90">#</a>
 </h4>
 <p>对于大规模部署，推荐集成 <strong>HashiCorp Vault</strong> 作为集中式密钥管理：</p>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">flowchart TD
+
+<pre class="mermaid">flowchart TD
     A[应用/服务] --&gt; B{请求密钥}
-    B --&gt; C[Vault Server&lt;br/&gt;认证 + 授权]
+    B --&gt; C[Vault Server&lt;br/&gt;认证 &#43; 授权]
     C --&gt; D{验证通过?}
     D --&gt;|是| E[返回加密密钥]
     D --&gt;|否| F[拒绝访问]
@@ -7871,8 +7929,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
     style C fill:#e1f5fe
     style E fill:#e8f5e9
     style F fill:#ffcdd2
-    style I fill:#fff3e0
-</code></pre><p>Vault 在云知声生产环境中的角色：</p>
+    style I fill:#fff3e0</pre>
+<p>Vault 在云知声生产环境中的角色：</p>
 <ul>
 <li><strong>Secret 存储</strong>：统一管理 SSH 密钥、API Token、数据库凭据</li>
 <li><strong>动态密钥</strong>：为每次训练 Job 生成临时密钥（TTL 可配置），Job 完成后自动失效</li>
@@ -7975,7 +8033,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
   12.1.2 PoC 参考拓扑
   <a class="anchor" href="#1212-poc-%e5%8f%82%e8%80%83%e6%8b%93%e6%89%91">#</a>
 </h4>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph TB
+
+<pre class="mermaid">graph TB
     subgraph &#34;PoC 集群 (5-10 台 GPU Server)&#34;
         S1[GPU Server × 8卡]
         S2[GPU Server × 8卡]
@@ -7993,7 +8052,7 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
         K[K3s 单 Master]
         GO[GPU Operator]
         DS[DeepSpeed 基线]
-        MON[Prometheus + GPU Exporter]
+        MON[Prometheus &#43; GPU Exporter]
     end
 
     S1 --- TOR1
@@ -8009,8 +8068,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
     TOR1 --- K
     K --- GO
     K --- DS
-    K --- MON
-</code></pre><h4 id="1213-poc-准入条件">
+    K --- MON</pre>
+<h4 id="1213-poc-准入条件">
   12.1.3 PoC 准入条件
   <a class="anchor" href="#1213-poc-%e5%87%86%e5%85%a5%e6%9d%a1%e4%bb%b6">#</a>
 </h4>
@@ -8112,10 +8171,11 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
   <a class="anchor" href="#1223-%e8%b0%83%e5%ba%a6%e9%aa%8c%e8%af%81">#</a>
 </h4>
 <p>阶段二的调度验证比 PoC 复杂得多：</p>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">sequenceDiagram
+
+<pre class="mermaid">sequenceDiagram
     participant Dev as 开发者
     participant API as K8s API Server
-    participant Sched as Scheduler&lt;br/&gt;(Binpack + Gang)
+    participant Sched as Scheduler&lt;br/&gt;(Binpack &#43; Gang)
     participant Train as 训练集群
     participant FT as 微调集群
     participant Inf as 推理集群
@@ -8136,8 +8196,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
     API-&gt;&gt;Sched: 2 Pod × 1 GPU
     Sched-&gt;&gt;Inf: 检查推理集群资源
     Inf--&gt;&gt;Sched: 资源充足
-    Sched-&gt;&gt;Inf: 调度完成
-</code></pre><p><strong>关键验证项</strong>：</p>
+    Sched-&gt;&gt;Inf: 调度完成</pre>
+<p><strong>关键验证项</strong>：</p>
 <ul>
 <li><strong>Gang Scheduling</strong>：提交需要 64 张卡的训练任务，当只有 56 张卡可用时，确认所有 8 个 Pod 均 Pending（而不是部分 Running 导致死锁）</li>
 <li><strong>Binpack 策略</strong>：确认 8 卡 Pod 被调度到同一台服务器（而非分散到 2 台服务器各 4 卡），以最大化利用 NVLink</li>
@@ -8206,7 +8266,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
   <a class="anchor" href="#1231-superpod-%e5%8f%82%e8%80%83%e6%9e%b6%e6%9e%84">#</a>
 </h4>
 <p>NVIDIA SuperPOD 架构的核心理念是：<strong>通过标准化的 Spine-Leaf 拓扑，使 GPU 集群的扩展成为可预测的线性工程</strong>。</p>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph TB
+
+<pre class="mermaid">graph TB
     subgraph &#34;Spine Layer (核心层)&#34;
         SP1[Spine Switch 1&lt;br/&gt;IB 200G]
         SP2[Spine Switch 2&lt;br/&gt;IB 200G]
@@ -8225,7 +8286,7 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
     end
 
     subgraph &#34;GPU Servers (100 台 = 800 张 A800)&#34;
-        S1A[100× GPU Server&lt;br/&gt;8×A800 + NVSwitch]
+        S1A[100× GPU Server&lt;br/&gt;8×A800 &#43; NVSwitch]
     end
 
     SP1 --- LF1
@@ -8249,8 +8310,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
     LF4 --- S1A
     LF5 --- S1A
     LF6 --- S1A
-    LF7 --- S1A
-</code></pre><p><strong>SuperPOD 设计要点</strong>（来源：NVIDIA DGX SuperPOD Reference Architecture）：</p>
+    LF7 --- S1A</pre>
+<p><strong>SuperPOD 设计要点</strong>（来源：NVIDIA DGX SuperPOD Reference Architecture）：</p>
 <ol>
 <li><strong>Spine-Leaf 非阻塞拓扑</strong>：确保任意两台 GPU 服务器之间的通信经过最少跳数，bisection bandwidth ≥ 200Gbps</li>
 <li><strong>NVLink Domain 对齐</strong>：同一 Leaf Pair 内的 8 台服务器优先组成训练 job，利用 NVLink Domain 内的全互联带宽（900GB/s NVLink + NVSwitch）</li>
@@ -8417,7 +8478,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
   12.4.1 总体时间线
   <a class="anchor" href="#1241-%e6%80%bb%e4%bd%93%e6%97%b6%e9%97%b4%e7%ba%bf">#</a>
 </h4>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">gantt
+
+<pre class="mermaid">gantt
     title 100 节点 MaaS 平台实施时间线
     dateFormat  YYYY-MM-DD
     axisFormat  %m/%d
@@ -8425,15 +8487,15 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
     section 阶段一: PoC
     硬件准备与上架          :2025-01-06, 14d
     网络部署与验证          :2025-01-13, 10d
-    K8s + GPU Operator     :2025-01-20, 7d
+    K8s &#43; GPU Operator     :2025-01-20, 7d
     PoC 训练基线测试        :2025-01-27, 7d
     PoC 评审                :milestone, 2025-02-03, 0d
 
     section 阶段二: 小规模
     四集群 K8s 部署         :2025-02-03, 14d
     GPU Operator 全量部署   :2025-02-10, 7d
-    Ceph + 三级缓存         :2025-02-17, 14d
-    调度验证 (Gang+Binpack) :2025-02-24, 14d
+    Ceph &#43; 三级缓存         :2025-02-17, 14d
+    调度验证 (Gang&#43;Binpack) :2025-02-24, 14d
     端到端训练              :2025-03-03, 14d
     阶段二评审              :milestone, 2025-03-17, 0d
 
@@ -8441,10 +8503,10 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
     硬件扩展 (100 台)       :2025-03-17, 21d
     SuperPOD 网络部署       :2025-03-24, 21d
     全量 K8s 部署           :2025-04-07, 14d
-    压测 + 调优             :2025-04-14, 21d
-    故障注入 + 容错验证     :2025-04-28, 14d
-    生产验收                :milestone, 2025-05-12, 0d
-</code></pre><h4 id="1242-风险矩阵">
+    压测 &#43; 调优             :2025-04-14, 21d
+    故障注入 &#43; 容错验证     :2025-04-28, 14d
+    生产验收                :milestone, 2025-05-12, 0d</pre>
+<h4 id="1242-风险矩阵">
   12.4.2 风险矩阵
   <a class="anchor" href="#1242-%e9%a3%8e%e9%99%a9%e7%9f%a9%e9%98%b5">#</a>
 </h4>
@@ -8704,7 +8766,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 <p><strong>问题</strong>：当三级缓存（L1 NVMe → L2 Ceph NVMe → L3 对象存储）的命中率低于预期时，训练性能会出现断崖式下降。</p>
 <p><strong>根因</strong>：训练框架读取数据时，如果 L1 miss 回退到 L2，延迟从 100μs 增加到 1ms（10 倍）；如果 L2 也 miss 回退到 L3，延迟从 1ms 增加到 10ms（100 倍）。对于迭代式训练，每次 step 都 miss 意味着训练速度下降 10-100 倍。</p>
 <p><strong>根因分析</strong>（云知声实测数据）：</p>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph LR
+
+<pre class="mermaid">graph LR
     A[训练启动] --&gt; B{L1 缓存命中?}
     B --&gt;|是| C[100μs 读取]
     B --&gt;|否| D{L2 缓存命中?}
@@ -8716,8 +8779,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
     C --&gt; I[正常训练]
     E --&gt; I
     G --&gt; J[训练明显变慢]
-    H --&gt; K[训练几乎停滞]
-</code></pre><p><strong>解决方案</strong>：</p>
+    H --&gt; K[训练几乎停滞]</pre>
+<p><strong>解决方案</strong>：</p>
 <ol>
 <li><strong>预热策略</strong>：训练启动前，提前将数据集从 L3 预热到 L2/L1
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># 示例：使用 fadvise 预热</span>
@@ -8767,10 +8830,11 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 <p><strong>问题</strong>：如果没有统一的数据湖底座，训练数据会经历多次流转：原始数据 → 清洗 → 格式化 → 上传 → 训练节点下载 → 缓存 → 读取。每次流转都增加延迟和出错概率。</p>
 <p><strong>根因</strong>：传统 MLOps 流程中，数据工程师、算法工程师、运维工程师各自维护不同的存储和工具链，数据在不同系统之间反复拷贝。</p>
 <p><strong>解决方案</strong>（云知声数据湖架构）：</p>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph TB
+
+<pre class="mermaid">graph TB
     subgraph &#34;数据接入层&#34;
         RAW[原始数据&lt;br/&gt;日志/语料/图片]
-        ETL[清洗 + 去重&lt;br/&gt;+ 质量校验]
+        ETL[清洗 &#43; 去重&lt;br/&gt;&#43; 质量校验]
     end
 
     subgraph &#34;数据湖底座 (统一存储)&#34;
@@ -8797,8 +8861,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
     LAKE --&gt; L3
     L3 --&gt; L2
     L2 --&gt; L1
-    L1 --&gt; TRAIN
-</code></pre><p><strong>关键设计原则</strong>：</p>
+    L1 --&gt; TRAIN</pre>
+<p><strong>关键设计原则</strong>：</p>
 <ol>
 <li><strong>一次写入，多次读取（WORM）</strong>：数据写入数据湖后不可变，所有训练从数据湖拉取</li>
 <li><strong>数据集版本化</strong>：每次训练使用带版本号的数据集（如 <code>train-data-v20250301</code>），支持复现</li>

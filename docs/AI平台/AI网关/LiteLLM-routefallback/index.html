@@ -54,7 +54,7 @@ LiteLLM Router 的本质就是 LLM 层的负载均衡器 &#43; 断路器 &#43; �
 <link rel="canonical" href="https://www6v.github.io/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/AI%E7%BD%91%E5%85%B3/LiteLLM-routefallback/">
 <link rel="stylesheet" href="/www6vMLSys/book.min.6c8b9d2a1fc95075ed7da46ca81060b39add8fff6741ac51259f768929281e2c.css" integrity="sha256-bIudKh/JUHXtfaRsqBBgs5rdj/9nQaxRJZ92iSkoHiw=" crossorigin="anonymous">
   <script defer src="/www6vMLSys/fuse.min.js"></script>
-  <script defer src="/www6vMLSys/en.search.min.218072405666796fe6a684efcb1d690de7affcf65c670eb16b1d7679f4f1bd9e.js" integrity="sha256-IYByQFZmeW/mpoTvyx1pDeev/PZcZw6xax12efTxvZ4=" crossorigin="anonymous"></script>
+  <script defer src="/www6vMLSys/en.search.min.db2b384d5b81b23e57c3928b924af72dfab74a96bcdb893c600ff8115b61d590.js" integrity="sha256-2ys4TVuBsj5Xw5KLkkr3Lfq3Spa824k8YA/4EVth1ZA=" crossorigin="anonymous"></script>
 <link rel="alternate" type="application/rss+xml" href="https://www6v.github.io/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/AI%E7%BD%91%E5%85%B3/LiteLLM-routefallback/index.xml" title="MLSys" />
 <!--
 Made with Book Theme
@@ -2382,14 +2382,28 @@ https://github.com/alex-shpak/hugo-book
   2.1 四层架构总览
   <a class="anchor" href="#21-%e5%9b%9b%e5%b1%82%e6%9e%b6%e6%9e%84%e6%80%bb%e8%a7%88">#</a>
 </h3>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph TB
+
+
+<script src="/www6vMLSys/mermaid.min.js"></script>
+
+  <script>mermaid.initialize({
+  "flowchart": {
+    "useMaxWidth":true
+  },
+  "theme": "default"
+}
+)</script>
+
+
+
+<pre class="mermaid">graph TB
     subgraph &#34;L1: 入口层&#34;
         E1[router.acompletion]
         E2[router.completion]
         E3[router.atext_completion&lt;br/&gt;router.aembedding / ...]
     end
 
-    subgraph &#34;L2: Fallback + Retry 层&#34;
+    subgraph &#34;L2: Fallback &#43; Retry 层&#34;
         F1[async_function_with_fallbacks&lt;br/&gt;router.py:6756]
         F2[async_function_with_retries&lt;br/&gt;router.py:6901]
     end
@@ -2423,8 +2437,8 @@ https://github.com/alex-shpak/hugo-book
     style F1 fill:#50c878,color:#fff
     style S1 fill:#ffd93d
     style P1 fill:#ff6b6b,color:#fff
-    style P5 fill:#ff6b6b,color:#fff
-</code></pre><p><strong>四层职责</strong>：</p>
+    style P5 fill:#ff6b6b,color:#fff</pre>
+<p><strong>四层职责</strong>：</p>
 <table>
   <thead>
       <tr>
@@ -2907,7 +2921,8 @@ https://github.com/alex-shpak/hugo-book
   4.1 Fallback 的三层架构
   <a class="anchor" href="#41-fallback-%e7%9a%84%e4%b8%89%e5%b1%82%e6%9e%b6%e6%9e%84">#</a>
 </h3>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph LR
+
+<pre class="mermaid">graph LR
     A[请求失败] --&gt; B{重试阶段&lt;br/&gt;async_function_with_retries}
     B --&gt;|同 deployment 重试| C[重试成功?]
     C --&gt;|是| D[返回结果]
@@ -2925,9 +2940,9 @@ https://github.com/alex-shpak/hugo-book
     J --&gt; L
     K --&gt; L
     L --&gt;|是| D
-    L --&gt;|否 + depth &lt; max_fallbacks| E
-    L --&gt;|否 + depth &gt;= max_fallbacks| M[抛出最终异常]
-</code></pre><h3 id="42-retry-机制同-deployment-重试">
+    L --&gt;|否 &#43; depth &lt; max_fallbacks| E
+    L --&gt;|否 &#43; depth &gt;= max_fallbacks| M[抛出最终异常]</pre>
+<h3 id="42-retry-机制同-deployment-重试">
   4.2 Retry 机制（同 deployment 重试）
   <a class="anchor" href="#42-retry-%e6%9c%ba%e5%88%b6%e5%90%8c-deployment-%e9%87%8d%e8%af%95">#</a>
 </h3>
@@ -3251,7 +3266,8 @@ https://github.com/alex-shpak/hugo-book
   5.1 Cooldown 原理
   <a class="anchor" href="#51-cooldown-%e5%8e%9f%e7%90%86">#</a>
 </h3>
-<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph LR
+
+<pre class="mermaid">graph LR
     A[Deployment 失败] --&gt; B{失败次数 &gt;=&lt;br/&gt;allowed_fails?}
     B --&gt;|否| C[记录失败计数&lt;br/&gt;继续调度到此 deployment]
     B --&gt;|是| D[加入 Cooldown 列表&lt;br/&gt;_select_deployment_async 过滤掉]
@@ -3259,8 +3275,8 @@ https://github.com/alex-shpak/hugo-book
     E --&gt; F[从 Cooldown 移除&lt;br/&gt;恢复调度]
 
     style D fill:#ff6b6b,color:#fff
-    style F fill:#50c878,color:#fff
-</code></pre><p><strong>源码</strong>: <code>router_utils/cooldown_handlers.py</code> + <code>router_utils/cooldown_cache.py</code></p>
+    style F fill:#50c878,color:#fff</pre>
+<p><strong>源码</strong>: <code>router_utils/cooldown_handlers.py</code> + <code>router_utils/cooldown_cache.py</code></p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># router_utils/cooldown_handlers.py</span>
 </span></span><span style="display:flex;"><span>DEFAULT_COOLDOWN_TIME_SECONDS <span style="color:#f92672">=</span> <span style="color:#ae81ff">60</span>
 </span></span><span style="display:flex;"><span>
