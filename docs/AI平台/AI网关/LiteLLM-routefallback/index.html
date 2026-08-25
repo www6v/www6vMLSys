@@ -3,34 +3,16 @@
 <head>
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="
-  LiteLLM 路由策略与 Fallback 机制源码剖析
-  #
-
-
-版本: v0.1 | 状态: 正文
+<meta name="description" content="LiteLLM 路由策略与 Fallback 机制源码剖析 # 版本: v0.1 | 状态: 正文
 源码版本: LiteLLM v1.90.x
 核心文件: router.py（~7200 行）、router_strategy/（13 个文件）、router_utils/（17 个文件）
 风格: DDIA 式 — 每项主张均有源码行号支撑
-
-
-  一、引言：为什么需要路由与 Fallback
-  #
-
-
-  1.1 大模型时代的&quot;分布式系统&quot;问题
-  #
-
-传统分布式系统需要负载均衡器来解决三个问题：流量分配、故障转移、容量管理。在大模型时代，这三个问题以更复杂的形式重现：
+一、引言：为什么需要路由与 Fallback # 1.1 大模型时代的&quot;分布式系统&quot;问题 # 传统分布式系统需要负载均衡器来解决三个问题：流量分配、故障转移、容量管理。在大模型时代，这三个问题以更复杂的形式重现：
 流量分配: 一个 model=&quot;gpt-4&quot; 的背后可能有 10 个 deployment（不同 Provider、不同区域、不同 API Key），如何将请求分配给最合适的 deployment？
 故障转移: 某个 deployment 可能因为 API 限流（RateLimit）、网络超时（Timeout）、内容审查拦截（ContentPolicyViolation）而失败，如何自动切换到备用 deployment？
 容量管理: 每个 deployment 有 TPM/RPM 限额，如何在限额内最大化利用率，同时避免超限？
 LiteLLM Router 的本质就是 LLM 层的负载均衡器 &#43; 断路器 &#43; 降级引擎。
-
-  1.2 本文范围
-  #
-
-本文聚焦 Router 的两个核心机制：">
+1.2 本文范围 # 本文聚焦 Router 的两个核心机制：">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
 <meta name="color-scheme" content="light dark"><meta property="og:url" content="https://www6v.github.io/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/AI%E7%BD%91%E5%85%B3/LiteLLM-routefallback/">
@@ -54,7 +36,10 @@ LiteLLM Router 的本质就是 LLM 层的负载均衡器 &#43; 断路器 &#43; �
 <link rel="canonical" href="https://www6v.github.io/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/AI%E7%BD%91%E5%85%B3/LiteLLM-routefallback/">
 <link rel="stylesheet" href="/www6vMLSys/book.min.6c8b9d2a1fc95075ed7da46ca81060b39add8fff6741ac51259f768929281e2c.css" integrity="sha256-bIudKh/JUHXtfaRsqBBgs5rdj/9nQaxRJZ92iSkoHiw=" crossorigin="anonymous">
   <script defer src="/www6vMLSys/fuse.min.js"></script>
-  <script defer src="/www6vMLSys/en.search.min.db2b384d5b81b23e57c3928b924af72dfab74a96bcdb893c600ff8115b61d590.js" integrity="sha256-2ys4TVuBsj5Xw5KLkkr3Lfq3Spa824k8YA/4EVth1ZA=" crossorigin="anonymous"></script>
+  <script defer src="/www6vMLSys/en.search.min.d594248518fa2a9931066040a9448183d47749b3a47fcc00e0496d62a93dcc35.js" integrity="sha256-1ZQkhRj6KpkxBmBAqUSBg9R3SbOkf8wA4EltYqk9zDU=" crossorigin="anonymous"></script>
+
+  
+
 <link rel="alternate" type="application/rss+xml" href="https://www6v.github.io/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/AI%E7%BD%91%E5%85%B3/LiteLLM-routefallback/index.xml" title="MLSys" />
 <!--
 Made with Book Theme
@@ -107,8 +92,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-bf23c006d2140684cc90ded82ec74653" class="toggle"  />
-    <label for="section-bf23c006d2140684cc90ded82ec74653" class="flex justify-between">
+    <input type="checkbox" id="section-46f9f019ac1cd81d3adb5dce8195fad5" class="toggle"  />
+    <label for="section-46f9f019ac1cd81d3adb5dce8195fad5" class="flex justify-between">
       <a role="button" class="">Inference</a>
     </label>
   
@@ -123,8 +108,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-e2782e122236beb02b611a4b4376c5ba" class="toggle"  />
-    <label for="section-e2782e122236beb02b611a4b4376c5ba" class="flex justify-between">
+    <input type="checkbox" id="section-0df477e9a94394863b60b08953bb3faf" class="toggle"  />
+    <label for="section-0df477e9a94394863b60b08953bb3faf" class="flex justify-between">
       <a role="button" class="">框架</a>
     </label>
   
@@ -234,8 +219,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-280e12f1588c5189fc8326fb4998fa2a" class="toggle"  />
-    <label for="section-280e12f1588c5189fc8326fb4998fa2a" class="flex justify-between">
+    <input type="checkbox" id="section-e80661aabb05786d73bb02617f11551b" class="toggle"  />
+    <label for="section-e80661aabb05786d73bb02617f11551b" class="flex justify-between">
       <a role="button" class="">框架vLLM</a>
     </label>
   
@@ -440,8 +425,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-d659e6fde8f172d5e6d65a0b2bc79031" class="toggle"  />
-    <label for="section-d659e6fde8f172d5e6d65a0b2bc79031" class="flex justify-between">
+    <input type="checkbox" id="section-206d1962a731b68760cf02563d9a81c7" class="toggle"  />
+    <label for="section-206d1962a731b68760cf02563d9a81c7" class="flex justify-between">
       <a role="button" class="">Inference 优化</a>
     </label>
   
@@ -456,8 +441,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-8cc4904ea51a1aff793d6755622ea54b" class="toggle"  />
-    <label for="section-8cc4904ea51a1aff793d6755622ea54b" class="flex justify-between">
+    <input type="checkbox" id="section-9d5a2c196d1ea980f1966f0de0e49d52" class="toggle"  />
+    <label for="section-9d5a2c196d1ea980f1966f0de0e49d52" class="flex justify-between">
       <a role="button" class="">Overview</a>
     </label>
   
@@ -531,8 +516,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-75fffd45c4e3af9b253513bcf99a1e7e" class="toggle"  />
-    <label for="section-75fffd45c4e3af9b253513bcf99a1e7e" class="flex justify-between">
+    <input type="checkbox" id="section-733ec9f169a904e7d2ec539e5c012c44" class="toggle"  />
+    <label for="section-733ec9f169a904e7d2ec539e5c012c44" class="flex justify-between">
       <a role="button" class="">系统层优化</a>
     </label>
   
@@ -547,8 +532,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-2c31e36f5b0e9f84d75738e603bcdfd3" class="toggle"  />
-    <label for="section-2c31e36f5b0e9f84d75738e603bcdfd3" class="flex justify-between">
+    <input type="checkbox" id="section-1b6eb1bafb777938ce54ed28062f31be" class="toggle"  />
+    <label for="section-1b6eb1bafb777938ce54ed28062f31be" class="flex justify-between">
       <a role="button" class="">FlashAttention</a>
     </label>
   
@@ -622,8 +607,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-903dc4762e53fc23899b8b41e24d4e3d" class="toggle"  />
-    <label for="section-903dc4762e53fc23899b8b41e24d4e3d" class="flex justify-between">
+    <input type="checkbox" id="section-90df0a4e1b32a319152ceba8d1068844" class="toggle"  />
+    <label for="section-90df0a4e1b32a319152ceba8d1068844" class="flex justify-between">
       <a role="button" class="">SpeculativeDecoding</a>
     </label>
   
@@ -733,8 +718,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-9c3aeee5bee9d8a45b6959715db1f460" class="toggle"  />
-    <label for="section-9c3aeee5bee9d8a45b6959715db1f460" class="flex justify-between">
+    <input type="checkbox" id="section-84b07ff725756ccf253ca224735e34fe" class="toggle"  />
+    <label for="section-84b07ff725756ccf253ca224735e34fe" class="flex justify-between">
       <a role="button" class="">KVCache</a>
     </label>
   
@@ -785,8 +770,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-a0d66f65a2c7b4e05694f79579d1f686" class="toggle"  />
-    <label for="section-a0d66f65a2c7b4e05694f79579d1f686" class="flex justify-between">
+    <input type="checkbox" id="section-9fd8feeeaec2f719941a1e3edb14d741" class="toggle"  />
+    <label for="section-9fd8feeeaec2f719941a1e3edb14d741" class="flex justify-between">
       <a role="button" class="">Compress</a>
     </label>
   
@@ -829,8 +814,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-cc89fec5cef17da80426c3ab29dc55f2" class="toggle"  />
-    <label for="section-cc89fec5cef17da80426c3ab29dc55f2" class="flex justify-between">
+    <input type="checkbox" id="section-58684618fdc4965e2b35a333cfc0751c" class="toggle"  />
+    <label for="section-58684618fdc4965e2b35a333cfc0751c" class="flex justify-between">
       <a role="button" class="">Batch</a>
     </label>
   
@@ -886,8 +871,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-a86001c551f91c9d6742692d85235ce9" class="toggle"  />
-    <label for="section-a86001c551f91c9d6742692d85235ce9" class="flex justify-between">
+    <input type="checkbox" id="section-2bda16ee9eb1cc424ad4bacfc46e2574" class="toggle"  />
+    <label for="section-2bda16ee9eb1cc424ad4bacfc46e2574" class="flex justify-between">
       <a role="button" class="">PD 分离</a>
     </label>
   
@@ -1002,8 +987,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-0a8aa3616751d94d876ab5a7638dfee2" class="toggle"  />
-    <label for="section-0a8aa3616751d94d876ab5a7638dfee2" class="flex justify-between">
+    <input type="checkbox" id="section-d8e4bc101aba8bbf9039eb3ecb0f14f5" class="toggle"  />
+    <label for="section-d8e4bc101aba8bbf9039eb3ecb0f14f5" class="flex justify-between">
       <a role="button" class="">模型层优化</a>
     </label>
   
@@ -1018,8 +1003,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-5a6462bfaadf7adfe8b66d09bc58303b" class="toggle"  />
-    <label for="section-5a6462bfaadf7adfe8b66d09bc58303b" class="flex justify-between">
+    <input type="checkbox" id="section-d7414f59e2a23d21985181d6022ec263" class="toggle"  />
+    <label for="section-d7414f59e2a23d21985181d6022ec263" class="flex justify-between">
       <a role="button" class="">量化</a>
     </label>
   
@@ -1034,8 +1019,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-2d87a22f91be75b78e6616958283b668" class="toggle"  />
-    <label for="section-2d87a22f91be75b78e6616958283b668" class="flex justify-between">
+    <input type="checkbox" id="section-20f0402fb3cbae252a4184f400e05533" class="toggle"  />
+    <label for="section-20f0402fb3cbae252a4184f400e05533" class="flex justify-between">
       <a role="button" class="">Overview</a>
     </label>
   
@@ -1091,8 +1076,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-88d52cf49c9a5295f0c154e14ccc03a5" class="toggle"  />
-    <label for="section-88d52cf49c9a5295f0c154e14ccc03a5" class="flex justify-between">
+    <input type="checkbox" id="section-ec2eb87afcd086e2bb436dac77ebdcbc" class="toggle"  />
+    <label for="section-ec2eb87afcd086e2bb436dac77ebdcbc" class="flex justify-between">
       <a role="button" class="">PTQ</a>
     </label>
   
@@ -1125,8 +1110,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-359a9d256fc5cc0b6a903de93454a7d5" class="toggle"  />
-    <label for="section-359a9d256fc5cc0b6a903de93454a7d5" class="flex justify-between">
+    <input type="checkbox" id="section-571b73d60a6cc0ec292d9f6baa3bece7" class="toggle"  />
+    <label for="section-571b73d60a6cc0ec292d9f6baa3bece7" class="flex justify-between">
       <a role="button" class="">Weight Only</a>
     </label>
   
@@ -1182,8 +1167,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-80f1cfdbb0d11740a87708737d9705d1" class="toggle"  />
-    <label for="section-80f1cfdbb0d11740a87708737d9705d1" class="flex justify-between">
+    <input type="checkbox" id="section-c949cfd2d8034a11b389f2d023507d5e" class="toggle"  />
+    <label for="section-c949cfd2d8034a11b389f2d023507d5e" class="flex justify-between">
       <a role="button" class="">Weight&amp;Activation</a>
     </label>
   
@@ -1247,8 +1232,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-0fae359329dcf38fe41928a875455a3a" class="toggle"  />
-    <label for="section-0fae359329dcf38fe41928a875455a3a" class="flex justify-between">
+    <input type="checkbox" id="section-2cc6a020e92cde89b28dd1b9a8dde151" class="toggle"  />
+    <label for="section-2cc6a020e92cde89b28dd1b9a8dde151" class="flex justify-between">
       <a role="button" class="">Practice</a>
     </label>
   
@@ -1291,8 +1276,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-1bda5152ea8335d4cdc6a16fa79ec8a2" class="toggle"  />
-    <label for="section-1bda5152ea8335d4cdc6a16fa79ec8a2" class="flex justify-between">
+    <input type="checkbox" id="section-c621aaebb7e229715dd0809d059d2fc9" class="toggle"  />
+    <label for="section-c621aaebb7e229715dd0809d059d2fc9" class="flex justify-between">
       <a role="button" class="">Sparse Attention</a>
     </label>
   
@@ -1335,8 +1320,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-0e872e900c80202bf8d3f77fb2b652dd" class="toggle"  />
-    <label for="section-0e872e900c80202bf8d3f77fb2b652dd" class="flex justify-between">
+    <input type="checkbox" id="section-d41c5815cabb16367a7704d1b8979f2c" class="toggle"  />
+    <label for="section-d41c5815cabb16367a7704d1b8979f2c" class="flex justify-between">
       <a role="button" class="">TTFT</a>
     </label>
   
@@ -1397,8 +1382,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-f4030e06a7cd0b4d4f01c69f804511e3" class="toggle"  />
-    <label for="section-f4030e06a7cd0b4d4f01c69f804511e3" class="flex justify-between">
+    <input type="checkbox" id="section-0510211b4577a4de8bc6d0c3b60e33ff" class="toggle"  />
+    <label for="section-0510211b4577a4de8bc6d0c3b60e33ff" class="flex justify-between">
       <a role="button" class="">Training</a>
     </label>
   
@@ -1413,8 +1398,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-a3302ad31d47b6b33edaefb16b9595c8" class="toggle"  />
-    <label for="section-a3302ad31d47b6b33edaefb16b9595c8" class="flex justify-between">
+    <input type="checkbox" id="section-9fc08442b7ae0ae2d037ffc5cac491be" class="toggle"  />
+    <label for="section-9fc08442b7ae0ae2d037ffc5cac491be" class="flex justify-between">
       <a role="button" class="">分布式</a>
     </label>
   
@@ -1429,8 +1414,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-ca35777dc3dc1df2cd1c182701911ffb" class="toggle"  />
-    <label for="section-ca35777dc3dc1df2cd1c182701911ffb" class="flex justify-between">
+    <input type="checkbox" id="section-57a5e3e5fe9ab455f342e1e697db1803" class="toggle"  />
+    <label for="section-57a5e3e5fe9ab455f342e1e697db1803" class="flex justify-between">
       <a role="button" class="">Overview</a>
     </label>
   
@@ -1468,8 +1453,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-ae4385c3230d5a72d0fd739cfe337330" class="toggle"  />
-    <label for="section-ae4385c3230d5a72d0fd739cfe337330" class="flex justify-between">
+    <input type="checkbox" id="section-8b31b6b471f5762e9d2da631bee73022" class="toggle"  />
+    <label for="section-8b31b6b471f5762e9d2da631bee73022" class="flex justify-between">
       <a role="button" class="">DP</a>
     </label>
   
@@ -1561,8 +1546,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-0cfa5a342351431197e06859d2a0b5dd" class="toggle"  />
-    <label for="section-0cfa5a342351431197e06859d2a0b5dd" class="flex justify-between">
+    <input type="checkbox" id="section-3dc64482add8914f3b5f9110dbb829fa" class="toggle"  />
+    <label for="section-3dc64482add8914f3b5f9110dbb829fa" class="flex justify-between">
       <a role="button" class="">TP</a>
     </label>
   
@@ -1600,8 +1585,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-bf4278f3920999fc3bb13908e22d34bb" class="toggle"  />
-    <label for="section-bf4278f3920999fc3bb13908e22d34bb" class="flex justify-between">
+    <input type="checkbox" id="section-8ff0d8df45f2751ebc315ae9eab02b9f" class="toggle"  />
+    <label for="section-8ff0d8df45f2751ebc315ae9eab02b9f" class="flex justify-between">
       <a role="button" class="">PP</a>
     </label>
   
@@ -1639,8 +1624,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-30fd02881b0903fc1d9b6c52304de566" class="toggle"  />
-    <label for="section-30fd02881b0903fc1d9b6c52304de566" class="flex justify-between">
+    <input type="checkbox" id="section-fbf3e2ed6e8d99c8615a31980d156c0b" class="toggle"  />
+    <label for="section-fbf3e2ed6e8d99c8615a31980d156c0b" class="flex justify-between">
       <a role="button" class="">混合并行</a>
     </label>
   
@@ -1701,8 +1686,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-25028652b0e6469d4e603a946ea402c4" class="toggle"  />
-    <label for="section-25028652b0e6469d4e603a946ea402c4" class="flex justify-between">
+    <input type="checkbox" id="section-19cde628a5e79f95519e1f1e2cf1e6a6" class="toggle"  />
+    <label for="section-19cde628a5e79f95519e1f1e2cf1e6a6" class="flex justify-between">
       <a role="button" class="">低精度</a>
     </label>
   
@@ -1753,8 +1738,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-644e6fa45ba6f6c0dcdfc190025a39fb" class="toggle" checked />
-    <label for="section-644e6fa45ba6f6c0dcdfc190025a39fb" class="flex justify-between">
+    <input type="checkbox" id="section-5d6602fbd107263f71b49720e8a5770b" class="toggle" checked />
+    <label for="section-5d6602fbd107263f71b49720e8a5770b" class="flex justify-between">
       <a role="button" class="">AI平台</a>
     </label>
   
@@ -1805,8 +1790,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-f61cbb1f2645b362442da027a971ba18" class="toggle" checked />
-    <label for="section-f61cbb1f2645b362442da027a971ba18" class="flex justify-between">
+    <input type="checkbox" id="section-17c42b222b84095c605f66bfd3a5d5af" class="toggle" checked />
+    <label for="section-17c42b222b84095c605f66bfd3a5d5af" class="flex justify-between">
       <a role="button" class="">AI网关</a>
     </label>
   
@@ -1880,6 +1865,177 @@ https://github.com/alex-shpak/hugo-book
   
 
   
+    <input type="checkbox" id="section-9aa1a1e7091b07da4599c138f61024b2" class="toggle"  />
+    <label for="section-9aa1a1e7091b07da4599c138f61024b2" class="flex justify-between">
+      <a role="button" class="">对话混合架构</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E5%AF%B9%E8%AF%9D%E6%B7%B7%E5%90%88%E6%9E%B6%E6%9E%84/claw/" class="">Claw</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E5%AF%B9%E8%AF%9D%E6%B7%B7%E5%90%88%E6%9E%B6%E6%9E%84/hermes/" class="">Hermes</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-9b09c4b066b1e1cccae213b0b98306e9" class="toggle"  />
+    <label for="section-9b09c4b066b1e1cccae213b0b98306e9" class="flex justify-between">
+      <a role="button" class="">开放平台</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E5%BC%80%E6%94%BE%E5%B9%B3%E5%8F%B0/claw/" class="">Claw</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E5%BC%80%E6%94%BE%E5%B9%B3%E5%8F%B0/hermes/" class="">Hermes</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-27989a5e3be10a7f5e8020a8a410d4e6" class="toggle"  />
+    <label for="section-27989a5e3be10a7f5e8020a8a410d4e6" class="flex justify-between">
+      <a role="button" class="">端云混合架构</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E7%AB%AF%E4%BA%91%E6%B7%B7%E5%90%88%E6%9E%B6%E6%9E%84/claw&#43;/" class="">Claw[ ]</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E7%AB%AF%E4%BA%91%E6%B7%B7%E5%90%88%E6%9E%B6%E6%9E%84/hermes/" class="">Hermes</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
     <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/LLMOps/" class="">LLMOps</a>
   
 
@@ -1903,8 +2059,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-327fb05179acab9fa2e8db471e2465cd" class="toggle"  />
-    <label for="section-327fb05179acab9fa2e8db471e2465cd" class="flex justify-between">
+    <input type="checkbox" id="section-d80e9a068046a412cee1ba7f653b5c86" class="toggle"  />
+    <label for="section-d80e9a068046a412cee1ba7f653b5c86" class="flex justify-between">
       <a role="button" class="">MaaS</a>
     </label>
   
@@ -2032,8 +2188,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-e5df6522c4b2ff6188291204672608c8" class="toggle"  />
-    <label for="section-e5df6522c4b2ff6188291204672608c8" class="flex justify-between">
+    <input type="checkbox" id="section-62de713685ff13478495b8520fd59705" class="toggle"  />
+    <label for="section-62de713685ff13478495b8520fd59705" class="flex justify-between">
       <a role="button" class="">Infra</a>
     </label>
   
@@ -2066,8 +2222,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-79fcd731bc33432daba619103c18a87a" class="toggle"  />
-    <label for="section-79fcd731bc33432daba619103c18a87a" class="flex justify-between">
+    <input type="checkbox" id="section-120653a01c96b9ed76377f47423942f0" class="toggle"  />
+    <label for="section-120653a01c96b9ed76377f47423942f0" class="flex justify-between">
       <a role="button" class="">GPU</a>
     </label>
   
@@ -2159,8 +2315,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-1048340579f6168f3a532057403baf28" class="toggle"  />
-    <label for="section-1048340579f6168f3a532057403baf28" class="flex justify-between">
+    <input type="checkbox" id="section-b4210e18b73dee1304d22035008e50e8" class="toggle"  />
+    <label for="section-b4210e18b73dee1304d22035008e50e8" class="flex justify-between">
       <a role="button" class="">显存估算</a>
     </label>
   
@@ -2348,7 +2504,8 @@ https://github.com/alex-shpak/hugo-book
 <p><strong>版本</strong>: v0.1 | <strong>状态</strong>: 正文<br>
 <strong>源码版本</strong>: LiteLLM v1.90.x<br>
 <strong>核心文件</strong>: <code>router.py</code>（~7200 行）、<code>router_strategy/</code>（13 个文件）、<code>router_utils/</code>（17 个文件）<br>
-<strong>风格</strong>: DDIA 式 — 每项主张均有源码行号支撑</p></blockquote>
+<strong>风格</strong>: DDIA 式 — 每项主张均有源码行号支撑</p>
+</blockquote>
 <hr>
 <h2 id="一引言为什么需要路由与-fallback">
   一、引言：为什么需要路由与 Fallback
@@ -2440,40 +2597,40 @@ https://github.com/alex-shpak/hugo-book
     style P5 fill:#ff6b6b,color:#fff</pre>
 <p><strong>四层职责</strong>：</p>
 <table>
-  <thead>
-      <tr>
-          <th>层级</th>
-          <th>职责</th>
-          <th>核心文件</th>
-          <th>关键方法</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><strong>L1 入口层</strong></td>
-          <td>接收用户请求，统一参数格式</td>
-          <td><code>router.py:1851-2150</code></td>
-          <td><code>completion()</code>, <code>acompletion()</code></td>
-      </tr>
-      <tr>
-          <td><strong>L2 Fallback+Retry</strong></td>
-          <td>重试（同 deployment）+ 降级（换 model_group）</td>
-          <td><code>router.py:6756-7200</code></td>
-          <td><code>async_function_with_fallbacks()</code>, <code>async_function_with_retries()</code></td>
-      </tr>
-      <tr>
-          <td><strong>L3 调度层</strong></td>
-          <td>过滤冷却 deployment → 选目标 deployment</td>
-          <td><code>router.py:1091-1647</code></td>
-          <td><code>_select_deployment_async()</code></td>
-      </tr>
-      <tr>
-          <td><strong>L4 策略层</strong></td>
-          <td>执行具体路由策略，返回最优 deployment</td>
-          <td><code>router_strategy/*.py</code></td>
-          <td>各策略的 <code>async_get_available_deployments()</code></td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>层级</th>
+<th>职责</th>
+<th>核心文件</th>
+<th>关键方法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>L1 入口层</strong></td>
+<td>接收用户请求，统一参数格式</td>
+<td><code>router.py:1851-2150</code></td>
+<td><code>completion()</code>, <code>acompletion()</code></td>
+</tr>
+<tr>
+<td><strong>L2 Fallback+Retry</strong></td>
+<td>重试（同 deployment）+ 降级（换 model_group）</td>
+<td><code>router.py:6756-7200</code></td>
+<td><code>async_function_with_fallbacks()</code>, <code>async_function_with_retries()</code></td>
+</tr>
+<tr>
+<td><strong>L3 调度层</strong></td>
+<td>过滤冷却 deployment → 选目标 deployment</td>
+<td><code>router.py:1091-1647</code></td>
+<td><code>_select_deployment_async()</code></td>
+</tr>
+<tr>
+<td><strong>L4 策略层</strong></td>
+<td>执行具体路由策略，返回最优 deployment</td>
+<td><code>router_strategy/*.py</code></td>
+<td>各策略的 <code>async_get_available_deployments()</code></td>
+</tr>
+</tbody>
 </table>
 <h3 id="22-router-初始化关键参数">
   2.2 Router 初始化关键参数
@@ -2616,7 +2773,7 @@ https://github.com/alex-shpak/hugo-book
 </span></span><span style="display:flex;"><span>    init_fn(routing_strategy_args)
 </span></span></code></pre></div><p>所有策略继承 <code>BaseRoutingStrategy</code>（<code>router_strategy/base_routing_strategy.py</code>），核心抽象是：</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">BaseRoutingStrategy</span>(ABC):
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">__init__</span>(self, dual_cache: DualCache, <span style="color:#f92672">...</span>):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> __init__(self, dual_cache: DualCache, <span style="color:#f92672">...</span>):
 </span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>dual_cache <span style="color:#f92672">=</span> dual_cache  <span style="color:#75715e"># In-Memory + Redis 双缓存</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e"># 子类必须实现：</span>
@@ -2845,40 +3002,40 @@ https://github.com/alex-shpak/hugo-book
   <a class="anchor" href="#37-%e9%ab%98%e7%ba%a7%e8%b7%af%e7%94%b1%e7%ad%96%e7%95%a5">#</a>
 </h3>
 <table>
-  <thead>
-      <tr>
-          <th>策略</th>
-          <th>源码目录</th>
-          <th>原理</th>
-          <th>适用场景</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><strong>Complexity Router</strong></td>
-          <td><code>complexity_router/</code></td>
-          <td>先由小模型评估 prompt 复杂度，再决定用哪个模型</td>
-          <td>简单问题用便宜模型，复杂问题用强模型</td>
-      </tr>
-      <tr>
-          <td><strong>Quality Router</strong></td>
-          <td><code>quality_router/</code></td>
-          <td>按历史输出质量评分路由</td>
-          <td>对输出质量有严格要求的场景</td>
-      </tr>
-      <tr>
-          <td><strong>Adaptive Router</strong></td>
-          <td><code>adaptive_router/</code></td>
-          <td>动态感知环境（负载、错误率）自动调整策略</td>
-          <td>环境变化频繁的场景</td>
-      </tr>
-      <tr>
-          <td><strong>Auto Router</strong></td>
-          <td><code>auto_router/</code></td>
-          <td>ML 驱动的自动路由，学习历史请求模式</td>
-          <td>大规模生产环境</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>策略</th>
+<th>源码目录</th>
+<th>原理</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Complexity Router</strong></td>
+<td><code>complexity_router/</code></td>
+<td>先由小模型评估 prompt 复杂度，再决定用哪个模型</td>
+<td>简单问题用便宜模型，复杂问题用强模型</td>
+</tr>
+<tr>
+<td><strong>Quality Router</strong></td>
+<td><code>quality_router/</code></td>
+<td>按历史输出质量评分路由</td>
+<td>对输出质量有严格要求的场景</td>
+</tr>
+<tr>
+<td><strong>Adaptive Router</strong></td>
+<td><code>adaptive_router/</code></td>
+<td>动态感知环境（负载、错误率）自动调整策略</td>
+<td>环境变化频繁的场景</td>
+</tr>
+<tr>
+<td><strong>Auto Router</strong></td>
+<td><code>auto_router/</code></td>
+<td>ML 驱动的自动路由，学习历史请求模式</td>
+<td>大规模生产环境</td>
+</tr>
+</tbody>
 </table>
 <h3 id="38-routing-groups分组路由">
   3.8 Routing Groups（分组路由）
@@ -3154,64 +3311,64 @@ https://github.com/alex-shpak/hugo-book
   <a class="anchor" href="#46-fallback-%e7%9a%84%e5%bc%82%e5%b8%b8%e5%88%a4%e5%ae%9a%e8%a1%a8">#</a>
 </h3>
 <table>
-  <thead>
-      <tr>
-          <th>异常类型</th>
-          <th style="text-align: center">触发 Retry?</th>
-          <th style="text-align: center">触发 Fallback?</th>
-          <th>原因</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><code>RateLimitError</code></td>
-          <td style="text-align: center">✅</td>
-          <td style="text-align: center">✅</td>
-          <td>限流是瞬时的，重试可能成功；换模型也可能不超限</td>
-      </tr>
-      <tr>
-          <td><code>Timeout</code></td>
-          <td style="text-align: center">✅</td>
-          <td style="text-align: center">✅</td>
-          <td>超时可能是网络抖动；换模型可能更快</td>
-      </tr>
-      <tr>
-          <td><code>APIConnectionError</code></td>
-          <td style="text-align: center">✅</td>
-          <td style="text-align: center">✅</td>
-          <td>网络问题</td>
-      </tr>
-      <tr>
-          <td><code>ContextWindowExceededError</code></td>
-          <td style="text-align: center">❌</td>
-          <td style="text-align: center">✅（专用）</td>
-          <td>重试无意义，必须换大窗口模型</td>
-      </tr>
-      <tr>
-          <td><code>ContentPolicyViolationError</code></td>
-          <td style="text-align: center">❌</td>
-          <td style="text-align: center">✅（专用）</td>
-          <td>重试无意义，必须换审查策略</td>
-      </tr>
-      <tr>
-          <td><code>BadRequestError</code></td>
-          <td style="text-align: center">❌</td>
-          <td style="text-align: center">❌</td>
-          <td>请求本身有问题，换模型也一样失败</td>
-      </tr>
-      <tr>
-          <td><code>AuthenticationError</code></td>
-          <td style="text-align: center">❌</td>
-          <td style="text-align: center">❌</td>
-          <td>认证问题，换模型需要新 API Key</td>
-      </tr>
-      <tr>
-          <td><code>InternalServerError</code></td>
-          <td style="text-align: center">✅</td>
-          <td style="text-align: center">✅</td>
-          <td>Provider 内部错误</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>异常类型</th>
+<th style="text-align:center">触发 Retry?</th>
+<th style="text-align:center">触发 Fallback?</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>RateLimitError</code></td>
+<td style="text-align:center">✅</td>
+<td style="text-align:center">✅</td>
+<td>限流是瞬时的，重试可能成功；换模型也可能不超限</td>
+</tr>
+<tr>
+<td><code>Timeout</code></td>
+<td style="text-align:center">✅</td>
+<td style="text-align:center">✅</td>
+<td>超时可能是网络抖动；换模型可能更快</td>
+</tr>
+<tr>
+<td><code>APIConnectionError</code></td>
+<td style="text-align:center">✅</td>
+<td style="text-align:center">✅</td>
+<td>网络问题</td>
+</tr>
+<tr>
+<td><code>ContextWindowExceededError</code></td>
+<td style="text-align:center">❌</td>
+<td style="text-align:center">✅（专用）</td>
+<td>重试无意义，必须换大窗口模型</td>
+</tr>
+<tr>
+<td><code>ContentPolicyViolationError</code></td>
+<td style="text-align:center">❌</td>
+<td style="text-align:center">✅（专用）</td>
+<td>重试无意义，必须换审查策略</td>
+</tr>
+<tr>
+<td><code>BadRequestError</code></td>
+<td style="text-align:center">❌</td>
+<td style="text-align:center">❌</td>
+<td>请求本身有问题，换模型也一样失败</td>
+</tr>
+<tr>
+<td><code>AuthenticationError</code></td>
+<td style="text-align:center">❌</td>
+<td style="text-align:center">❌</td>
+<td>认证问题，换模型需要新 API Key</td>
+</tr>
+<tr>
+<td><code>InternalServerError</code></td>
+<td style="text-align:center">✅</td>
+<td style="text-align:center">✅</td>
+<td>Provider 内部错误</td>
+</tr>
+</tbody>
 </table>
 <p><strong>关键洞察</strong>: LiteLLM 的异常分类器（<code>litellm_core_utils/exception_mapping_utils</code>）将上游 Provider 的错误码映射为统一的 LiteLLM 异常类型，然后由 Retry Policy 和 Fallback 机制分别处理。</p>
 <h3 id="47-enable_weighted_failover同组内权重故障转移">
@@ -3316,40 +3473,40 @@ https://github.com/alex-shpak/hugo-book
   <a class="anchor" href="#52-cooldown-%e5%85%b3%e9%94%ae%e5%8f%82%e6%95%b0">#</a>
 </h3>
 <table>
-  <thead>
-      <tr>
-          <th>参数</th>
-          <th>默认值</th>
-          <th>说明</th>
-          <th>源码位置</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><code>allowed_fails</code></td>
-          <td><code>model_tpm * 0.01</code>（自动计算）</td>
-          <td>失败 N 次后进入冷却</td>
-          <td><code>router.py:304</code></td>
-      </tr>
-      <tr>
-          <td><code>cooldown_time</code></td>
-          <td>60 秒</td>
-          <td>冷却时长</td>
-          <td><code>router.py:308</code></td>
-      </tr>
-      <tr>
-          <td><code>disable_cooldowns</code></td>
-          <td>False</td>
-          <td>完全禁用冷却机制</td>
-          <td><code>router.py:311</code></td>
-      </tr>
-      <tr>
-          <td><code>retry_after</code></td>
-          <td>0 秒</td>
-          <td>失败后最小重试间隔</td>
-          <td><code>router.py:295</code></td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>参数</th>
+<th>默认值</th>
+<th>说明</th>
+<th>源码位置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>allowed_fails</code></td>
+<td><code>model_tpm * 0.01</code>（自动计算）</td>
+<td>失败 N 次后进入冷却</td>
+<td><code>router.py:304</code></td>
+</tr>
+<tr>
+<td><code>cooldown_time</code></td>
+<td>60 秒</td>
+<td>冷却时长</td>
+<td><code>router.py:308</code></td>
+</tr>
+<tr>
+<td><code>disable_cooldowns</code></td>
+<td>False</td>
+<td>完全禁用冷却机制</td>
+<td><code>router.py:311</code></td>
+</tr>
+<tr>
+<td><code>retry_after</code></td>
+<td>0 秒</td>
+<td>失败后最小重试间隔</td>
+<td><code>router.py:295</code></td>
+</tr>
+</tbody>
 </table>
 <p><strong>allowed_fails 自动计算逻辑</strong>（<code>router.py</code>）：</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># 如果没显式设置 allowed_fails，根据 TPM 自动计算</span>
@@ -3377,30 +3534,30 @@ https://github.com/alex-shpak/hugo-book
 </span></span><span style="display:flex;"><span>    healthy_deployments <span style="color:#f92672">=</span> caching_check<span style="color:#f92672">.</span>filter(healthy_deployments)
 </span></span></code></pre></div><p><strong>三个检查的作用</strong>：</p>
 <table>
-  <thead>
-      <tr>
-          <th>检查</th>
-          <th>文件</th>
-          <th>作用</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>DeploymentAffinityCheck</td>
-          <td><code>pre_call_checks/deployment_affinity_check.py</code></td>
-          <td>确保 deployment 与请求的区域/偏好匹配</td>
-      </tr>
-      <tr>
-          <td>ModelRateLimitingCheck</td>
-          <td><code>pre_call_checks/model_rate_limit_check.py</code></td>
-          <td>预测是否即将触发限流，提前跳过</td>
-      </tr>
-      <tr>
-          <td>PromptCachingDeploymentCheck</td>
-          <td><code>pre_call_checks/prompt_caching_deployment_check.py</code></td>
-          <td>检查 deployment 是否支持 Prompt Caching</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>检查</th>
+<th>文件</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DeploymentAffinityCheck</td>
+<td><code>pre_call_checks/deployment_affinity_check.py</code></td>
+<td>确保 deployment 与请求的区域/偏好匹配</td>
+</tr>
+<tr>
+<td>ModelRateLimitingCheck</td>
+<td><code>pre_call_checks/model_rate_limit_check.py</code></td>
+<td>预测是否即将触发限流，提前跳过</td>
+</tr>
+<tr>
+<td>PromptCachingDeploymentCheck</td>
+<td><code>pre_call_checks/prompt_caching_deployment_check.py</code></td>
+<td>检查 deployment 是否支持 Prompt Caching</td>
+</tr>
+</tbody>
 </table>
 <h3 id="54-health-state-cache">
   5.4 Health State Cache
@@ -3440,64 +3597,64 @@ https://github.com/alex-shpak/hugo-book
   <a class="anchor" href="#61-%e6%a0%b8%e5%bf%83%e8%b0%83%e7%94%a8%e9%93%be%e8%b7%af%e6%ba%90%e7%a0%81%e8%a1%8c%e5%8f%b7%e6%a0%87%e6%b3%a8">#</a>
 </h3>
 <table>
-  <thead>
-      <tr>
-          <th>步骤</th>
-          <th>方法</th>
-          <th>源码位置</th>
-          <th>关键逻辑</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>1</td>
-          <td><code>acompletion()</code></td>
-          <td><code>router.py:2074-2150</code></td>
-          <td>入口：参数校验 + fallback 参数注入</td>
-      </tr>
-      <tr>
-          <td>2</td>
-          <td><code>async_function_with_fallbacks()</code></td>
-          <td><code>router.py:6756-6900</code></td>
-          <td>Fallback 外层包装</td>
-      </tr>
-      <tr>
-          <td>3</td>
-          <td><code>async_function_with_retries()</code></td>
-          <td><code>router.py:6901-7175</code></td>
-          <td>Retry 内层包装 + 重试策略解析</td>
-      </tr>
-      <tr>
-          <td>4</td>
-          <td><code>make_call()</code></td>
-          <td><code>router.py</code></td>
-          <td>调用 <code>_select_deployment_async()</code> → 选 deployment → 调 <code>litellm.acompletion()</code></td>
-      </tr>
-      <tr>
-          <td>5</td>
-          <td><code>_select_deployment_async()</code></td>
-          <td><code>router.py:1091-1300</code></td>
-          <td>Cooldown 过滤 → Pre-call 检查 → Routing Strategy</td>
-      </tr>
-      <tr>
-          <td>6</td>
-          <td>Routing Strategy Engine</td>
-          <td><code>router_strategy/*.py</code></td>
-          <td>执行具体路由策略，返回最优 deployment 列表</td>
-      </tr>
-      <tr>
-          <td>7</td>
-          <td><code>run_async_fallback()</code></td>
-          <td><code>router_utils/fallback_event_handlers.py</code></td>
-          <td>递归 fallback</td>
-      </tr>
-      <tr>
-          <td>8</td>
-          <td>Cooldown 管理</td>
-          <td><code>router_utils/cooldown_handlers.py</code></td>
-          <td>失败计数 + 冷却状态维护</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>步骤</th>
+<th>方法</th>
+<th>源码位置</th>
+<th>关键逻辑</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>acompletion()</code></td>
+<td><code>router.py:2074-2150</code></td>
+<td>入口：参数校验 + fallback 参数注入</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>async_function_with_fallbacks()</code></td>
+<td><code>router.py:6756-6900</code></td>
+<td>Fallback 外层包装</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>async_function_with_retries()</code></td>
+<td><code>router.py:6901-7175</code></td>
+<td>Retry 内层包装 + 重试策略解析</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>make_call()</code></td>
+<td><code>router.py</code></td>
+<td>调用 <code>_select_deployment_async()</code> → 选 deployment → 调 <code>litellm.acompletion()</code></td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>_select_deployment_async()</code></td>
+<td><code>router.py:1091-1300</code></td>
+<td>Cooldown 过滤 → Pre-call 检查 → Routing Strategy</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Routing Strategy Engine</td>
+<td><code>router_strategy/*.py</code></td>
+<td>执行具体路由策略，返回最优 deployment 列表</td>
+</tr>
+<tr>
+<td>7</td>
+<td><code>run_async_fallback()</code></td>
+<td><code>router_utils/fallback_event_handlers.py</code></td>
+<td>递归 fallback</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Cooldown 管理</td>
+<td><code>router_utils/cooldown_handlers.py</code></td>
+<td>失败计数 + 冷却状态维护</td>
+</tr>
+</tbody>
 </table>
 <h3 id="62-关键数据结构">
   6.2 关键数据结构
@@ -3547,46 +3704,46 @@ https://github.com/alex-shpak/hugo-book
   <a class="anchor" href="#71-%e8%b7%af%e7%94%b1%e7%ad%96%e7%95%a5%e9%80%89%e5%9e%8b%e6%8c%87%e5%8d%97">#</a>
 </h3>
 <table>
-  <thead>
-      <tr>
-          <th>场景</th>
-          <th>推荐策略</th>
-          <th>理由</th>
-          <th>不推荐</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>同构部署（多 API Key）</td>
-          <td>simple-shuffle</td>
-          <td>最简单，零状态维护开销</td>
-          <td>latency-based（无差异场景下无意义）</td>
-      </tr>
-      <tr>
-          <td>多区域部署</td>
-          <td>latency-based-routing</td>
-          <td>自动选最近/最快区域</td>
-          <td>simple-shuffle（可能选到远端区域）</td>
-      </tr>
-      <tr>
-          <td>有 TPM/RPM 限额</td>
-          <td>usage-based-routing</td>
-          <td>最大化利用配额不超限</td>
-          <td>cost-based（不关心限额）</td>
-      </tr>
-      <tr>
-          <td>成本敏感</td>
-          <td>cost-based-routing</td>
-          <td>自动选最便宜的</td>
-          <td>least-busy（不关心成本）</td>
-      </tr>
-      <tr>
-          <td>混合负载</td>
-          <td>least-busy</td>
-          <td>均匀分配，防止热点</td>
-          <td>simple-shuffle（可能热点集中）</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>场景</th>
+<th>推荐策略</th>
+<th>理由</th>
+<th>不推荐</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>同构部署（多 API Key）</td>
+<td>simple-shuffle</td>
+<td>最简单，零状态维护开销</td>
+<td>latency-based（无差异场景下无意义）</td>
+</tr>
+<tr>
+<td>多区域部署</td>
+<td>latency-based-routing</td>
+<td>自动选最近/最快区域</td>
+<td>simple-shuffle（可能选到远端区域）</td>
+</tr>
+<tr>
+<td>有 TPM/RPM 限额</td>
+<td>usage-based-routing</td>
+<td>最大化利用配额不超限</td>
+<td>cost-based（不关心限额）</td>
+</tr>
+<tr>
+<td>成本敏感</td>
+<td>cost-based-routing</td>
+<td>自动选最便宜的</td>
+<td>least-busy（不关心成本）</td>
+</tr>
+<tr>
+<td>混合负载</td>
+<td>least-busy</td>
+<td>均匀分配，防止热点</td>
+<td>simple-shuffle（可能热点集中）</td>
+</tr>
+</tbody>
 </table>
 <h3 id="72-fallback-链设计原则">
   7.2 Fallback 链设计原则
@@ -3691,69 +3848,70 @@ https://github.com/alex-shpak/hugo-book
 </h2>
 <p>LiteLLM Router 将分布式系统的三个经典模式迁移到了 LLM 层：</p>
 <table>
-  <thead>
-      <tr>
-          <th>分布式模式</th>
-          <th>传统实现</th>
-          <th>LiteLLM Router 实现</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><strong>负载均衡</strong></td>
-          <td>Nginx / HAProxy</td>
-          <td>5 种路由策略 + Routing Groups</td>
-      </tr>
-      <tr>
-          <td><strong>断路器</strong></td>
-          <td>Hystrix / Resilience4j</td>
-          <td>Cooldown 机制 + Pre-call Health Check</td>
-      </tr>
-      <tr>
-          <td><strong>降级引擎</strong></td>
-          <td>服务降级配置</td>
-          <td>3 层 Fallback（Retry → 常规 → 专用）</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>分布式模式</th>
+<th>传统实现</th>
+<th>LiteLLM Router 实现</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>负载均衡</strong></td>
+<td>Nginx / HAProxy</td>
+<td>5 种路由策略 + Routing Groups</td>
+</tr>
+<tr>
+<td><strong>断路器</strong></td>
+<td>Hystrix / Resilience4j</td>
+<td>Cooldown 机制 + Pre-call Health Check</td>
+</tr>
+<tr>
+<td><strong>降级引擎</strong></td>
+<td>服务降级配置</td>
+<td>3 层 Fallback（Retry → 常规 → 专用）</td>
+</tr>
+</tbody>
 </table>
 <p><strong>核心设计公式</strong>：</p>
 <pre tabindex="0"><code>高可用 LLM 服务 = 路由策略（选最优）+ Cooldown（隔离故障）+ Retry（瞬时恢复）+ Fallback（持久降级）
 </code></pre><p><strong>源码行数统计</strong>：</p>
 <table>
-  <thead>
-      <tr>
-          <th>文件/目录</th>
-          <th>行数</th>
-          <th>职责</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><code>router.py</code></td>
-          <td>~7200</td>
-          <td>Router 核心（入口 + Fallback + Retry + 调度）</td>
-      </tr>
-      <tr>
-          <td><code>router_strategy/</code></td>
-          <td>~15000</td>
-          <td>9 种路由策略实现</td>
-      </tr>
-      <tr>
-          <td><code>router_utils/</code></td>
-          <td>~8000</td>
-          <td>Cooldown、Fallback、Health Check 等工具</td>
-      </tr>
-      <tr>
-          <td><strong>总计</strong></td>
-          <td><strong>~30000</strong></td>
-          <td>完整的路由与高可用体系</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>文件/目录</th>
+<th>行数</th>
+<th>职责</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>router.py</code></td>
+<td>~7200</td>
+<td>Router 核心（入口 + Fallback + Retry + 调度）</td>
+</tr>
+<tr>
+<td><code>router_strategy/</code></td>
+<td>~15000</td>
+<td>9 种路由策略实现</td>
+</tr>
+<tr>
+<td><code>router_utils/</code></td>
+<td>~8000</td>
+<td>Cooldown、Fallback、Health Check 等工具</td>
+</tr>
+<tr>
+<td><strong>总计</strong></td>
+<td><strong>~30000</strong></td>
+<td>完整的路由与高可用体系</td>
+</tr>
+</tbody>
 </table>
 <p>理解这套机制，对于在生产环境中部署多模型、多 Provider 的 LLM 服务至关重要。Router 的设计哲学是：<strong>让故障在应用层被消化，而不是透传给终端用户</strong>。</p>
 <hr>
 <blockquote>
-<p><strong>源码版本</strong>: LiteLLM v1.90.x | <strong>GitHub</strong>: <a href="https://github.com/BerriAI/litellm">https://github.com/BerriAI/litellm</a></p></blockquote>
+<p><strong>源码版本</strong>: LiteLLM v1.90.x | <strong>GitHub</strong>: <a href="https://github.com/BerriAI/litellm">https://github.com/BerriAI/litellm</a></p>
+</blockquote>
 </article>
  
       

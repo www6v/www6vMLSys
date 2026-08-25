@@ -1,0 +1,4229 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="硬件助手产品系统架构 — AI Agent 方向升级（端·云·第三方 API 分层设计） # 面向职位：传音集团 · 资深后端开发 — 大模型算法部 核心职责 #1：研发硬件助手产品系统架构的智能体（AI Agent）方向升级，考虑端、云、第三方 API 的分层设计 背景：传音 TECNO AI 助手 Ella、覆盖 70&#43; 国家/地区、2025 年 5 亿&#43; AI 请求
+一、现状与升级目标 # 1.1 当前架构痛点 # 痛点 表现 能力孤岛 Ella 的各功能（语音/翻译/写作/课业辅导）是独立模块，缺乏统一智能体调度 端云割裂 端侧推理与云端推理各自为战，任务路由依赖硬编码规则 第三方接入难 外部服务（如豆包图像生成）通过胶水代码接入，无标准化协议 扩展成本高 每新增一个能力，需要 Ella 端 &#43; 云端同步改造 弱网体验差 新兴市场网络不稳定，云端不可用时降级策略粗糙 1.2 升级目标 # 升级前：Ella = 功能模块集合（语音 &#43; 翻译 &#43; 视觉 &#43; 写作 ...） 升级后：Ella = AI Agent（意图理解 → 任务规划 → 端/云/三方能力编排 → 结果交付） 核心转变：从&quot;功能调用&quot;到&quot;智能体编排&quot;">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://www6v.github.io/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E7%AB%AF%E4%BA%91%E6%B7%B7%E5%90%88%E6%9E%B6%E6%9E%84/claw&#43;/">
+  <meta property="og:site_name" content="MLSys">
+  <meta property="og:title" content="MLSys">
+  <meta property="og:description" content="硬件助手产品系统架构 — AI Agent 方向升级（端·云·第三方 API 分层设计） # 面向职位：传音集团 · 资深后端开发 — 大模型算法部 核心职责 #1：研发硬件助手产品系统架构的智能体（AI Agent）方向升级，考虑端、云、第三方 API 的分层设计 背景：传音 TECNO AI 助手 Ella、覆盖 70&#43; 国家/地区、2025 年 5 亿&#43; AI 请求
+一、现状与升级目标 # 1.1 当前架构痛点 # 痛点 表现 能力孤岛 Ella 的各功能（语音/翻译/写作/课业辅导）是独立模块，缺乏统一智能体调度 端云割裂 端侧推理与云端推理各自为战，任务路由依赖硬编码规则 第三方接入难 外部服务（如豆包图像生成）通过胶水代码接入，无标准化协议 扩展成本高 每新增一个能力，需要 Ella 端 &#43; 云端同步改造 弱网体验差 新兴市场网络不稳定，云端不可用时降级策略粗糙 1.2 升级目标 # 升级前：Ella = 功能模块集合（语音 &#43; 翻译 &#43; 视觉 &#43; 写作 ...） 升级后：Ella = AI Agent（意图理解 → 任务规划 → 端/云/三方能力编排 → 结果交付） 核心转变：从&#34;功能调用&#34;到&#34;智能体编排&#34;">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="website">
+<title>Claw[ ] | MLSys</title>
+<link rel="icon" href="/www6vMLSys/favicon.png" >
+<link rel="manifest" href="/www6vMLSys/manifest.json">
+<link rel="canonical" href="https://www6v.github.io/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E7%AB%AF%E4%BA%91%E6%B7%B7%E5%90%88%E6%9E%B6%E6%9E%84/claw&#43;/">
+<link rel="stylesheet" href="/www6vMLSys/book.min.6c8b9d2a1fc95075ed7da46ca81060b39add8fff6741ac51259f768929281e2c.css" integrity="sha256-bIudKh/JUHXtfaRsqBBgs5rdj/9nQaxRJZ92iSkoHiw=" crossorigin="anonymous">
+  <script defer src="/www6vMLSys/fuse.min.js"></script>
+  <script defer src="/www6vMLSys/en.search.min.d594248518fa2a9931066040a9448183d47749b3a47fcc00e0496d62a93dcc35.js" integrity="sha256-1ZQkhRj6KpkxBmBAqUSBg9R3SbOkf8wA4EltYqk9zDU=" crossorigin="anonymous"></script>
+
+  
+
+<link rel="alternate" type="application/rss+xml" href="https://www6v.github.io/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E7%AB%AF%E4%BA%91%E6%B7%B7%E5%90%88%E6%9E%B6%E6%9E%84/claw+/index.xml" title="MLSys" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/www6vMLSys/"><span>MLSys</span>
+  </a>
+</h2>
+
+
+<div class="book-search hidden">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+<script>document.querySelector(".book-search").classList.remove("hidden")</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-46f9f019ac1cd81d3adb5dce8195fad5" class="toggle"  />
+    <label for="section-46f9f019ac1cd81d3adb5dce8195fad5" class="flex justify-between">
+      <a role="button" class="">Inference</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0df477e9a94394863b60b08953bb3faf" class="toggle"  />
+    <label for="section-0df477e9a94394863b60b08953bb3faf" class="flex justify-between">
+      <a role="button" class="">框架</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/Framework/" class="">(原理)推理-框架</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/FrameworkPractice/" class="">(实战)推理-lmdeploy</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/TensorRT/" class="">(原理|实战) TensorRT-LLM &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/Ray/" class="">(原理)推理 Ray</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/RayPractice/" class="">(实战)推理 Ray</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-e80661aabb05786d73bb02617f11551b" class="toggle"  />
+    <label for="section-e80661aabb05786d73bb02617f11551b" class="flex justify-between">
+      <a role="button" class="">框架vLLM</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLM/" class="">(原理) vLLM  &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMPractice/" class="">(实战) vLLM &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/SpeculativeDecodingvLLM/" class="">(实战)[vLLM]投机解码 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/KVCacheRadixAttention/" class="">(原理|实战) [vLLM]Prefix Cache &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMCode/" class="">(实现)[vLLM]整体架构 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMDist/" class="">(实现)[vLLM]分布式 *</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMPD/" class="">(实现)[vLLM]PD分离 *</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMSpeculativeDecode/" class="">(实现)[vLLM]投机解码 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMPrefixCaching/" class="">(实现)[vLLM]Prefix Caching &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMv1/" class="">(实现)[vLLM]V1 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-206d1962a731b68760cf02563d9a81c7" class="toggle"  />
+    <label for="section-206d1962a731b68760cf02563d9a81c7" class="flex justify-between">
+      <a role="button" class="">Inference 优化</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-9d5a2c196d1ea980f1966f0de0e49d52" class="toggle"  />
+    <label for="section-9d5a2c196d1ea980f1966f0de0e49d52" class="flex justify-between">
+      <a role="button" class="">Overview</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/Overview/Inference/" class="">(总结)推理优化</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/Overview/InferenceSurvey/" class="">(综述)推理优化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/Overview/InferenceSurvey1/" class="">(综述)推理优化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-733ec9f169a904e7d2ec539e5c012c44" class="toggle"  />
+    <label for="section-733ec9f169a904e7d2ec539e5c012c44" class="flex justify-between">
+      <a role="button" class="">系统层优化</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-1b6eb1bafb777938ce54ed28062f31be" class="toggle"  />
+    <label for="section-1b6eb1bafb777938ce54ed28062f31be" class="flex justify-between">
+      <a role="button" class="">FlashAttention</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/FlashAttention/FlashAttention/" class="">(原理)Flash Attention &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/FlashAttention/FlashAttention2/" class="">(原理)FlashAttention2 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/FlashAttention/FlashDecoding/" class="">(原理)Flash Decoding &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-90df0a4e1b32a319152ceba8d1068844" class="toggle"  />
+    <label for="section-90df0a4e1b32a319152ceba8d1068844" class="flex justify-between">
+      <a role="button" class="">SpeculativeDecoding</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/SpeculativeDecoding/" class="">Speculative Decoding &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/SpeculativeDecodingSurvey/" class="">(Survey)Speculative Decoding &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/Medusa/" class="">(原理|实现)Medusa &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/Eagle/" class="">EAGLE &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/SpecInfer/" class="">SpecInfer &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-84b07ff725756ccf253ca224735e34fe" class="toggle"  />
+    <label for="section-84b07ff725756ccf253ca224735e34fe" class="flex justify-between">
+      <a role="button" class="">KVCache</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/KVCache/KVCache/" class="">(原理|实现) KV Cache &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/KVCache/KVCacheOptimize/" class="">(原理)KV Cache 优化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-9fd8feeeaec2f719941a1e3edb14d741" class="toggle"  />
+    <label for="section-9fd8feeeaec2f719941a1e3edb14d741" class="flex justify-between">
+      <a role="button" class="">Compress</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/KVCache/Compress/gptInferKVCacheQuantization/" class="">(原理)KV Cache 量化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-58684618fdc4965e2b35a333cfc0751c" class="toggle"  />
+    <label for="section-58684618fdc4965e2b35a333cfc0751c" class="flex justify-between">
+      <a role="button" class="">Batch</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/Batch/ContinuousBatching/" class="">Continuous Batching &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/Batch/ChunkedPrefill/" class="">Chunked Prefill &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-2bda16ee9eb1cc424ad4bacfc46e2574" class="toggle"  />
+    <label for="section-2bda16ee9eb1cc424ad4bacfc46e2574" class="flex justify-between">
+      <a role="button" class="">PD 分离</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/DistServe/" class="">DistServe &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/Mooncake/" class="">(原理|实现)Mooncake &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/MooncakeA1/" class="">(A1)Mooncake 架构 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/PD%E5%88%86%E7%A6%BB/" class="">(A1)PD分离 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/Llumnix/" class="">(原理)Llumnix &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-d8e4bc101aba8bbf9039eb3ecb0f14f5" class="toggle"  />
+    <label for="section-d8e4bc101aba8bbf9039eb3ecb0f14f5" class="flex justify-between">
+      <a role="button" class="">模型层优化</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-d7414f59e2a23d21985181d6022ec263" class="toggle"  />
+    <label for="section-d7414f59e2a23d21985181d6022ec263" class="flex justify-between">
+      <a role="button" class="">量化</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-20f0402fb3cbae252a4184f400e05533" class="toggle"  />
+    <label for="section-20f0402fb3cbae252a4184f400e05533" class="flex justify-between">
+      <a role="button" class="">Overview</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/Overview/QuantizationSurvey/" class="">(Survey)Quantization &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/Overview/Quantization/" class="">(原理)量化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-ec2eb87afcd086e2bb436dac77ebdcbc" class="toggle"  />
+    <label for="section-ec2eb87afcd086e2bb436dac77ebdcbc" class="flex justify-between">
+      <a role="button" class="">PTQ</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/QuantizationWeight/" class="">(原理)PTQ-Weight Only &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-571b73d60a6cc0ec292d9f6baa3bece7" class="toggle"  />
+    <label for="section-571b73d60a6cc0ec292d9f6baa3bece7" class="flex justify-between">
+      <a role="button" class="">Weight Only</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/Weight-Only/QuantizationGPTQ/" class="">(原理|实战|实现)GPTQ &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/Weight-Only/QuantizationAWQ/" class="">(原理|实战)AWQ &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-c949cfd2d8034a11b389f2d023507d5e" class="toggle"  />
+    <label for="section-c949cfd2d8034a11b389f2d023507d5e" class="flex justify-between">
+      <a role="button" class="">Weight&amp;Activation</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/QuantizationInt8/gptQuantizationInt8/" class="">(原理|实战)LLM.int8() &#43;</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/QuantizationSmoothQuant/gptQuantizationSmoothQuant/" class="">(原理)SmoothQuant &#43;</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/QuantizationFP8/gptQuantizationFP8/" class="">(原理)FP8 &#43;</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-2cc6a020e92cde89b28dd1b9a8dde151" class="toggle"  />
+    <label for="section-2cc6a020e92cde89b28dd1b9a8dde151" class="flex justify-between">
+      <a role="button" class="">Practice</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/Practice/QuantizationPractice/" class="">(实战)量化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-c621aaebb7e229715dd0809d059d2fc9" class="toggle"  />
+    <label for="section-c621aaebb7e229715dd0809d059d2fc9" class="flex justify-between">
+      <a role="button" class="">Sparse Attention</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/Sparse-Attention/KVCacheStreamingLLM/" class="">(原理)Streaming LLM &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-d41c5815cabb16367a7704d1b8979f2c" class="toggle"  />
+    <label for="section-d41c5815cabb16367a7704d1b8979f2c" class="flex justify-between">
+      <a role="button" class="">TTFT</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/TTFT/TTFT/" class="">LLM 首字延迟（TTFT）优化方案</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/TTFT/TTFT1/" class="">LLM 首字延迟（TTFT）优化方案</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0510211b4577a4de8bc6d0c3b60e33ff" class="toggle"  />
+    <label for="section-0510211b4577a4de8bc6d0c3b60e33ff" class="flex justify-between">
+      <a role="button" class="">Training</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-9fc08442b7ae0ae2d037ffc5cac491be" class="toggle"  />
+    <label for="section-9fc08442b7ae0ae2d037ffc5cac491be" class="flex justify-between">
+      <a role="button" class="">分布式</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-57a5e3e5fe9ab455f342e1e697db1803" class="toggle"  />
+    <label for="section-57a5e3e5fe9ab455f342e1e697db1803" class="flex justify-between">
+      <a role="button" class="">Overview</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/Overview/TrainParallelism/" class="">(原理)分布式训练 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-8b31b6b471f5762e9d2da631bee73022" class="toggle"  />
+    <label for="section-8b31b6b471f5762e9d2da631bee73022" class="flex justify-between">
+      <a role="button" class="">DP</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainZeroDeepspeed/" class="">(原理) Deepspeed Zero &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainDistributedPractice/" class="">(实战)DeepSpeed Training &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainDDP/" class="">(原理|实战)DDP &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainFSDP/" class="">(原理|实战)FSDP &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3dc64482add8914f3b5f9110dbb829fa" class="toggle"  />
+    <label for="section-3dc64482add8914f3b5f9110dbb829fa" class="flex justify-between">
+      <a role="button" class="">TP</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/TP/TrainTensorParallelism/" class="">(原理)张量并行(TP) &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-8ff0d8df45f2751ebc315ae9eab02b9f" class="toggle"  />
+    <label for="section-8ff0d8df45f2751ebc315ae9eab02b9f" class="flex justify-between">
+      <a role="button" class="">PP</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/PP/TrainPipelineParallelism/" class="">(原理|实战)流水线并行(PP) &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-fbf3e2ed6e8d99c8615a31980d156c0b" class="toggle"  />
+    <label for="section-fbf3e2ed6e8d99c8615a31980d156c0b" class="flex justify-between">
+      <a role="button" class="">混合并行</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/%E6%B7%B7%E5%90%88%E5%B9%B6%E8%A1%8C/TrainMegatron/" class="">(原理)Megatron &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/%E6%B7%B7%E5%90%88%E5%B9%B6%E8%A1%8C/TrainHybridParallel/" class="">(原理)混合并行 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-19cde628a5e79f95519e1f1e2cf1e6a6" class="toggle"  />
+    <label for="section-19cde628a5e79f95519e1f1e2cf1e6a6" class="flex justify-between">
+      <a role="button" class="">低精度</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/LowPrecision/gptLowPrecision/" class="">低精度训练 &#43;</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/Precision/gptPrecision/" class="">(原理|实战)混合精度 &#43;</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-5d6602fbd107263f71b49720e8a5770b" class="toggle" checked />
+    <label for="section-5d6602fbd107263f71b49720e8a5770b" class="flex justify-between">
+      <a role="button" class="">AI平台</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/aiPlatform/" class="">(原理)AI平台</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/aiObserve/" class="">(阿里)AI 应用观测</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-17c42b222b84095c605f66bfd3a5d5af" class="toggle"  />
+    <label for="section-17c42b222b84095c605f66bfd3a5d5af" class="flex justify-between">
+      <a role="button" class="">AI网关</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/AI%E7%BD%91%E5%85%B3/LiteLLM/" class="">(实现)LiteLLM</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/AI%E7%BD%91%E5%85%B3/gateway/" class="">(阿里) AI 网关</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/AI%E7%BD%91%E5%85%B3/LiteLLM-routefallback/" class="">Lite Llm Route&amp;fallback</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-9aa1a1e7091b07da4599c138f61024b2" class="toggle"  />
+    <label for="section-9aa1a1e7091b07da4599c138f61024b2" class="flex justify-between">
+      <a role="button" class="">对话混合架构</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E5%AF%B9%E8%AF%9D%E6%B7%B7%E5%90%88%E6%9E%B6%E6%9E%84/claw/" class="">Claw</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E5%AF%B9%E8%AF%9D%E6%B7%B7%E5%90%88%E6%9E%B6%E6%9E%84/hermes/" class="">Hermes</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-9b09c4b066b1e1cccae213b0b98306e9" class="toggle"  />
+    <label for="section-9b09c4b066b1e1cccae213b0b98306e9" class="flex justify-between">
+      <a role="button" class="">开放平台</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E5%BC%80%E6%94%BE%E5%B9%B3%E5%8F%B0/claw/" class="">Claw</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E5%BC%80%E6%94%BE%E5%B9%B3%E5%8F%B0/hermes/" class="">Hermes</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-27989a5e3be10a7f5e8020a8a410d4e6" class="toggle" checked />
+    <label for="section-27989a5e3be10a7f5e8020a8a410d4e6" class="flex justify-between">
+      <a role="button" class="">端云混合架构</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E7%AB%AF%E4%BA%91%E6%B7%B7%E5%90%88%E6%9E%B6%E6%9E%84/claw&#43;/" class="active">Claw[ ]</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E7%AB%AF%E4%BA%91%E6%B7%B7%E5%90%88%E6%9E%B6%E6%9E%84/hermes/" class="">Hermes</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/LLMOps/" class="">LLMOps</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-d80e9a068046a412cee1ba7f653b5c86" class="toggle"  />
+    <label for="section-d80e9a068046a412cee1ba7f653b5c86" class="flex justify-between">
+      <a role="button" class="">MaaS</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/MaaS/MaaS1/" class="">MaaS</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/MaaS/MaaS2/" class="">MaaS</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/MaaS/MaaS3/" class="">智算中心[A1]</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/MaaS/MaaS-observe/" class="">MaaS 监控</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/MaaS/MaaSali/" class="">智能体基础设施[阿里][A1]</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/MaaS/MaaS-command/" class="">Maa S Command</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-62de713685ff13478495b8520fd59705" class="toggle"  />
+    <label for="section-62de713685ff13478495b8520fd59705" class="flex justify-between">
+      <a role="button" class="">Infra</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Infra/LLamaFactory/" class="">LLama-Factory</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-120653a01c96b9ed76377f47423942f0" class="toggle"  />
+    <label for="section-120653a01c96b9ed76377f47423942f0" class="flex justify-between">
+      <a role="button" class="">GPU</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Infra/GPU/GPUk8s/" class="">(实战)K8s部署GPU</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Infra/GPU/GPU%E6%9E%B6%E6%9E%84A1/" class="">(A1)GPU 架构 *</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Infra/GPU/GPUMetrics/" class="">GPU 指标&amp;监控</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Infra/GPU/GPU/" class="">GPU 算力平台</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-b4210e18b73dee1304d22035008e50e8" class="toggle"  />
+    <label for="section-b4210e18b73dee1304d22035008e50e8" class="flex justify-between">
+      <a role="button" class="">显存估算</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Infra/%E6%98%BE%E5%AD%98%E4%BC%B0%E7%AE%97/GPU-InferA1/" class="">(A1)推理显存估算 *</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Infra/%E6%98%BE%E5%AD%98%E4%BC%B0%E7%AE%97/GPUComputing/" class="">显存估算</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/www6vMLSys/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <h3>Claw[ ]</h3>
+
+  <label for="toc-control">
+    
+    <img src="/www6vMLSys/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#硬件助手产品系统架构--ai-agent-方向升级端云第三方-api-分层设计">硬件助手产品系统架构 — AI Agent 方向升级（端·云·第三方 API 分层设计）</a>
+      <ul>
+        <li><a href="#一现状与升级目标">一、现状与升级目标</a>
+          <ul>
+            <li><a href="#11-当前架构痛点">1.1 当前架构痛点</a></li>
+            <li><a href="#12-升级目标">1.2 升级目标</a></li>
+          </ul>
+        </li>
+        <li><a href="#二端云第三方-api-三层架构">二、端·云·第三方 API 三层架构</a>
+          <ul>
+            <li><a href="#21-总体分层">2.1 总体分层</a></li>
+            <li><a href="#22-三层边界与职责划分">2.2 三层边界与职责划分</a></li>
+            <li><a href="#23-端云智能调度策略">2.3 端云智能调度策略</a></li>
+          </ul>
+        </li>
+        <li><a href="#三第三方-api-统一接入层">三、第三方 API 统一接入层</a>
+          <ul>
+            <li><a href="#31-mcp-协议接入">3.1 MCP 协议接入</a></li>
+            <li><a href="#32-a2a-协议接入agent-间协作">3.2 A2A 协议接入（Agent 间协作）</a></li>
+            <li><a href="#33-统一治理">3.3 统一治理</a></li>
+          </ul>
+        </li>
+        <li><a href="#四核心技术实现">四、核心技术实现</a>
+          <ul>
+            <li><a href="#41-端侧-agent-运行时">4.1 端侧 Agent 运行时</a></li>
+            <li><a href="#42-云端-agent-编排引擎">4.2 云端 Agent 编排引擎</a></li>
+            <li><a href="#43-端云协同通信协议">4.3 端云协同通信协议</a></li>
+          </ul>
+        </li>
+        <li><a href="#五性能与稳定性保障">五、性能与稳定性保障</a>
+          <ul>
+            <li><a href="#51-关键性能指标">5.1 关键性能指标</a></li>
+            <li><a href="#52-高可用架构">5.2 高可用架构</a></li>
+          </ul>
+        </li>
+        <li><a href="#六云端-api-与第三方-api-不可用不稳定的应对方案">六、云端 API 与第三方 API 不可用/不稳定的应对方案</a>
+          <ul>
+            <li><a href="#61-核心原则多级降级逐级兜底">6.1 核心原则：多级降级，逐级兜底</a></li>
+            <li><a href="#62-云端-api-不可用应对">6.2 云端 API 不可用应对</a></li>
+            <li><a href="#63-第三方-api-不可用应对">6.3 第三方 API 不可用应对</a></li>
+            <li><a href="#64-熔断--重试--限流机制">6.4 熔断 · 重试 · 限流机制</a></li>
+            <li><a href="#65-监控与告警">6.5 监控与告警</a></li>
+            <li><a href="#66-降级决策流程图">6.6 降级决策流程图</a></li>
+          </ul>
+        </li>
+        <li><a href="#七落地路线">七、落地路线</a></li>
+        <li><a href="#七总结">七、总结</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><h1 id="硬件助手产品系统架构--ai-agent-方向升级端云第三方-api-分层设计">
+  硬件助手产品系统架构 — AI Agent 方向升级（端·云·第三方 API 分层设计）
+  <a class="anchor" href="#%e7%a1%ac%e4%bb%b6%e5%8a%a9%e6%89%8b%e4%ba%a7%e5%93%81%e7%b3%bb%e7%bb%9f%e6%9e%b6%e6%9e%84--ai-agent-%e6%96%b9%e5%90%91%e5%8d%87%e7%ba%a7%e7%ab%af%e4%ba%91%e7%ac%ac%e4%b8%89%e6%96%b9-api-%e5%88%86%e5%b1%82%e8%ae%be%e8%ae%a1">#</a>
+</h1>
+<blockquote>
+<p>面向职位：传音集团 · 资深后端开发 — 大模型算法部
+核心职责 #1：研发硬件助手产品系统架构的智能体（AI Agent）方向升级，考虑端、云、第三方 API 的分层设计
+背景：传音 TECNO AI 助手 Ella、覆盖 70+ 国家/地区、2025 年 5 亿+ AI 请求</p>
+</blockquote>
+<hr>
+<h2 id="一现状与升级目标">
+  一、现状与升级目标
+  <a class="anchor" href="#%e4%b8%80%e7%8e%b0%e7%8a%b6%e4%b8%8e%e5%8d%87%e7%ba%a7%e7%9b%ae%e6%a0%87">#</a>
+</h2>
+<h3 id="11-当前架构痛点">
+  1.1 当前架构痛点
+  <a class="anchor" href="#11-%e5%bd%93%e5%89%8d%e6%9e%b6%e6%9e%84%e7%97%9b%e7%82%b9">#</a>
+</h3>
+<table>
+<thead>
+<tr>
+<th>痛点</th>
+<th>表现</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>能力孤岛</td>
+<td>Ella 的各功能（语音/翻译/写作/课业辅导）是独立模块，缺乏统一智能体调度</td>
+</tr>
+<tr>
+<td>端云割裂</td>
+<td>端侧推理与云端推理各自为战，任务路由依赖硬编码规则</td>
+</tr>
+<tr>
+<td>第三方接入难</td>
+<td>外部服务（如豆包图像生成）通过胶水代码接入，无标准化协议</td>
+</tr>
+<tr>
+<td>扩展成本高</td>
+<td>每新增一个能力，需要 Ella 端 + 云端同步改造</td>
+</tr>
+<tr>
+<td>弱网体验差</td>
+<td>新兴市场网络不稳定，云端不可用时降级策略粗糙</td>
+</tr>
+</tbody>
+</table>
+<h3 id="12-升级目标">
+  1.2 升级目标
+  <a class="anchor" href="#12-%e5%8d%87%e7%ba%a7%e7%9b%ae%e6%a0%87">#</a>
+</h3>
+<pre tabindex="0"><code>升级前：Ella = 功能模块集合（语音 + 翻译 + 视觉 + 写作 ...）
+升级后：Ella = AI Agent（意图理解 → 任务规划 → 端/云/三方能力编排 → 结果交付）
+</code></pre><p><strong>核心转变</strong>：从&quot;功能调用&quot;到&quot;智能体编排&quot;</p>
+<hr>
+<h2 id="二端云第三方-api-三层架构">
+  二、端·云·第三方 API 三层架构
+  <a class="anchor" href="#%e4%ba%8c%e7%ab%af%e4%ba%91%e7%ac%ac%e4%b8%89%e6%96%b9-api-%e4%b8%89%e5%b1%82%e6%9e%b6%e6%9e%84">#</a>
+</h2>
+<h3 id="21-总体分层">
+  2.1 总体分层
+  <a class="anchor" href="#21-%e6%80%bb%e4%bd%93%e5%88%86%e5%b1%82">#</a>
+</h3>
+<pre tabindex="0"><code>┌─────────────────────────────────────────────────────────────────┐
+│                        用户交互层                                │
+│  语音交互 │ 文本对话 │ 视觉交互 │ 手势/触控 │ 多设备（OneLeap）   │
+├─────────────────────────────────────────────────────────────────┤
+│                    【端侧层 — On-Device】                         │
+│                                                                 │
+│  ┌──────────────┐ ┌──────────────┐ ┌────────────────────────┐   │
+│  │ 端侧 Agent    │ │ 端侧能力     │ │ 端侧 Memory            │   │
+│  │ （轻量编排）  │ │ ├─ 离线翻译  │ │ ├─ 短期对话上下文       │   │
+│  │              │ │ ├─ 离线语音  │ │ ├─ 本地偏好设置         │   │
+│  │ ├─ 意图路由  │ │ ├─ 轻量 OCR  │ │ └─ 缓存知识             │   │
+│  │ ├─ 端云调度  │ │ ├─ AI 降噪   │ │                        │   │
+│  │ └─ 离线降级  │ │ ├─ 端侧 AIGC │ │                        │   │
+│  └──────────────┘ │ └─ 端侧生图  │ └────────────────────────┘   │
+│                   │  (30fps)    │                                │
+│                   └──────────────┘                                │
+│                   推理引擎：NPU/DSP 量化模型                       │
+├─────────────────────────────────────────────────────────────────┤
+│                    【云端层 — Cloud Platform】                    │
+│                                                                 │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │              Agent 编排引擎（核心）                        │   │
+│  │                                                          │   │
+│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────────┐  │   │
+│  │  │ 任务规划  │ │ 工具选择  │ │ 状态管理  │ │ 安全拦截   │  │   │
+│  │  │ Planner  │ │ Selector │ │ State    │ │ Guardrail  │  │   │
+│  │  └──────────┘ └──────────┘ └──────────┘ └────────────┘  │   │
+│  └──────────────────┬───────────────────────────────────────┘   │
+│                     │                                           │
+│  ┌──────────────────┼──────────────────┬────────────────────┐   │
+│  │                  │                  │                    │   │
+│  ▼                  ▼                  ▼                    ▼   │
+│ ┌────────┐  ┌──────────────┐  ┌──────────────┐  ┌────────────┐ │
+│ │ 自研   │  │ 大模型推理   │  │ 记忆/检索    │  │ 数据/业务  │ │
+│ │ 能力   │  │ (Gemini等)   │  │ (RAG+向量库) │  │ 服务       │ │
+│ │ 服务   │  │              │  │              │  │            │ │
+│ │·语音   │  │              │  │              │  │            │ │
+│ │·翻译   │  │              │  │              │  │            │ │
+│ │·视觉   │  │              │  │              │  │            │ │
+│ └────────┘  └──────────────┘  └──────────────┘  └────────────┘ │
+├─────────────────────────────────────────────────────────────────┤
+│                  【第三方 API 层 — Third-Party】                 │
+│                                                                 │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐          │
+│  │ 图像生成 │ │ 视频生成 │ │ 地图/    │ │ 生活服务 │ ...       │
+│  │ (豆包)   │ │ (Veo)    │ │ 天气     │ │ API      │          │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘          │
+│                                                                 │
+│  统一接入：MCP Server 协议 / A2A Agent 协议                     │
+│  统一治理：限流 / 熔断 / 降级 / 计量 / 计费                     │
+└─────────────────────────────────────────────────────────────────┘
+</code></pre><h4 id="211-架构说明">
+  2.1.1 架构说明
+  <a class="anchor" href="#211-%e6%9e%b6%e6%9e%84%e8%af%b4%e6%98%8e">#</a>
+</h4>
+<p><strong>（1）三层职责与数据流向</strong></p>
+<pre tabindex="0"><code>┌─────────┐     请求上行      ┌─────────┐     能力调用      ┌────────────┐
+│  端侧   │ ─────────────────→ │  云端   │ ────────────────→ │ 第三方 API  │
+│ (决策层) │ ←───────────────── │ (编排层) │ ←─────────────── │ (能力层)    │
+└─────────┘     结果下行      └─────────┘     结果返回      └────────────┘
+
+数据流向说明：
+• 上行：端侧 → 云端（携带意图分类结果、网络状态、设备能力、用户输入）
+• 编排：云端 Agent 编排引擎接收请求，进行任务规划 + 工具选择
+• 外调：云端按需调用第三方 API（MCP/A2A 协议），获取垂类专业能力
+• 下行：结果经云端聚合/格式化后返回端侧渲染
+• 端侧直出：部分请求在端侧即可闭环，不经过云端
+</code></pre><p><strong>（2）各层关键组件说明</strong></p>
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>组件</th>
+<th>说明</th>
+<th>技术选型建议</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>端侧</strong></td>
+<td>意图分类器</td>
+<td>轻量 NLP 模型，对用户输入做意图路由</td>
+<td>MobileBERT / TinyLLM（&lt; 100M 参数），NPU 推理</td>
+</tr>
+<tr>
+<td></td>
+<td>能力注册表</td>
+<td>端侧已部署能力的清单 + 版本 + 状态</td>
+<td>本地 SQLite + 热更新</td>
+</tr>
+<tr>
+<td></td>
+<td>端云调度器</td>
+<td>根据意图/网络/隐私决定路由策略</td>
+<td>规则引擎 + 轻量决策树</td>
+</tr>
+<tr>
+<td></td>
+<td>本地 Memory</td>
+<td>对话上下文、用户偏好、缓存知识</td>
+<td>SQLite + 轻量向量索引（Qdrant-lite）</td>
+</tr>
+<tr>
+<td><strong>云端</strong></td>
+<td>Agent 编排引擎</td>
+<td>核心中枢：任务规划 + 工具选择 + 状态管理</td>
+<td>Go 微服务 + LLM（Gemini/Claude）驱动 Planning</td>
+</tr>
+<tr>
+<td></td>
+<td>RAG 引擎</td>
+<td>文档检索 + 知识增强</td>
+<td>Milvus/Weaviate + Embedding 模型</td>
+</tr>
+<tr>
+<td></td>
+<td>Guardrail</td>
+<td>内容安全 + 权限校验</td>
+<td>多层过滤（关键词 + 分类模型 + 人工规则）</td>
+</tr>
+<tr>
+<td></td>
+<td>全局 Memory</td>
+<td>跨会话用户画像 + 长期记忆</td>
+<td>分布式 KV + 向量数据库</td>
+</tr>
+<tr>
+<td><strong>第三方</strong></td>
+<td>MCP Server</td>
+<td>统一工具注册 + JSON-RPC 调用</td>
+<td>MCP SDK + 自建 Proxy</td>
+</tr>
+<tr>
+<td></td>
+<td>A2A Gateway</td>
+<td>Agent 间发现 + 任务委托</td>
+<td>A2A 协议栈 + Agent Card Registry</td>
+</tr>
+<tr>
+<td></td>
+<td>治理网关</td>
+<td>限流 + 熔断 + 计量 + 计费</td>
+<td>API Gateway（Kong/APISIX）+ 自定义中间件</td>
+</tr>
+</tbody>
+</table>
+<p><strong>（3）层级间通信协议</strong></p>
+<table>
+<thead>
+<tr>
+<th>通信路径</th>
+<th>协议</th>
+<th>格式</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>端侧 ↔ 云端</td>
+<td>gRPC / Protobuf</td>
+<td>二进制</td>
+<td>低延迟、弱网友好、强类型</td>
+</tr>
+<tr>
+<td>云端 ↔ 第三方（工具）</td>
+<td>MCP（JSON-RPC 2.0）</td>
+<td>JSON</td>
+<td>标准化工具描述与调用</td>
+</tr>
+<tr>
+<td>云端 ↔ 第三方（Agent）</td>
+<td>A2A</td>
+<td>JSON + HTTP</td>
+<td>Agent 能力发现 + 任务级协作</td>
+</tr>
+<tr>
+<td>端侧内部</td>
+<td>IPC（Binder/MessageQueue）</td>
+<td>二进制</td>
+<td>Android 端内组件通信</td>
+</tr>
+</tbody>
+</table>
+<p><strong>（4）端云部署拓扑</strong></p>
+<pre tabindex="0"><code>                        ┌──────────────────┐
+                        │   CDN / Edge     │
+                        │  (静态资源缓存)   │
+                        └────────┬─────────┘
+                                 │
+                        ┌────────▼─────────┐
+                        │  API Gateway     │
+                        │  (鉴权/限流/路由) │
+                        └────────┬─────────┘
+                                 │
+              ┌──────────────────┼──────────────────┐
+              ▼                  ▼                  ▼
+        ┌──────────┐      ┌──────────┐      ┌──────────┐
+        │  Agent    │      │  业务    │      │  数据    │
+        │  编排引擎  │      │  服务    │      │  服务    │
+        │          │      │          │      │          │
+        │·Planner  │      │·语音服务 │      │·RAG检索  │
+        │·Selector │      │·翻译服务 │      │·Memory   │
+        │·State    │      │·视觉服务 │      │·Analytics│
+        └────┬─────┘      └────┬─────┘      └────┬─────┘
+             │                 │                  │
+             └─────────────────┼──────────────────┘
+                               │
+                        ┌──────▼──────┐
+                        │  MCP/A2A   │
+                        │  治理网关    │
+                        └──────┬──────┘
+                               │
+                    ┌──────────┼──────────┐
+                    ▼          ▼          ▼
+                 ┌────┐   ┌────┐   ┌────┐
+                 │豆包│   │Veo │   │... │
+                 └────┘   └────┘   └────┘
+</code></pre><p><strong>（5）资源预算约束</strong></p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>端侧约束</th>
+<th>云端约束</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>内存</td>
+<td>&lt; 500MB（端侧模型 + Memory）</td>
+<td>弹性扩缩（K8s HPA）</td>
+</tr>
+<tr>
+<td>CPU/NPU</td>
+<td>NPU/DSP 优先，CPU 兜底</td>
+<td>GPU 集群（A100/H100/L4）</td>
+</tr>
+<tr>
+<td>存储</td>
+<td>&lt; 2GB（模型 + 缓存）</td>
+<td>分布式存储（PB 级）</td>
+</tr>
+<tr>
+<td>网络</td>
+<td>2G/3G/4G/WiFi 均要可用</td>
+<td>专线 + 多区域</td>
+</tr>
+<tr>
+<td>功耗</td>
+<td>单次推理 &lt; 1% 电量</td>
+<td>不考虑</td>
+</tr>
+</tbody>
+</table>
+<h3 id="22-三层边界与职责划分">
+  2.2 三层边界与职责划分
+  <a class="anchor" href="#22-%e4%b8%89%e5%b1%82%e8%be%b9%e7%95%8c%e4%b8%8e%e8%81%8c%e8%b4%a3%e5%88%92%e5%88%86">#</a>
+</h3>
+<h4 id="221-核心职责矩阵">
+  2.2.1 核心职责矩阵
+  <a class="anchor" href="#221-%e6%a0%b8%e5%bf%83%e8%81%8c%e8%b4%a3%e7%9f%a9%e9%98%b5">#</a>
+</h4>
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>核心职责</th>
+<th>典型场景</th>
+<th>技术要求</th>
+<th>失败策略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>端侧</strong></td>
+<td>意图初判、快速响应、离线可用、隐私保护</td>
+<td>离线翻译、语音唤醒、简单问答、AI 降噪</td>
+<td>NPU/DSP 量化模型、&lt; 500MB 内存、&lt; 100ms 响应</td>
+<td>降级到缓存 / 友好提示</td>
+</tr>
+<tr>
+<td><strong>云端</strong></td>
+<td>复杂推理、多步任务规划、大模型调用、全局记忆</td>
+<td>AI Writing、多步任务执行、跨设备协同</td>
+<td>高并发微服务、GPU 集群、向量数据库</td>
+<td>切备用模型 / 降级到端侧</td>
+</tr>
+<tr>
+<td><strong>第三方</strong></td>
+<td>垂类专业能力补充</td>
+<td>图像/视频生成、地图导航、外卖/打车</td>
+<td>MCP/A2A 协议、API 网关、统一鉴权</td>
+<td>切备用供应商 / 异步队列</td>
+</tr>
+</tbody>
+</table>
+<h4 id="222-边界判定原则">
+  2.2.2 边界判定原则
+  <a class="anchor" href="#222-%e8%be%b9%e7%95%8c%e5%88%a4%e5%ae%9a%e5%8e%9f%e5%88%99">#</a>
+</h4>
+<p>三层之间不是随意分工，而是有明确的<strong>边界判定原则</strong>，确保每个请求都能被最合适的层级处理：</p>
+<pre tabindex="0"><code>判定维度：
+
+① 算力需求
+   低算力（文本分类、简单翻译、规则匹配）
+     → 端侧
+
+   中高算力（多轮对话、逻辑推理、代码生成）
+     → 云端
+
+   专业算力（图像/视频生成、3D 渲染）
+     → 第三方
+
+② 数据敏感性
+   高敏感（健康数据、通讯录、密码、生物特征）
+     → 优先端侧
+
+   中敏感（位置信息、个人偏好）
+     → 端侧 or 云端（用户授权）
+
+   低敏感（天气、新闻、公开知识）
+     → 云端 or 第三方
+
+③ 实时性要求
+   强实时（&lt; 200ms：语音通话、实时翻译）
+     → 端侧
+
+   弱实时（&lt; 3s：问答、写作）
+     → 云端
+
+   非实时（&gt; 3s：生图、生视频、搜索）
+     → 云端 + 第三方（可异步）
+
+④ 网络依赖
+   离线可用
+     → 端侧
+
+   需要联网但弱网可接受
+     → 云端（带降级策略）
+
+   必须联网
+     → 云端 + 第三方（带熔断保护）
+</code></pre><h4 id="223-能力分层清单">
+  2.2.3 能力分层清单
+  <a class="anchor" href="#223-%e8%83%bd%e5%8a%9b%e5%88%86%e5%b1%82%e6%b8%85%e5%8d%95">#</a>
+</h4>
+<p>将 Ella 的核心能力按层级归类，形成清晰的能力清单：</p>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>归属层级</th>
+<th>部署位置</th>
+<th>是否可离线</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>语音唤醒</td>
+<td>端侧</td>
+<td>NPU 轻量模型</td>
+<td>✅</td>
+<td>始终在端侧，无需网络</td>
+</tr>
+<tr>
+<td>离线翻译（5 语言）</td>
+<td>端侧</td>
+<td>NPU 量化翻译模型</td>
+<td>✅</td>
+<td>覆盖非洲/东南亚主要语言</td>
+</tr>
+<tr>
+<td>AI 降噪</td>
+<td>端侧</td>
+<td>DSP 音频处理</td>
+<td>✅</td>
+<td>通话/会议实时降噪</td>
+</tr>
+<tr>
+<td>轻量 OCR</td>
+<td>端侧</td>
+<td>NPU 视觉模型</td>
+<td>✅</td>
+<td>文字提取、二维码识别</td>
+</tr>
+<tr>
+<td>简单问答（FAQ）</td>
+<td>端侧</td>
+<td>本地向量库 + 轻量模型</td>
+<td>✅</td>
+<td>高频问题本地回答</td>
+</tr>
+<tr>
+<td>语音识别（完整）</td>
+<td>云端</td>
+<td>ASR 微服务</td>
+<td>❌</td>
+<td>高精度、多语种</td>
+</tr>
+<tr>
+<td>语音合成（自然音）</td>
+<td>云端</td>
+<td>TTS 微服务</td>
+<td>❌</td>
+<td>多情感、多音色</td>
+</tr>
+<tr>
+<td>AI 写作/续写</td>
+<td>云端</td>
+<td>LLM（Gemini/Claude）</td>
+<td>❌</td>
+<td>长文本生成、润色</td>
+</tr>
+<tr>
+<td>多步任务规划</td>
+<td>云端</td>
+<td>Agent 编排引擎</td>
+<td>❌</td>
+<td>意图拆解、工具编排</td>
+</tr>
+<tr>
+<td>RAG 知识检索</td>
+<td>云端</td>
+<td>向量数据库 + Embedding</td>
+<td>❌</td>
+<td>本地知识 + 互联网知识</td>
+</tr>
+<tr>
+<td>跨设备协同</td>
+<td>云端</td>
+<td>路由服务 + 推送服务</td>
+<td>❌</td>
+<td>OneLeap 设备间同步</td>
+</tr>
+<tr>
+<td>AI 图像生成</td>
+<td>第三方</td>
+<td>豆包 / SD（MCP 协议）</td>
+<td>❌</td>
+<td>文生图、图生图</td>
+</tr>
+<tr>
+<td>AI 视频生成</td>
+<td>第三方</td>
+<td>Veo / Runway（MCP 协议）</td>
+<td>❌</td>
+<td>文生视频</td>
+</tr>
+<tr>
+<td>地图/导航</td>
+<td>第三方</td>
+<td>Google Maps / 高德（API）</td>
+<td>❌</td>
+<td>路线规划、POI 查询</td>
+</tr>
+<tr>
+<td>天气查询</td>
+<td>第三方</td>
+<td>OpenWeather / 天气网（API）</td>
+<td>❌</td>
+<td>实时天气、预报</td>
+</tr>
+<tr>
+<td>生活服务</td>
+<td>第三方</td>
+<td>外卖/打车/快递（A2A）</td>
+<td>❌</td>
+<td>Agent 间任务委托</td>
+</tr>
+</tbody>
+</table>
+<h4 id="224-数据流转边界">
+  2.2.4 数据流转边界
+  <a class="anchor" href="#224-%e6%95%b0%e6%8d%ae%e6%b5%81%e8%bd%ac%e8%be%b9%e7%95%8c">#</a>
+</h4>
+<p>三层之间的数据流动遵循<strong>最小必要原则</strong>：</p>
+<pre tabindex="0"><code>数据流转规则：
+
+┌─────────────┐      最小必要数据       ┌─────────────┐
+│             │ ──────────────────────→ │             │
+│   端侧       │                        │   云端       │
+│             │ ←────────────────────── │             │
+└─────────────┘     处理结果 / 配置      └─────────────┘
+
+规则：
+• 端侧 → 云端：仅上传任务所需最小数据（意图类型 + 输入内容 + 设备上下文）
+• 云端 → 第三方：经 Agent 编排引擎过滤后的结构化请求，不暴露用户原始输入
+• 云端 → 端侧：返回聚合/格式化后的结果，不暴露内部处理细节
+• 敏感数据默认不出端，除非用户明确授权
+
+隐私保护分级：
+┌──────┬──────────────────┬──────────────┬───────────────┐
+│ 级别 │ 数据类型          │ 处理位置      │ 传输方式       │
+├──────┼──────────────────┼──────────────┼───────────────┤
+│ L0   │ 公开信息（天气等） │ 云端/第三方   │ 明文/HTTPS     │
+│ L1   │ 个人偏好          │ 云端（授权）  │ 加密传输       │
+│ L2   │ 位置/通讯录       │ 优先端侧      │ 加密传输 + 脱敏│
+│ L3   │ 生物特征/密码     │ 仅端侧        │ 不出端         │
+└──────┴──────────────────┴──────────────┴───────────────┘
+</code></pre><h4 id="225-端云能力的协同与互补">
+  2.2.5 端云能力的协同与互补
+  <a class="anchor" href="#225-%e7%ab%af%e4%ba%91%e8%83%bd%e5%8a%9b%e7%9a%84%e5%8d%8f%e5%90%8c%e4%b8%8e%e4%ba%92%e8%a1%a5">#</a>
+</h4>
+<p>三层不是孤立存在，而是<strong>协同互补</strong>的关系：</p>
+<pre tabindex="0"><code>协同模式：
+
+1. 串联协同（Pipeline）
+   端侧预处理 → 云端推理 → 第三方能力补充 → 端侧渲染
+   例：拍照解题 = 端侧 OCR → 云端 LLM 解题 → 端侧展示
+
+2. 并行协同（Parallel）
+   云端同时调用多个第三方能力，汇总结果
+   例：行程规划 = 天气 API + 地图 API + 餐饮 API → LLM 整合
+
+3. 竞争协同（Fallback）
+   主能力不可用时，自动切换到备选能力
+   例：豆包不可用 → SD 自建 → 返回缓存
+
+4. 增强协同（Augmentation）
+   端侧轻量模型 + 云端大模型协同推理
+   例：端侧意图初判 → 云端深度理解 → 结果回灌端侧模型
+</code></pre><h3 id="23-端云智能调度策略">
+  2.3 端云智能调度策略
+  <a class="anchor" href="#23-%e7%ab%af%e4%ba%91%e6%99%ba%e8%83%bd%e8%b0%83%e5%ba%a6%e7%ad%96%e7%95%a5">#</a>
+</h3>
+<h4 id="231-端侧-agent-轻量编排">
+  2.3.1 端侧 Agent 轻量编排
+  <a class="anchor" href="#231-%e7%ab%af%e4%be%a7-agent-%e8%bd%bb%e9%87%8f%e7%bc%96%e6%8e%92">#</a>
+</h4>
+<p>端侧 Agent 是 Ella 的&quot;第一道关卡&quot;，负责在 50ms 内做出路由决策。其核心是一个<strong>轻量级意图分类器 + 规则调度引擎</strong>，不依赖大模型。</p>
+<pre tabindex="0"><code>┌─────────────────────────────────────────────────────────┐
+│                  端侧 Agent 轻量编排                      │
+│                                                         │
+│  ┌───────────┐    ┌───────────┐    ┌──────────────────┐ │
+│  │ 输入解析   │───→│ 意图分类  │───→│ 路由决策引擎      │ │
+│  │ (文本/音频 │    │ (LiteModel│    │                  │ │
+│  │  /图像)    │    │  &lt;100M)   │    │ 5 维决策因子:     │ │
+│  └───────────┘    └───────────┘    │                  │ │
+│                   ┌───────────┐    │ ① 意图复杂度      │ │
+│  ┌───────────┐    │ 能力注册表 │    │ ② 网络质量        │ │
+│  │ 网络探针   │───→│ (Capability│    │ ③ 能力可用性      │ │
+│  │ (RTT/BW)  │    │  Registry) │    │ ④ 隐私分级        │ │
+│  └───────────┘    └───────────┘    │ ⑤ 延迟预算        │ │
+│                   ┌───────────┐    │                  │ │
+│  ┌───────────┐    │ 本地 Memory│    │ 输出: 路由目标    │ │
+│  │ 隐私分级器 │───→│ (上下文/   │    │ DEVICE/CLOUD/    │ │
+│  │ (数据敏感度│    │  偏好/缓存) │    │ HYBRID/DEGRADED  │ │
+│  │  判定)     │    └───────────┘    │                  │ │
+│  └───────────┘                     └──────────────────┘ │
+└─────────────────────────────────────────────────────────┘
+</code></pre><p><strong>五大决策因子详解</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>因子</th>
+<th>检测方式</th>
+<th>权重</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>① 意图复杂度</td>
+<td>LiteModel 意图分类（单标签/多标签/开放域）</td>
+<td>最高</td>
+<td>简单意图（翻译/闹钟）→ 端侧；复杂意图（写作/解题）→ 云端</td>
+</tr>
+<tr>
+<td>② 网络质量</td>
+<td>端侧探针：RTT + 带宽估算 + 丢包率</td>
+<td>高</td>
+<td>RTT &gt; 500ms 或带宽 &lt; 100Kbps → 弱网模式</td>
+</tr>
+<tr>
+<td>③ 能力可用性</td>
+<td>CapabilityRegistry 查询端侧能力状态</td>
+<td>高</td>
+<td>端侧无对应能力 → 必须上云</td>
+</tr>
+<tr>
+<td>④ 隐私分级</td>
+<td>输入数据分类（公开/个人/敏感/机密）</td>
+<td>中</td>
+<td>敏感数据（健康/通讯录/密码）→ 优先端侧</td>
+</tr>
+<tr>
+<td>⑤ 延迟预算</td>
+<td>任务类型绑定的最大可接受延迟</td>
+<td>中</td>
+<td>实时场景（语音通话）→ 端侧优先</td>
+</tr>
+</tbody>
+</table>
+<p><strong>决策伪代码</strong>：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// 端侧路由决策（Go 伪代码）
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">d</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">DeviceDispatcher</span>) <span style="color:#a6e22e">Route</span>(<span style="color:#a6e22e">req</span> <span style="color:#a6e22e">Request</span>) <span style="color:#a6e22e">RouteTarget</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 1. 意图分类
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">intent</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">d</span>.<span style="color:#a6e22e">intentClassifier</span>.<span style="color:#a6e22e">Predict</span>(<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">Input</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">complexity</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">intent</span>.<span style="color:#a6e22e">Complexity</span>  <span style="color:#75715e">// SIMPLE / MEDIUM / COMPLEX
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 2. 隐私分级
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">privacyLevel</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">d</span>.<span style="color:#a6e22e">privacyScorer</span>.<span style="color:#a6e22e">Score</span>(<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">Input</span>)  <span style="color:#75715e">// PUBLIC / PERSONAL / SENSITIVE
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 3. 网络探测
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">netStatus</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">d</span>.<span style="color:#a6e22e">networkProbe</span>.<span style="color:#a6e22e">Measure</span>()  <span style="color:#75715e">// GOOD / FAIR / POOR / OFFLINE
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 4. 能力匹配
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">capMatch</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">d</span>.<span style="color:#a6e22e">capRegistry</span>.<span style="color:#a6e22e">Match</span>(<span style="color:#a6e22e">intent</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">capOnDevice</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">capMatch</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">capMatch</span>.<span style="color:#a6e22e">IsAvailableOnDevice</span>()
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 5. 路由决策
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">switch</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">netStatus</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">OFFLINE</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">capOnDevice</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">DEVICE</span>  <span style="color:#75715e">// 离线 + 端侧有能力 → 端侧处理
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">netStatus</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">OFFLINE</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">DEGRADED</span>  <span style="color:#75715e">// 离线 + 无能力 → 降级
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">privacyLevel</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">SENSITIVE</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">capOnDevice</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">DEVICE</span>  <span style="color:#75715e">// 敏感数据 + 端侧有能力 → 端侧处理（数据不出端）
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">complexity</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">SIMPLE</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">capOnDevice</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">netStatus</span> <span style="color:#f92672">!=</span> <span style="color:#a6e22e">GOOD</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">DEVICE</span>  <span style="color:#75715e">// 简单任务 + 端侧有能力 + 弱网 → 端侧处理
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">complexity</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">COMPLEX</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">HYBRID</span>  <span style="color:#75715e">// 复杂任务 → 混合处理（端侧预处理 + 云端推理 + 端侧渲染）
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">netStatus</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">GOOD</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">CLOUD</span>  <span style="color:#75715e">// 网络好 → 云端处理（体验最佳）
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">default</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">CLOUD</span>  <span style="color:#75715e">// 兜底：云端
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><hr>
+<h4 id="232-端云调度场景矩阵">
+  2.3.2 端云调度场景矩阵
+  <a class="anchor" href="#232-%e7%ab%af%e4%ba%91%e8%b0%83%e5%ba%a6%e5%9c%ba%e6%99%af%e7%9f%a9%e9%98%b5">#</a>
+</h4>
+<p>以下列举 Ella 产品的典型场景，展示不同条件下端云调度的差异化路径：</p>
+<p><strong>场景 1：实时翻译（端侧直出）</strong></p>
+<pre tabindex="0"><code>用户：&#34;这句话用斯瓦希里语怎么说？&#34;
+
+┌──────────┐    意图: 翻译    ┌──────────┐
+│  端侧    │ ──────────────→ │  端侧    │
+│  输入    │                  │ 离线翻译  │
+│          │ ←─────────────── │  引擎    │
+│  输出    │    翻译结果       │ (NPU)    │
+└──────────┘                  └──────────┘
+
+• 路由: DEVICE（端侧直出）
+• 延迟: &lt; 100ms
+• 网络: 不需要
+• 特点: 高频、低复杂度、端侧能力成熟
+</code></pre><p><strong>场景 2：拍照解题（混合处理 — 端侧预处理 + 云端推理 + 端侧渲染）</strong></p>
+<pre tabindex="0"><code>用户：拍摄数学题照片，请求解答
+
+端侧预处理                    云端推理                      端侧渲染
+┌──────────┐               ┌──────────┐               ┌──────────┐
+│ 图像采集  │               │          │               │          │
+│ 图像增强  │───压缩上传───→│ OCR 提取 │───解题请求───→│ LLM 解题 │
+│ 端侧 OCR  │               │ 文本理解  │←──解题结果────│          │
+│ (轻量)    │               │ (Gemini) │               │          │
+│          │               │          │               │ 结果展示  │
+│          │               │          │               │ 图文排版  │
+│          │               │          │               │ 语音播报  │
+└──────────┘               └──────────┘               └──────────┘
+
+• 路由: HYBRID（端云混合）
+• 延迟: 端侧预处理 &lt; 200ms + 云端推理 &lt; 2s + 渲染 &lt; 100ms
+• 特点: 端侧完成计算密集型预处理，云端负责复杂推理
+</code></pre><p><strong>场景 3：AI 写作（云端主导）</strong></p>
+<pre tabindex="0"><code>用户：&#34;帮我写一封英文求职信&#34;
+
+┌──────────┐              ┌──────────────────────┐              ┌──────────┐
+│  端侧    │───文本请求───→│       云端            │              │          │
+│  输入    │              │  Agent 编排引擎       │              │  第三方   │
+│          │              │  ├─ Planner: 写作规划  │───MCP调用───→│ 词典/语料 │
+│          │←──长文本返回──│  ├─ Gemini: 内容生成   │←──结果──────│ API      │
+│          │              │  └─ Guardrail: 安全检查│              │          │
+│  输出    │              │  Memory: 写入用户画像  │              │          │
+└──────────┘              └──────────────────────┘              └──────────┘
+
+• 路由: CLOUD（云端主导）
+• 延迟: 首 Token &lt; 500ms，完整回复 &lt; 3s
+• 特点: 需要大模型推理 + 知识增强 + 可能的第三方 API
+</code></pre><p><strong>场景 4：AI 图像生成（云端 + 第三方 API）</strong></p>
+<pre tabindex="0"><code>用户：&#34;帮我生成一张非洲日落的水彩画&#34;
+
+端侧                  云端编排                  MCP Server              第三方
+┌──────┐           ┌──────────┐             ┌──────────┐            ┌──────┐
+│ 文本  │───请求───→│ Agent    │───选择工具──→│ 图像生成  │───API 调用──→│ 豆包  │
+│ 输入  │           │ 编排引擎  │             │ MCP Server│             │ API  │
+│      │←──图片────│          │←──图片URL────│           │←──生成结果───│      │
+│ 展示  │           │          │             │           │             │      │
+└──────┘           └──────────┘             └──────────┘            └──────┘
+
+• 路由: CLOUD + Third-Party
+• 延迟: 3-8s（依赖第三方生成速度）
+• 降级: 豆包不可用 → 切 Stable Diffusion（自建）→ 返回缓存示例图
+</code></pre><p><strong>场景 5：跨设备协同（云端主导 + 端侧分发）</strong></p>
+<pre tabindex="0"><code>用户：在手机语音说&#34;把我的会议日程同步到手表&#34;
+
+手机（发起端）                  云端                      手表（目标端）
+┌──────────┐               ┌──────────┐               ┌──────────┐
+│ 语音唤醒  │               │          │               │          │
+│ 语音识别  │───请求───────→│ Agent    │───查询日历───→│ 推送日程  │
+│ 意图:同步 │               │ 编排引擎  │←──日程数据────│ 卡片渲染  │
+│          │               │          │               │          │
+│ 确认提示  │←──执行结果────│ 路由结果  │───写入日历───→│ 震动提醒  │
+└──────────┘               └──────────┘               └──────────┘
+
+• 路由: CLOUD（多设备协同需要云端中转）
+• 延迟: &lt; 1s（端到端）
+• 特点: 涉及多个设备，必须云端统一调度
+</code></pre><p><strong>场景 6：弱网下的简单问答（端侧降级）</strong></p>
+<pre tabindex="0"><code>用户在 2G 网络下：&#34;明天天气怎么样？&#34;
+
+┌──────────┐                              ┌──────────┐
+│  端侧    │                              │  端侧    │
+│  输入    │── 意图:天气 ──→ ┌──────────┐ │  降级    │
+│          │                 │ 端侧缓存  │ │ &#34;当前网络 │
+│          │                 │ 中有最近  │ │  不佳，显 │
+│          │←── 展示缓存数据 │ 一次结果  │ │ 示最近一次 │
+│  输出    │    + &#34;数据可能  │ (30min前) │ │ 查询结果&#34; │
+│          │    非最新&#34;提示   │          │ │          │
+└──────────┘                 └──────────┘ └──────────┘
+
+• 路由: DEGRADED（降级）
+• 延迟: &lt; 200ms（直接读缓存）
+• 特点: 弱网场景下，用旧数据 + 友好提示，优于直接报错
+</code></pre><p><strong>场景 7：多步任务规划（云端 Agent 编排）</strong></p>
+<pre tabindex="0"><code>用户：&#34;帮我规划明天去内罗毕的行程，查天气、找路线、预订餐厅&#34;
+
+                        云端 Agent 编排引擎
+                    ┌──────────────────────────┐
+                    │ Planner:                  │
+                    │  Step 1: 查内罗毕天气      │────→ 天气 API
+                    │  Step 2: 查询路线          │────→ 地图 API
+                    │  Step 3: 推荐当地餐厅      │────→ 本地生活 API
+                    │  Step 4: 整合生成行程方案   │────→ Gemini 整合
+                    └──────────────────────────┘
+                          │
+                    ┌─────▼─────┐
+                    │  端侧渲染  │
+                    │ 行程卡片展示│
+                    │ 语音播报概要│
+                    └───────────┘
+
+• 路由: CLOUD（云端多步编排）
+• 延迟: 5-10s（多个 API 调用 + LLM 整合）
+• 特点: 典型的 Agent 场景——理解复杂意图 → 拆解步骤 → 多工具调用 → 整合输出
+</code></pre><hr>
+<h4 id="233-调度决策矩阵汇总">
+  2.3.3 调度决策矩阵（汇总）
+  <a class="anchor" href="#233-%e8%b0%83%e5%ba%a6%e5%86%b3%e7%ad%96%e7%9f%a9%e9%98%b5%e6%b1%87%e6%80%bb">#</a>
+</h4>
+<table>
+<thead>
+<tr>
+<th>条件组合</th>
+<th>路由决策</th>
+<th>典型场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>离线 + 端侧有能力</td>
+<td>DEVICE</td>
+<td>离线翻译、语音唤醒</td>
+</tr>
+<tr>
+<td>离线 + 端侧无能力</td>
+<td>DEGRADED</td>
+<td>离线下请求生图、查天气</td>
+</tr>
+<tr>
+<td>弱网 (RTT&gt;500ms) + 简单任务</td>
+<td>DEVICE</td>
+<td>简单问答、闹钟、计算器</td>
+</tr>
+<tr>
+<td>弱网 + 复杂任务</td>
+<td>HYBRID</td>
+<td>拍照解题（端侧OCR → 云端推理）</td>
+</tr>
+<tr>
+<td>弱网 + 无端侧能力</td>
+<td>DEGRADED + 异步队列</td>
+<td>生图、搜索（入队列，稍后推送）</td>
+</tr>
+<tr>
+<td>正常网络 + 简单任务</td>
+<td>CLOUD（优先）/ DEVICE</td>
+<td>视端侧能力决定</td>
+</tr>
+<tr>
+<td>正常网络 + 复杂任务</td>
+<td>CLOUD</td>
+<td>AI 写作、多步任务</td>
+</tr>
+<tr>
+<td>正常网络 + 需要第三方能力</td>
+<td>CLOUD + Third-Party</td>
+<td>生图、视频、地图</td>
+</tr>
+<tr>
+<td>敏感数据（健康/密码）</td>
+<td>DEVICE（优先）</td>
+<td>本地健康记录、密码管理</td>
+</tr>
+<tr>
+<td>跨设备操作</td>
+<td>CLOUD</td>
+<td>多设备协同、OneLeap</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="三第三方-api-统一接入层">
+  三、第三方 API 统一接入层
+  <a class="anchor" href="#%e4%b8%89%e7%ac%ac%e4%b8%89%e6%96%b9-api-%e7%bb%9f%e4%b8%80%e6%8e%a5%e5%85%a5%e5%b1%82">#</a>
+</h2>
+<h3 id="31-mcp-协议接入">
+  3.1 MCP 协议接入
+  <a class="anchor" href="#31-mcp-%e5%8d%8f%e8%ae%ae%e6%8e%a5%e5%85%a5">#</a>
+</h3>
+<pre tabindex="0"><code>第三方能力                    MCP Server                    Agent 编排引擎
+┌──────────┐                ┌──────────────┐               ┌──────────────┐
+│ 豆包生图  │────JSON-RPC───→│ MCP Server   │───工具描述────→│              │
+│          │                │ (Registry)   │               │   工具选择器  │
+│ 天气 API  │────JSON-RPC───→│ MCP Server   │───工具描述────→│              │
+│          │                │              │               │   调用执行器  │
+│ 地图服务  │────JSON-RPC───→│ MCP Server   │───工具描述────→│              │
+└──────────┘                └──────────────┘               └──────────────┘
+</code></pre><p><strong>MCP 接入流程</strong>：</p>
+<ol>
+<li>第三方能力封装为 MCP Server</li>
+<li>自动向 Agent 编排引擎注册工具描述（JSON Schema）</li>
+<li>编排引擎将工具描述注入 LLM 的 Function Calling</li>
+<li>LLM 根据用户意图选择工具 → 编排引擎调用对应 MCP Server</li>
+</ol>
+<h3 id="32-a2a-协议接入agent-间协作">
+  3.2 A2A 协议接入（Agent 间协作）
+  <a class="anchor" href="#32-a2a-%e5%8d%8f%e8%ae%ae%e6%8e%a5%e5%85%a5agent-%e9%97%b4%e5%8d%8f%e4%bd%9c">#</a>
+</h3>
+<p>当第三方能力本身是一个 Agent（需要自主决策、多轮交互），使用 A2A 协议：</p>
+<pre tabindex="0"><code>Ella Agent                          第三方 Agent
+┌─────────────┐                    ┌─────────────┐
+│             │─── Agent Card ────→│             │
+│  发现能力    │                    │  能力声明     │
+│             │←── Agent Card ─────│             │
+│             │                    │             │
+│             │─── Task Request ──→│             │
+│  发起任务    │                    │  自主执行     │
+│             │←── Task Result ────│             │
+└─────────────┘                    └─────────────┘
+</code></pre><h3 id="33-统一治理">
+  3.3 统一治理
+  <a class="anchor" href="#33-%e7%bb%9f%e4%b8%80%e6%b2%bb%e7%90%86">#</a>
+</h3>
+<table>
+<thead>
+<tr>
+<th>治理项</th>
+<th>实现方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>认证</td>
+<td>API Key + OAuth 2.0 + SPIFFE/SPIRE（服务间）</td>
+</tr>
+<tr>
+<td>限流</td>
+<td>令牌桶算法，按开发者/按能力维度</td>
+</tr>
+<tr>
+<td>熔断</td>
+<td>第三方服务不可用时自动熔断，切换到备用服务</td>
+</tr>
+<tr>
+<td>降级</td>
+<td>云端不可用时降级到端侧能力</td>
+</tr>
+<tr>
+<td>计量</td>
+<td>按 Token/按次/按时长多维度计量</td>
+</tr>
+<tr>
+<td>计费</td>
+<td>开发者账单 + 内部成本核算</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="四核心技术实现">
+  四、核心技术实现
+  <a class="anchor" href="#%e5%9b%9b%e6%a0%b8%e5%bf%83%e6%8a%80%e6%9c%af%e5%ae%9e%e7%8e%b0">#</a>
+</h2>
+<h3 id="41-端侧-agent-运行时">
+  4.1 端侧 Agent 运行时
+  <a class="anchor" href="#41-%e7%ab%af%e4%be%a7-agent-%e8%bf%90%e8%a1%8c%e6%97%b6">#</a>
+</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// 端侧 Agent 轻量编排（Go 伪代码）
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">DeviceAgent</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">intentClassifier</span>  <span style="color:#f92672">*</span><span style="color:#a6e22e">LiteModel</span>    <span style="color:#75715e">// 轻量意图分类模型
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">capabilityRegistry</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#a6e22e">Capability</span>  <span style="color:#75715e">// 端侧能力注册表
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">cloudRouter</span>       <span style="color:#f92672">*</span><span style="color:#a6e22e">CloudRouter</span>  <span style="color:#75715e">// 云端路由器
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">localMemory</span>       <span style="color:#f92672">*</span><span style="color:#a6e22e">LocalMemory</span>  <span style="color:#75715e">// 本地 Memory
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">a</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">DeviceAgent</span>) <span style="color:#a6e22e">HandleRequest</span>(<span style="color:#a6e22e">req</span> <span style="color:#a6e22e">Request</span>) <span style="color:#a6e22e">Response</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 1. 意图分类
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">intent</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">a</span>.<span style="color:#a6e22e">intentClassifier</span>.<span style="color:#a6e22e">Predict</span>(<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">Input</span>)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 2. 能力匹配
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">cap</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">a</span>.<span style="color:#a6e22e">capabilityRegistry</span>.<span style="color:#a6e22e">Match</span>(<span style="color:#a6e22e">intent</span>)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 3. 调度决策
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">switch</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">cap</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">cap</span>.<span style="color:#a6e22e">IsAvailableOnDevice</span>():
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">cap</span>.<span style="color:#a6e22e">ExecuteOnDevice</span>(<span style="color:#a6e22e">req</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">a</span>.<span style="color:#a6e22e">shouldOffloadToCloud</span>(<span style="color:#a6e22e">req</span>, <span style="color:#a6e22e">intent</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">a</span>.<span style="color:#a6e22e">cloudRouter</span>.<span style="color:#a6e22e">Offload</span>(<span style="color:#a6e22e">req</span>, <span style="color:#a6e22e">intent</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">default</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">a</span>.<span style="color:#a6e22e">offlineFallback</span>(<span style="color:#a6e22e">req</span>)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="42-云端-agent-编排引擎">
+  4.2 云端 Agent 编排引擎
+  <a class="anchor" href="#42-%e4%ba%91%e7%ab%af-agent-%e7%bc%96%e6%8e%92%e5%bc%95%e6%93%8e">#</a>
+</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// 云端 Agent 编排（Go 伪代码）
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">AgentOrchestrator</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">planner</span>       <span style="color:#f92672">*</span><span style="color:#a6e22e">TaskPlanner</span>      <span style="color:#75715e">// 任务规划器
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">toolSelector</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">ToolSelector</span>     <span style="color:#75715e">// 工具选择器
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">memory</span>       <span style="color:#f92672">*</span><span style="color:#a6e22e">MemoryManager</span>    <span style="color:#75715e">// 全局 Memory
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">ragEngine</span>    <span style="color:#f92672">*</span><span style="color:#a6e22e">RAGEngine</span>        <span style="color:#75715e">// RAG 引擎
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">guardrails</span>   <span style="color:#f92672">*</span><span style="color:#a6e22e">GuardrailEngine</span>  <span style="color:#75715e">// 安全拦截
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">o</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">AgentOrchestrator</span>) <span style="color:#a6e22e">Execute</span>(<span style="color:#a6e22e">userInput</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">sessionID</span> <span style="color:#66d9ef">string</span>) <span style="color:#a6e22e">Response</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 1. 安全拦截
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">o</span>.<span style="color:#a6e22e">guardrails</span>.<span style="color:#a6e22e">Check</span>(<span style="color:#a6e22e">userInput</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">RejectResponse</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 2. 检索增强
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">context</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">o</span>.<span style="color:#a6e22e">ragEngine</span>.<span style="color:#a6e22e">Retrieve</span>(<span style="color:#a6e22e">userInput</span>, <span style="color:#a6e22e">sessionID</span>)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 3. 记忆注入
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">memory</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">o</span>.<span style="color:#a6e22e">memory</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">sessionID</span>)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 4. 任务规划（LLM 驱动的 Planning）
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">plan</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">o</span>.<span style="color:#a6e22e">planner</span>.<span style="color:#a6e22e">Plan</span>(<span style="color:#a6e22e">userInput</span>, <span style="color:#a6e22e">context</span>, <span style="color:#a6e22e">memory</span>)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 5. 工具选择与执行
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">step</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">plan</span>.<span style="color:#a6e22e">Steps</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">tool</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">o</span>.<span style="color:#a6e22e">toolSelector</span>.<span style="color:#a6e22e">Select</span>(<span style="color:#a6e22e">step</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">result</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">tool</span>.<span style="color:#a6e22e">Execute</span>(<span style="color:#a6e22e">step</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">plan</span>.<span style="color:#a6e22e">Update</span>(<span style="color:#a6e22e">step</span>, <span style="color:#a6e22e">result</span>)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 6. 记忆更新
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">o</span>.<span style="color:#a6e22e">memory</span>.<span style="color:#a6e22e">Update</span>(<span style="color:#a6e22e">sessionID</span>, <span style="color:#a6e22e">plan</span>)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">plan</span>.<span style="color:#a6e22e">Finalize</span>()
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="43-端云协同通信协议">
+  4.3 端云协同通信协议
+  <a class="anchor" href="#43-%e7%ab%af%e4%ba%91%e5%8d%8f%e5%90%8c%e9%80%9a%e4%bf%a1%e5%8d%8f%e8%ae%ae">#</a>
+</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-protobuf" data-lang="protobuf"><span style="display:flex;"><span><span style="color:#75715e">// 端云通信 Protobuf 定义
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">message</span> <span style="color:#a6e22e">AgentRequest</span> {<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#66d9ef">string</span> session_id <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#66d9ef">string</span> user_input <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  InputModality modality <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span>;       <span style="color:#75715e">// TEXT / AUDIO / IMAGE / VIDEO
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">bytes</span> payload <span style="color:#f92672">=</span> <span style="color:#ae81ff">4</span>;                 <span style="color:#75715e">// 实际输入数据
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  DeviceInfo device_info <span style="color:#f92672">=</span> <span style="color:#ae81ff">5</span>;        <span style="color:#75715e">// 设备能力信息
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  NetworkStatus network <span style="color:#f92672">=</span> <span style="color:#ae81ff">6</span>;         <span style="color:#75715e">// 网络状态
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">repeated</span> <span style="color:#66d9ef">string</span> device_capabilities <span style="color:#f92672">=</span> <span style="color:#ae81ff">7</span>;  <span style="color:#75715e">// 端侧可用能力列表
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  PriorityLevel priority <span style="color:#f92672">=</span> <span style="color:#ae81ff">8</span>;        <span style="color:#75715e">// 优先级
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">message</span> <span style="color:#a6e22e">AgentResponse</span> {<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#66d9ef">string</span> session_id <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  ResponseModality modality <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#66d9ef">bytes</span> payload <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  ResponseSource source <span style="color:#f92672">=</span> <span style="color:#ae81ff">4</span>;         <span style="color:#75715e">// DEVICE / CLOUD / HYBRID
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">bool</span> is_cached <span style="color:#f92672">=</span> <span style="color:#ae81ff">5</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  LatencyMetrics latency <span style="color:#f92672">=</span> <span style="color:#ae81ff">6</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><hr>
+<h2 id="五性能与稳定性保障">
+  五、性能与稳定性保障
+  <a class="anchor" href="#%e4%ba%94%e6%80%a7%e8%83%bd%e4%b8%8e%e7%a8%b3%e5%ae%9a%e6%80%a7%e4%bf%9d%e9%9a%9c">#</a>
+</h2>
+<h3 id="51-关键性能指标">
+  5.1 关键性能指标
+  <a class="anchor" href="#51-%e5%85%b3%e9%94%ae%e6%80%a7%e8%83%bd%e6%8c%87%e6%a0%87">#</a>
+</h3>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>目标值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>端侧意图分类延迟</td>
+<td>&lt; 50ms</td>
+<td>轻量模型（&lt; 10M 参数）</td>
+</tr>
+<tr>
+<td>端侧响应（离线场景）</td>
+<td>&lt; 200ms</td>
+<td>语音/翻译/简单问答</td>
+</tr>
+<tr>
+<td>云端首 Token 延迟</td>
+<td>&lt; 500ms</td>
+<td>Ella 当前 230ms（Gemini 1.5 Flash）</td>
+</tr>
+<tr>
+<td>云端 P99 延迟</td>
+<td>&lt; 3s</td>
+<td>复杂任务（多步工具调用）</td>
+</tr>
+<tr>
+<td>第三方 API 熔断阈值</td>
+<td>错误率 &gt; 5% / 30s</td>
+<td>自动熔断 + 降级</td>
+</tr>
+<tr>
+<td>端云通信可靠性</td>
+<td>&gt; 99.9%</td>
+<td>弱网重试 + 断点续传</td>
+</tr>
+</tbody>
+</table>
+<h3 id="52-高可用架构">
+  5.2 高可用架构
+  <a class="anchor" href="#52-%e9%ab%98%e5%8f%af%e7%94%a8%e6%9e%b6%e6%9e%84">#</a>
+</h3>
+<pre tabindex="0"><code>                          ┌─────────────┐
+                          │  全球流量调度 │
+                          │  (GFE/Anycast)│
+                          └──────┬──────┘
+                                 │
+              ┌──────────────────┼──────────────────┐
+              ▼                  ▼                  ▼
+        ┌──────────┐      ┌──────────┐      ┌──────────┐
+        │ 区域 A    │      │ 区域 B    │      │ 区域 C    │
+        │ (非洲)    │      │ (东南亚)  │      │ (拉美)    │
+        │          │      │          │      │          │
+        ├──────────┤      ├──────────┤      ├──────────┤
+        │ 多实例    │      │ 多实例    │      │ 多实例    │
+        │ 负载均衡  │      │ 负载均衡  │      │ 负载均衡  │
+        │ 数据本地  │      │ 数据本地  │      │ 数据本地  │
+        └──────────┘      └──────────┘      └──────────┘
+</code></pre><hr>
+<h2 id="六云端-api-与第三方-api-不可用不稳定的应对方案">
+  六、云端 API 与第三方 API 不可用/不稳定的应对方案
+  <a class="anchor" href="#%e5%85%ad%e4%ba%91%e7%ab%af-api-%e4%b8%8e%e7%ac%ac%e4%b8%89%e6%96%b9-api-%e4%b8%8d%e5%8f%af%e7%94%a8%e4%b8%8d%e7%a8%b3%e5%ae%9a%e7%9a%84%e5%ba%94%e5%af%b9%e6%96%b9%e6%a1%88">#</a>
+</h2>
+<h3 id="61-核心原则多级降级逐级兜底">
+  6.1 核心原则：多级降级，逐级兜底
+  <a class="anchor" href="#61-%e6%a0%b8%e5%bf%83%e5%8e%9f%e5%88%99%e5%a4%9a%e7%ba%a7%e9%99%8d%e7%ba%a7%e9%80%90%e7%ba%a7%e5%85%9c%e5%ba%95">#</a>
+</h3>
+<pre tabindex="0"><code>Level 0 ── 主云 API（正常态）
+   │  异常
+   ▼
+Level 1 ── 备用云 API（同厂商不同 region / 同能力不同 model）
+   │  异常
+   ▼
+Level 2 ── 端侧轻量模型 / 本地缓存
+   │  异常
+   ▼
+Level 3 ── 优雅降级（友好提示 + 异步队列 + 稍后推送）
+</code></pre><p><strong>设计原则</strong>：</p>
+<ul>
+<li>每一级都明确触发条件和降级路径</li>
+<li>降级对用户尽可能透明，最差体验也是&quot;友好的失败提示&quot;</li>
+<li>自动恢复：上游恢复后自动切回，无需人工介入</li>
+</ul>
+<hr>
+<h3 id="62-云端-api-不可用应对">
+  6.2 云端 API 不可用应对
+  <a class="anchor" href="#62-%e4%ba%91%e7%ab%af-api-%e4%b8%8d%e5%8f%af%e7%94%a8%e5%ba%94%e5%af%b9">#</a>
+</h3>
+<h4 id="621-多模型多厂商冗余">
+  6.2.1 多模型/多厂商冗余
+  <a class="anchor" href="#621-%e5%a4%9a%e6%a8%a1%e5%9e%8b%e5%a4%9a%e5%8e%82%e5%95%86%e5%86%97%e4%bd%99">#</a>
+</h4>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>主供应商</th>
+<th>备用供应商</th>
+<th>切换触发</th>
+<th>切换方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>大语言模型</td>
+<td>Gemini 1.5 Flash</td>
+<td>Claude Haiku / 通义千问</td>
+<td>连续 3 次超时或错误率 &gt; 5%</td>
+<td>Agent 编排引擎自动路由</td>
+</tr>
+<tr>
+<td>语音识别</td>
+<td>Google Speech</td>
+<td>Whisper（端侧/自建）</td>
+<td>服务不可用或延迟 &gt; 2s</td>
+<td>降级到端侧 Whisper</td>
+</tr>
+<tr>
+<td>语音合成</td>
+<td>Google TTS</td>
+<td>端侧轻量 TTS</td>
+<td>服务不可用</td>
+<td>降级到端侧 TTS</td>
+</tr>
+<tr>
+<td>图像理解</td>
+<td>Gemini Vision</td>
+<td>Qwen-VL（自建）</td>
+<td>错误率 &gt; 5%</td>
+<td>路由到自建服务</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// 云端 API 多供应商路由（Go 伪代码）
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">CloudAPIRouter</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">primary</span>   <span style="color:#a6e22e">APIClient</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">secondary</span> <span style="color:#a6e22e">APIClient</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fallback</span>  <span style="color:#a6e22e">APIClient</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">circuit</span>   <span style="color:#f92672">*</span><span style="color:#a6e22e">CircuitBreaker</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">CloudAPIRouter</span>) <span style="color:#a6e22e">Call</span>(<span style="color:#a6e22e">req</span> <span style="color:#a6e22e">APIRequest</span>) <span style="color:#a6e22e">APIResponse</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 1. 优先主供应商
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">circuit</span>.<span style="color:#a6e22e">PrimaryOK</span>() {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">resp</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">primary</span>.<span style="color:#a6e22e">Call</span>(<span style="color:#a6e22e">req</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">resp</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">circuit</span>.<span style="color:#a6e22e">RecordFailure</span>(<span style="color:#e6db74">&#34;primary&#34;</span>)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 2. 切备用供应商
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">circuit</span>.<span style="color:#a6e22e">SecondaryOK</span>() {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">resp</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">secondary</span>.<span style="color:#a6e22e">Call</span>(<span style="color:#a6e22e">req</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">resp</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">circuit</span>.<span style="color:#a6e22e">RecordFailure</span>(<span style="color:#e6db74">&#34;secondary&#34;</span>)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 3. 降级到端侧 / 本地缓存
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">fallback</span>.<span style="color:#a6e22e">Call</span>(<span style="color:#a6e22e">req</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h4 id="622-区域级容灾">
+  6.2.2 区域级容灾
+  <a class="anchor" href="#622-%e5%8c%ba%e5%9f%9f%e7%ba%a7%e5%ae%b9%e7%81%be">#</a>
+</h4>
+<pre tabindex="0"><code>正常态：                          区域故障态：
+
+  ┌──────────┐                     ┌──────────┐  ✗ 不可用
+  │ 非洲节点  │── 服务非洲用户 ───→ │ 非洲节点  │
+  └──────────┘                     └──────────┘
+  ┌──────────┐                     ┌──────────┐
+  │ 东南亚节点│── 服务东南亚用户 ──→│ 东南亚节点│── 接管非洲流量
+  └──────────┘                     └──────────┘
+  ┌──────────┐                     ┌──────────┐
+  │ 拉美节点  │── 服务拉美用户 ───→ │ 拉美节点  │
+  └──────────┘                     └──────────┘
+</code></pre><ul>
+<li><strong>GSLB（全局负载均衡）</strong>：DNS 级 + Anycast 自动切换</li>
+<li><strong>数据同步</strong>：跨区域异步复制，RPO &lt; 5 分钟</li>
+<li><strong>切换策略</strong>：健康检查失败 3 次 → 流量切到最近健康区域</li>
+</ul>
+<h4 id="623-云端完全不可用极端场景">
+  6.2.3 云端完全不可用（极端场景）
+  <a class="anchor" href="#623-%e4%ba%91%e7%ab%af%e5%ae%8c%e5%85%a8%e4%b8%8d%e5%8f%af%e7%94%a8%e6%9e%81%e7%ab%af%e5%9c%ba%e6%99%af">#</a>
+</h4>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>应对方案</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>云厂商大面积宕机</td>
+<td>切到备用云厂商 / 自建 IDC（如有）</td>
+</tr>
+<tr>
+<td>全球网络中断</td>
+<td>端侧完全离线模式：本地意图分类 + 端侧模型 + 本地缓存</td>
+</tr>
+<tr>
+<td>API Key 过期/额度耗尽</td>
+<td>自动切换到备用 Key / 通知运维 + 端侧降级</td>
+</tr>
+<tr>
+<td>GPU 资源不足</td>
+<td>动态切换到更小模型 + 请求排队 + 优先级调度</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="63-第三方-api-不可用应对">
+  6.3 第三方 API 不可用应对
+  <a class="anchor" href="#63-%e7%ac%ac%e4%b8%89%e6%96%b9-api-%e4%b8%8d%e5%8f%af%e7%94%a8%e5%ba%94%e5%af%b9">#</a>
+</h3>
+<h4 id="631-多供应商策略">
+  6.3.1 多供应商策略
+  <a class="anchor" href="#631-%e5%a4%9a%e4%be%9b%e5%ba%94%e5%95%86%e7%ad%96%e7%95%a5">#</a>
+</h4>
+<p>针对关键第三方能力，至少接入 2 家供应商：</p>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>供应商 A</th>
+<th>供应商 B</th>
+<th>降级策略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>图像生成</td>
+<td>豆包</td>
+<td>Stable Diffusion（自建）</td>
+<td>A 不可用时切 B，B 不可用时返回缓存/提示</td>
+</tr>
+<tr>
+<td>视频生成</td>
+<td>Veo</td>
+<td>Runway</td>
+<td>都不可用时提示&quot;当前繁忙，请稍后重试&quot;</td>
+</tr>
+<tr>
+<td>地图导航</td>
+<td>Google Maps</td>
+<td>高德/Mapbox</td>
+<td>A 超时 → 切 B</td>
+</tr>
+<tr>
+<td>天气查询</td>
+<td>OpenWeather</td>
+<td>中国天气网</td>
+<td>任意一个可用即可</td>
+</tr>
+<tr>
+<td>翻译（补充）</td>
+<td>Google Translate</td>
+<td>DeepL</td>
+<td>自动切换</td>
+</tr>
+</tbody>
+</table>
+<h4 id="632-结果缓存--异步队列">
+  6.3.2 结果缓存 + 异步队列
+  <a class="anchor" href="#632-%e7%bb%93%e6%9e%9c%e7%bc%93%e5%ad%98--%e5%bc%82%e6%ad%a5%e9%98%9f%e5%88%97">#</a>
+</h4>
+<pre tabindex="0"><code>请求流程：
+
+用户请求 ──→ 检查缓存 ──→ 命中？ ──YES──→ 返回缓存结果（标记 &#34;可能非最新&#34;）
+                    │
+                    NO
+                    │
+                    ▼
+              调用第三方 API ──→ 成功？ ──YES──→ 缓存结果 + 返回
+                                    │
+                                    NO
+                                    │
+                                    ▼
+                              加入异步队列
+                                    │
+                                    ▼
+                              返回 &#34;处理中，稍后推送&#34;
+                              （后台重试，最多 3 次，指数退避）
+</code></pre><ul>
+<li><strong>热缓存</strong>：Redis 缓存高频查询结果（天气、汇率等），TTL 5-30 分钟</li>
+<li><strong>持久缓存</strong>：用户历史请求结果持久化，第三方不可用时返回最近一次结果</li>
+<li><strong>异步队列</strong>：非实时需求的请求进入队列，后台自动重试</li>
+</ul>
+<h4 id="633-功能降级矩阵">
+  6.3.3 功能降级矩阵
+  <a class="anchor" href="#633-%e5%8a%9f%e8%83%bd%e9%99%8d%e7%ba%a7%e7%9f%a9%e9%98%b5">#</a>
+</h4>
+<table>
+<thead>
+<tr>
+<th>功能</th>
+<th>正常态</th>
+<th>第三方不可用</th>
+<th>完全不可用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AI 生图</td>
+<td>豆包高清生成</td>
+<td>切 Stable Diffusion</td>
+<td>返回模板图 + 提示</td>
+</tr>
+<tr>
+<td>AI 视频</td>
+<td>Veo 生成</td>
+<td>切 Runway</td>
+<td>提示&quot;服务繁忙&quot;</td>
+</tr>
+<tr>
+<td>地图导航</td>
+<td>实时路线规划</td>
+<td>切高德/Mapbox</td>
+<td>返回离线地图包</td>
+</tr>
+<tr>
+<td>天气查询</td>
+<td>实时数据</td>
+<td>返回缓存（&lt; 30min）</td>
+<td>提示&quot;暂无法获取&quot;</td>
+</tr>
+<tr>
+<td>网页搜索</td>
+<td>Google/Bing</td>
+<td>切备选搜索引擎</td>
+<td>返回本地知识 + 提示</td>
+</tr>
+<tr>
+<td>新闻推送</td>
+<td>RSS + API</td>
+<td>返回缓存新闻</td>
+<td>提示</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="64-熔断--重试--限流机制">
+  6.4 熔断 · 重试 · 限流机制
+  <a class="anchor" href="#64-%e7%86%94%e6%96%ad--%e9%87%8d%e8%af%95--%e9%99%90%e6%b5%81%e6%9c%ba%e5%88%b6">#</a>
+</h3>
+<h4 id="641-熔断器设计">
+  6.4.1 熔断器设计
+  <a class="anchor" href="#641-%e7%86%94%e6%96%ad%e5%99%a8%e8%ae%be%e8%ae%a1">#</a>
+</h4>
+<pre tabindex="0"><code>状态机：
+
+  ┌──────────┐   连续失败 ≥ N    ┌──────────┐   冷却时间到期    ┌──────────┐
+  │  CLOSED  │ ────────────────→ │  OPEN    │ ────────────────→ │ HALF_OPEN│
+  │ (正常)   │                   │ (熔断)   │                   │ (试探)   │
+  └──────────┘                   └──────────┘                   └────┬─────┘
+       ▲                                                             │
+       │                     ┌──────────┐                            │
+       │                     │  CLOSED  │ ←── 试探成功 ──────────────┘
+       │                     │ (恢复)   │
+       │                     └──────────┘
+       │                     ┌──────────┐
+       └──────────────────── │  OPEN    │ ←── 试探失败
+                             │ (继续熔断)│
+                             └──────────┘
+</code></pre><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>推荐值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>失败阈值 N</td>
+<td>3-5 次</td>
+<td>连续失败次数</td>
+</tr>
+<tr>
+<td>时间窗口</td>
+<td>30 秒</td>
+<td>统计窗口</td>
+</tr>
+<tr>
+<td>熔断时长</td>
+<td>60 秒</td>
+<td>首次熔断冷却时间</td>
+</tr>
+<tr>
+<td>半开试探</td>
+<td>1 个请求</td>
+<td>试探成功 → 恢复，失败 → 继续熔断</td>
+</tr>
+</tbody>
+</table>
+<h4 id="642-重试策略">
+  6.4.2 重试策略
+  <a class="anchor" href="#642-%e9%87%8d%e8%af%95%e7%ad%96%e7%95%a5">#</a>
+</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// 指数退避 + 抖动（Go 伪代码）
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">RetryWithBackoff</span>(<span style="color:#a6e22e">fn</span> <span style="color:#66d9ef">func</span>() <span style="color:#66d9ef">error</span>, <span style="color:#a6e22e">maxRetries</span> <span style="color:#66d9ef">int</span>) <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> <span style="color:#f92672">&lt;=</span> <span style="color:#a6e22e">maxRetries</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">fn</span>()
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">isRetryable</span>(<span style="color:#a6e22e">err</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>  <span style="color:#75715e">// 非可重试错误，直接返回
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 指数退避: 1s → 2s → 4s → 8s + 随机抖动
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#a6e22e">backoff</span> <span style="color:#f92672">:=</span> (<span style="color:#ae81ff">1</span> <span style="color:#f92672">&lt;&lt;</span> <span style="color:#a6e22e">i</span>) <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">jitter</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Duration</span>(<span style="color:#a6e22e">rand</span>.<span style="color:#a6e22e">Int63n</span>(int64(<span style="color:#a6e22e">backoff</span> <span style="color:#f92672">/</span> <span style="color:#ae81ff">2</span>)))
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#a6e22e">backoff</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">jitter</span>)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ErrMaxRetriesExceeded</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><ul>
+<li><strong>可重试错误</strong>：超时、5xx、连接拒绝、限流（429）</li>
+<li><strong>不可重试</strong>：4xx（参数错误）、认证失败、业务拒绝</li>
+<li><strong>最大重试</strong>：3 次，总超时不超过用户可接受延迟</li>
+</ul>
+<h4 id="643-限流与优先级">
+  6.4.3 限流与优先级
+  <a class="anchor" href="#643-%e9%99%90%e6%b5%81%e4%b8%8e%e4%bc%98%e5%85%88%e7%ba%a7">#</a>
+</h4>
+<table>
+<thead>
+<tr>
+<th>优先级</th>
+<th>场景</th>
+<th>限流策略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>P0 - 核心</td>
+<td>语音通话、实时翻译</td>
+<td>不限流，保证可用</td>
+</tr>
+<tr>
+<td>P1 - 重要</td>
+<td>问答、写作、翻译</td>
+<td>正常限流，保障 99%</td>
+</tr>
+<tr>
+<td>P2 - 增强</td>
+<td>生图、生视频、搜索</td>
+<td>严格限流，可降级</td>
+</tr>
+<tr>
+<td>P3 - 闲时</td>
+<td>新闻推送、个性化推荐</td>
+<td>资源紧张时直接跳过</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="65-监控与告警">
+  6.5 监控与告警
+  <a class="anchor" href="#65-%e7%9b%91%e6%8e%a7%e4%b8%8e%e5%91%8a%e8%ad%a6">#</a>
+</h3>
+<pre tabindex="0"><code>监控维度：
+┌───────────────────────────────────────────────────────┐
+│  实时监控                                             │
+│  ├─ API 错误率（按供应商 / 按能力 / 按区域）            │
+│  ├─ P50/P95/P99 延迟                                  │
+│  ├─ 熔断器状态（OPEN/CLOSED/HALF_OPEN）               │
+│  ├─ 降级次数与类型                                     │
+│  ├─ 缓存命中率                                         │
+│  └─ 队列积压量                                         │
+├───────────────────────────────────────────────────────┤
+│  告警规则                                             │
+│  ├─ 单 API 错误率 &gt; 5% 持续 1 分钟 → P2 告警           │
+│  ├─ 单 API 错误率 &gt; 20% 持续 1 分钟 → P1 告警          │
+│  ├─ 熔断器进入 OPEN 状态 → P2 告警                     │
+│  ├─ 多 API 同时异常 → P0 告警（可能区域故障）           │
+│  └─ 降级率 &gt; 30% → P1 告警                             │
+├───────────────────────────────────────────────────────┤
+│  自动恢复                                             │
+│  ├─ API 恢复后自动切回主供应商                          │
+│  ├─ 熔断器 HALF_OPEN 试探成功 → 自动关闭               │
+│  └─ 队列中积压请求自动重放                             │
+└───────────────────────────────────────────────────────┘
+</code></pre><hr>
+<h3 id="66-降级决策流程图">
+  6.6 降级决策流程图
+  <a class="anchor" href="#66-%e9%99%8d%e7%ba%a7%e5%86%b3%e7%ad%96%e6%b5%81%e7%a8%8b%e5%9b%be">#</a>
+</h3>
+<pre tabindex="0"><code>用户请求
+    │
+    ▼
+┌─────────────────────┐
+│ 端侧能否处理？       │
+└─────────┬───────────┘
+     YES  │  NO
+     │    ▼
+     │  ┌─────────────────────┐
+     │  │ 云端主 API 可用？    │
+     │  └─────────┬───────────┘
+     │       YES  │  NO
+     │       │    ▼
+     │       │  ┌─────────────────────┐
+     │       │  │ 云端备用 API 可用？  │
+     │       │  └─────────┬───────────┘
+     │       │       YES  │  NO
+     │       │       │    ▼
+     │       │       │  ┌─────────────────────┐
+     │       │       │  │ 缓存中有结果？       │
+     │       │       │  └─────────┬───────────┘
+     │       │       │       YES  │  NO
+     │       │       │       │    ▼
+     │       │       │       │  ┌─────────────────────┐
+     │       │       │       │  │ 加入异步队列         │
+     │       │       │       │  │ + 返回&#34;处理中&#34;      │
+     │       │       │       │  └─────────────────────┘
+     │       │       │       ▼
+     │       │       │   返回缓存（标记&#34;非最新&#34;）
+     │       ▼       ▼
+     │    路由到备用供应商
+     ▼
+  端侧处理（离线/降级模型）
+</code></pre><hr>
+<h2 id="七落地路线">
+  七、落地路线
+  <a class="anchor" href="#%e4%b8%83%e8%90%bd%e5%9c%b0%e8%b7%af%e7%ba%bf">#</a>
+</h2>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>时间</th>
+<th>关键交付</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Phase 1</strong></td>
+<td>M1-M2</td>
+<td>端侧 Agent 轻量编排原型 + 端云调度策略</td>
+</tr>
+<tr>
+<td><strong>Phase 2</strong></td>
+<td>M3-M4</td>
+<td>云端 Agent 编排引擎 + MCP 工具接入</td>
+</tr>
+<tr>
+<td><strong>Phase 3</strong></td>
+<td>M5-M6</td>
+<td>第三方 API 统一网关 + A2A 协议支持</td>
+</tr>
+<tr>
+<td><strong>Phase 4</strong></td>
+<td>M7-M9</td>
+<td>端云混合场景全覆盖 + 性能优化</td>
+</tr>
+<tr>
+<td><strong>Phase 5</strong></td>
+<td>M10-M12</td>
+<td>全球化部署 + 多区域容灾</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="七总结">
+  七、总结
+  <a class="anchor" href="#%e4%b8%83%e6%80%bb%e7%bb%93">#</a>
+</h2>
+<p><strong>端·云·第三方 API 分层设计的核心价值</strong>：</p>
+<ol>
+<li><strong>端侧</strong> — 快（&lt; 50ms）、省（离线可用）、安全（隐私数据不出端）</li>
+<li><strong>云端</strong> — 强（大模型推理）、全（多步任务编排）、智（全局记忆 + RAG）</li>
+<li><strong>第三方</strong> — 活（MCP/A2A 标准接入）、丰（生态能力补充）、稳（统一治理）</li>
+</ol>
+<p>这三层不是替代关系，而是<strong>互补关系</strong> — 端侧覆盖高频低复杂度场景，云端覆盖低频高复杂度场景，第三方覆盖垂类专业场景。最终统一通过 Agent 编排引擎，给 Ella 用户一个一致的智能体验。</p>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#硬件助手产品系统架构--ai-agent-方向升级端云第三方-api-分层设计">硬件助手产品系统架构 — AI Agent 方向升级（端·云·第三方 API 分层设计）</a>
+      <ul>
+        <li><a href="#一现状与升级目标">一、现状与升级目标</a>
+          <ul>
+            <li><a href="#11-当前架构痛点">1.1 当前架构痛点</a></li>
+            <li><a href="#12-升级目标">1.2 升级目标</a></li>
+          </ul>
+        </li>
+        <li><a href="#二端云第三方-api-三层架构">二、端·云·第三方 API 三层架构</a>
+          <ul>
+            <li><a href="#21-总体分层">2.1 总体分层</a></li>
+            <li><a href="#22-三层边界与职责划分">2.2 三层边界与职责划分</a></li>
+            <li><a href="#23-端云智能调度策略">2.3 端云智能调度策略</a></li>
+          </ul>
+        </li>
+        <li><a href="#三第三方-api-统一接入层">三、第三方 API 统一接入层</a>
+          <ul>
+            <li><a href="#31-mcp-协议接入">3.1 MCP 协议接入</a></li>
+            <li><a href="#32-a2a-协议接入agent-间协作">3.2 A2A 协议接入（Agent 间协作）</a></li>
+            <li><a href="#33-统一治理">3.3 统一治理</a></li>
+          </ul>
+        </li>
+        <li><a href="#四核心技术实现">四、核心技术实现</a>
+          <ul>
+            <li><a href="#41-端侧-agent-运行时">4.1 端侧 Agent 运行时</a></li>
+            <li><a href="#42-云端-agent-编排引擎">4.2 云端 Agent 编排引擎</a></li>
+            <li><a href="#43-端云协同通信协议">4.3 端云协同通信协议</a></li>
+          </ul>
+        </li>
+        <li><a href="#五性能与稳定性保障">五、性能与稳定性保障</a>
+          <ul>
+            <li><a href="#51-关键性能指标">5.1 关键性能指标</a></li>
+            <li><a href="#52-高可用架构">5.2 高可用架构</a></li>
+          </ul>
+        </li>
+        <li><a href="#六云端-api-与第三方-api-不可用不稳定的应对方案">六、云端 API 与第三方 API 不可用/不稳定的应对方案</a>
+          <ul>
+            <li><a href="#61-核心原则多级降级逐级兜底">6.1 核心原则：多级降级，逐级兜底</a></li>
+            <li><a href="#62-云端-api-不可用应对">6.2 云端 API 不可用应对</a></li>
+            <li><a href="#63-第三方-api-不可用应对">6.3 第三方 API 不可用应对</a></li>
+            <li><a href="#64-熔断--重试--限流机制">6.4 熔断 · 重试 · 限流机制</a></li>
+            <li><a href="#65-监控与告警">6.5 监控与告警</a></li>
+            <li><a href="#66-降级决策流程图">6.6 降级决策流程图</a></li>
+          </ul>
+        </li>
+        <li><a href="#七落地路线">七、落地路线</a></li>
+        <li><a href="#七总结">七、总结</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

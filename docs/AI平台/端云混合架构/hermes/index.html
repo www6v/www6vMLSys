@@ -1,0 +1,3790 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="端云协同的AI Agent硬件助手架构方案 # &ldquo;在非洲，一个好的助手不是在云端有多聪明，而是在断网时还能帮你拨通电话。&rdquo;
+一、引言 # 传音作为&quot;非洲手机之王&quot;，其硬件助手产品（如os语音助手）正面临从指令式语音助手向自主AI Agent的范式升级。与硅谷的AI助手不同，传音的AI Agent必须面对三个独特约束：
+网络环境恶劣：非洲部分地区3G仍为主流，断网是常态而非异常 设备资源受限：中低端机型内存1-2GB、存储16-32GB、无NPU或低端NPU 多语言碎片化：豪萨语、斯瓦西里语、阿姆哈拉语等小语种离线支持 本文提出端-云-第三方三层架构，核心设计原则是：端侧保可用、云侧提供智能、第三方扩展生态。
+二、总体架构设计 # 2.1 三层架构总览 # graph TB subgraph &#34;📱 端侧 Edge Layer（设备本体）&#34; VAD[VAD唤醒] SLM[轻量SLM推理] LOCAL_MEM[(本地记忆)] LOCAL_TOOL[本地工具执行] SYNC[端云同步引擎] end subgraph &#34;☁️ 云侧 Cloud Layer（传音AI平台）&#34; AGENT_CORE[Agent核心引擎] MEMORY[(云端Memory)] RAG[(RAG检索引擎)] TOOL_REG[(工具注册中心)] DIALOGUE[对话管理DM] MONITOR[可观测性] end subgraph &#34;🌐 第三方 Third-Party Layer&#34; OAUTH[OAuth鉴权网关] MARKETPLACE[技能市场] EXT_API[第三方API] AUDIT[审计与计量] end SYNC &lt;--&gt; AGENT_CORE VAD --&gt; SLM --&gt; LOCAL_TOOL SLM -.置信度高.-&gt; LOCAL_TOOL SLM -.需云端智能.-&gt; SYNC AGENT_CORE --&gt; MEMORY AGENT_CORE --&gt; RAG AGENT_CORE --&gt; TOOL_REG TOOL_REG --&gt; OAUTH OAUTH --&gt; MARKETPLACE --&gt; EXT_API EXT_API --&gt; AUDIT SYNC -.">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://www6v.github.io/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E7%AB%AF%E4%BA%91%E6%B7%B7%E5%90%88%E6%9E%B6%E6%9E%84/hermes/">
+  <meta property="og:site_name" content="MLSys">
+  <meta property="og:title" content="MLSys">
+  <meta property="og:description" content="端云协同的AI Agent硬件助手架构方案 # “在非洲，一个好的助手不是在云端有多聪明，而是在断网时还能帮你拨通电话。”
+一、引言 # 传音作为&#34;非洲手机之王&#34;，其硬件助手产品（如os语音助手）正面临从指令式语音助手向自主AI Agent的范式升级。与硅谷的AI助手不同，传音的AI Agent必须面对三个独特约束：
+网络环境恶劣：非洲部分地区3G仍为主流，断网是常态而非异常 设备资源受限：中低端机型内存1-2GB、存储16-32GB、无NPU或低端NPU 多语言碎片化：豪萨语、斯瓦西里语、阿姆哈拉语等小语种离线支持 本文提出端-云-第三方三层架构，核心设计原则是：端侧保可用、云侧提供智能、第三方扩展生态。
+二、总体架构设计 # 2.1 三层架构总览 # graph TB subgraph &#34;📱 端侧 Edge Layer（设备本体）&#34; VAD[VAD唤醒] SLM[轻量SLM推理] LOCAL_MEM[(本地记忆)] LOCAL_TOOL[本地工具执行] SYNC[端云同步引擎] end subgraph &#34;☁️ 云侧 Cloud Layer（传音AI平台）&#34; AGENT_CORE[Agent核心引擎] MEMORY[(云端Memory)] RAG[(RAG检索引擎)] TOOL_REG[(工具注册中心)] DIALOGUE[对话管理DM] MONITOR[可观测性] end subgraph &#34;🌐 第三方 Third-Party Layer&#34; OAUTH[OAuth鉴权网关] MARKETPLACE[技能市场] EXT_API[第三方API] AUDIT[审计与计量] end SYNC &lt;--&gt; AGENT_CORE VAD --&gt; SLM --&gt; LOCAL_TOOL SLM -.置信度高.-&gt; LOCAL_TOOL SLM -.需云端智能.-&gt; SYNC AGENT_CORE --&gt; MEMORY AGENT_CORE --&gt; RAG AGENT_CORE --&gt; TOOL_REG TOOL_REG --&gt; OAUTH OAUTH --&gt; MARKETPLACE --&gt; EXT_API EXT_API --&gt; AUDIT SYNC -.">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="website">
+<title>Hermes | MLSys</title>
+<link rel="icon" href="/www6vMLSys/favicon.png" >
+<link rel="manifest" href="/www6vMLSys/manifest.json">
+<link rel="canonical" href="https://www6v.github.io/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E7%AB%AF%E4%BA%91%E6%B7%B7%E5%90%88%E6%9E%B6%E6%9E%84/hermes/">
+<link rel="stylesheet" href="/www6vMLSys/book.min.6c8b9d2a1fc95075ed7da46ca81060b39add8fff6741ac51259f768929281e2c.css" integrity="sha256-bIudKh/JUHXtfaRsqBBgs5rdj/9nQaxRJZ92iSkoHiw=" crossorigin="anonymous">
+  <script defer src="/www6vMLSys/fuse.min.js"></script>
+  <script defer src="/www6vMLSys/en.search.min.d594248518fa2a9931066040a9448183d47749b3a47fcc00e0496d62a93dcc35.js" integrity="sha256-1ZQkhRj6KpkxBmBAqUSBg9R3SbOkf8wA4EltYqk9zDU=" crossorigin="anonymous"></script>
+
+  
+
+<link rel="alternate" type="application/rss+xml" href="https://www6v.github.io/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E7%AB%AF%E4%BA%91%E6%B7%B7%E5%90%88%E6%9E%B6%E6%9E%84/hermes/index.xml" title="MLSys" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/www6vMLSys/"><span>MLSys</span>
+  </a>
+</h2>
+
+
+<div class="book-search hidden">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+<script>document.querySelector(".book-search").classList.remove("hidden")</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-46f9f019ac1cd81d3adb5dce8195fad5" class="toggle"  />
+    <label for="section-46f9f019ac1cd81d3adb5dce8195fad5" class="flex justify-between">
+      <a role="button" class="">Inference</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0df477e9a94394863b60b08953bb3faf" class="toggle"  />
+    <label for="section-0df477e9a94394863b60b08953bb3faf" class="flex justify-between">
+      <a role="button" class="">框架</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/Framework/" class="">(原理)推理-框架</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/FrameworkPractice/" class="">(实战)推理-lmdeploy</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/TensorRT/" class="">(原理|实战) TensorRT-LLM &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/Ray/" class="">(原理)推理 Ray</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/RayPractice/" class="">(实战)推理 Ray</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-e80661aabb05786d73bb02617f11551b" class="toggle"  />
+    <label for="section-e80661aabb05786d73bb02617f11551b" class="flex justify-between">
+      <a role="button" class="">框架vLLM</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLM/" class="">(原理) vLLM  &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMPractice/" class="">(实战) vLLM &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/SpeculativeDecodingvLLM/" class="">(实战)[vLLM]投机解码 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/KVCacheRadixAttention/" class="">(原理|实战) [vLLM]Prefix Cache &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMCode/" class="">(实现)[vLLM]整体架构 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMDist/" class="">(实现)[vLLM]分布式 *</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMPD/" class="">(实现)[vLLM]PD分离 *</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMSpeculativeDecode/" class="">(实现)[vLLM]投机解码 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMPrefixCaching/" class="">(实现)[vLLM]Prefix Caching &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMv1/" class="">(实现)[vLLM]V1 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-206d1962a731b68760cf02563d9a81c7" class="toggle"  />
+    <label for="section-206d1962a731b68760cf02563d9a81c7" class="flex justify-between">
+      <a role="button" class="">Inference 优化</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-9d5a2c196d1ea980f1966f0de0e49d52" class="toggle"  />
+    <label for="section-9d5a2c196d1ea980f1966f0de0e49d52" class="flex justify-between">
+      <a role="button" class="">Overview</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/Overview/Inference/" class="">(总结)推理优化</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/Overview/InferenceSurvey/" class="">(综述)推理优化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/Overview/InferenceSurvey1/" class="">(综述)推理优化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-733ec9f169a904e7d2ec539e5c012c44" class="toggle"  />
+    <label for="section-733ec9f169a904e7d2ec539e5c012c44" class="flex justify-between">
+      <a role="button" class="">系统层优化</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-1b6eb1bafb777938ce54ed28062f31be" class="toggle"  />
+    <label for="section-1b6eb1bafb777938ce54ed28062f31be" class="flex justify-between">
+      <a role="button" class="">FlashAttention</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/FlashAttention/FlashAttention/" class="">(原理)Flash Attention &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/FlashAttention/FlashAttention2/" class="">(原理)FlashAttention2 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/FlashAttention/FlashDecoding/" class="">(原理)Flash Decoding &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-90df0a4e1b32a319152ceba8d1068844" class="toggle"  />
+    <label for="section-90df0a4e1b32a319152ceba8d1068844" class="flex justify-between">
+      <a role="button" class="">SpeculativeDecoding</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/SpeculativeDecoding/" class="">Speculative Decoding &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/SpeculativeDecodingSurvey/" class="">(Survey)Speculative Decoding &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/Medusa/" class="">(原理|实现)Medusa &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/Eagle/" class="">EAGLE &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/SpecInfer/" class="">SpecInfer &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-84b07ff725756ccf253ca224735e34fe" class="toggle"  />
+    <label for="section-84b07ff725756ccf253ca224735e34fe" class="flex justify-between">
+      <a role="button" class="">KVCache</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/KVCache/KVCache/" class="">(原理|实现) KV Cache &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/KVCache/KVCacheOptimize/" class="">(原理)KV Cache 优化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-9fd8feeeaec2f719941a1e3edb14d741" class="toggle"  />
+    <label for="section-9fd8feeeaec2f719941a1e3edb14d741" class="flex justify-between">
+      <a role="button" class="">Compress</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/KVCache/Compress/gptInferKVCacheQuantization/" class="">(原理)KV Cache 量化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-58684618fdc4965e2b35a333cfc0751c" class="toggle"  />
+    <label for="section-58684618fdc4965e2b35a333cfc0751c" class="flex justify-between">
+      <a role="button" class="">Batch</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/Batch/ContinuousBatching/" class="">Continuous Batching &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/Batch/ChunkedPrefill/" class="">Chunked Prefill &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-2bda16ee9eb1cc424ad4bacfc46e2574" class="toggle"  />
+    <label for="section-2bda16ee9eb1cc424ad4bacfc46e2574" class="flex justify-between">
+      <a role="button" class="">PD 分离</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/DistServe/" class="">DistServe &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/Mooncake/" class="">(原理|实现)Mooncake &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/MooncakeA1/" class="">(A1)Mooncake 架构 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/PD%E5%88%86%E7%A6%BB/" class="">(A1)PD分离 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/Llumnix/" class="">(原理)Llumnix &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-d8e4bc101aba8bbf9039eb3ecb0f14f5" class="toggle"  />
+    <label for="section-d8e4bc101aba8bbf9039eb3ecb0f14f5" class="flex justify-between">
+      <a role="button" class="">模型层优化</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-d7414f59e2a23d21985181d6022ec263" class="toggle"  />
+    <label for="section-d7414f59e2a23d21985181d6022ec263" class="flex justify-between">
+      <a role="button" class="">量化</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-20f0402fb3cbae252a4184f400e05533" class="toggle"  />
+    <label for="section-20f0402fb3cbae252a4184f400e05533" class="flex justify-between">
+      <a role="button" class="">Overview</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/Overview/QuantizationSurvey/" class="">(Survey)Quantization &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/Overview/Quantization/" class="">(原理)量化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-ec2eb87afcd086e2bb436dac77ebdcbc" class="toggle"  />
+    <label for="section-ec2eb87afcd086e2bb436dac77ebdcbc" class="flex justify-between">
+      <a role="button" class="">PTQ</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/QuantizationWeight/" class="">(原理)PTQ-Weight Only &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-571b73d60a6cc0ec292d9f6baa3bece7" class="toggle"  />
+    <label for="section-571b73d60a6cc0ec292d9f6baa3bece7" class="flex justify-between">
+      <a role="button" class="">Weight Only</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/Weight-Only/QuantizationGPTQ/" class="">(原理|实战|实现)GPTQ &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/Weight-Only/QuantizationAWQ/" class="">(原理|实战)AWQ &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-c949cfd2d8034a11b389f2d023507d5e" class="toggle"  />
+    <label for="section-c949cfd2d8034a11b389f2d023507d5e" class="flex justify-between">
+      <a role="button" class="">Weight&amp;Activation</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/QuantizationInt8/gptQuantizationInt8/" class="">(原理|实战)LLM.int8() &#43;</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/QuantizationSmoothQuant/gptQuantizationSmoothQuant/" class="">(原理)SmoothQuant &#43;</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/QuantizationFP8/gptQuantizationFP8/" class="">(原理)FP8 &#43;</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-2cc6a020e92cde89b28dd1b9a8dde151" class="toggle"  />
+    <label for="section-2cc6a020e92cde89b28dd1b9a8dde151" class="flex justify-between">
+      <a role="button" class="">Practice</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/Practice/QuantizationPractice/" class="">(实战)量化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-c621aaebb7e229715dd0809d059d2fc9" class="toggle"  />
+    <label for="section-c621aaebb7e229715dd0809d059d2fc9" class="flex justify-between">
+      <a role="button" class="">Sparse Attention</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/Sparse-Attention/KVCacheStreamingLLM/" class="">(原理)Streaming LLM &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-d41c5815cabb16367a7704d1b8979f2c" class="toggle"  />
+    <label for="section-d41c5815cabb16367a7704d1b8979f2c" class="flex justify-between">
+      <a role="button" class="">TTFT</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/TTFT/TTFT/" class="">LLM 首字延迟（TTFT）优化方案</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/TTFT/TTFT1/" class="">LLM 首字延迟（TTFT）优化方案</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0510211b4577a4de8bc6d0c3b60e33ff" class="toggle"  />
+    <label for="section-0510211b4577a4de8bc6d0c3b60e33ff" class="flex justify-between">
+      <a role="button" class="">Training</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-9fc08442b7ae0ae2d037ffc5cac491be" class="toggle"  />
+    <label for="section-9fc08442b7ae0ae2d037ffc5cac491be" class="flex justify-between">
+      <a role="button" class="">分布式</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-57a5e3e5fe9ab455f342e1e697db1803" class="toggle"  />
+    <label for="section-57a5e3e5fe9ab455f342e1e697db1803" class="flex justify-between">
+      <a role="button" class="">Overview</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/Overview/TrainParallelism/" class="">(原理)分布式训练 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-8b31b6b471f5762e9d2da631bee73022" class="toggle"  />
+    <label for="section-8b31b6b471f5762e9d2da631bee73022" class="flex justify-between">
+      <a role="button" class="">DP</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainZeroDeepspeed/" class="">(原理) Deepspeed Zero &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainDistributedPractice/" class="">(实战)DeepSpeed Training &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainDDP/" class="">(原理|实战)DDP &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainFSDP/" class="">(原理|实战)FSDP &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3dc64482add8914f3b5f9110dbb829fa" class="toggle"  />
+    <label for="section-3dc64482add8914f3b5f9110dbb829fa" class="flex justify-between">
+      <a role="button" class="">TP</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/TP/TrainTensorParallelism/" class="">(原理)张量并行(TP) &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-8ff0d8df45f2751ebc315ae9eab02b9f" class="toggle"  />
+    <label for="section-8ff0d8df45f2751ebc315ae9eab02b9f" class="flex justify-between">
+      <a role="button" class="">PP</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/PP/TrainPipelineParallelism/" class="">(原理|实战)流水线并行(PP) &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-fbf3e2ed6e8d99c8615a31980d156c0b" class="toggle"  />
+    <label for="section-fbf3e2ed6e8d99c8615a31980d156c0b" class="flex justify-between">
+      <a role="button" class="">混合并行</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/%E6%B7%B7%E5%90%88%E5%B9%B6%E8%A1%8C/TrainMegatron/" class="">(原理)Megatron &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/%E6%B7%B7%E5%90%88%E5%B9%B6%E8%A1%8C/TrainHybridParallel/" class="">(原理)混合并行 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-19cde628a5e79f95519e1f1e2cf1e6a6" class="toggle"  />
+    <label for="section-19cde628a5e79f95519e1f1e2cf1e6a6" class="flex justify-between">
+      <a role="button" class="">低精度</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/LowPrecision/gptLowPrecision/" class="">低精度训练 &#43;</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/Precision/gptPrecision/" class="">(原理|实战)混合精度 &#43;</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-5d6602fbd107263f71b49720e8a5770b" class="toggle" checked />
+    <label for="section-5d6602fbd107263f71b49720e8a5770b" class="flex justify-between">
+      <a role="button" class="">AI平台</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/aiPlatform/" class="">(原理)AI平台</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/aiObserve/" class="">(阿里)AI 应用观测</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-17c42b222b84095c605f66bfd3a5d5af" class="toggle"  />
+    <label for="section-17c42b222b84095c605f66bfd3a5d5af" class="flex justify-between">
+      <a role="button" class="">AI网关</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/AI%E7%BD%91%E5%85%B3/LiteLLM/" class="">(实现)LiteLLM</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/AI%E7%BD%91%E5%85%B3/gateway/" class="">(阿里) AI 网关</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/AI%E7%BD%91%E5%85%B3/LiteLLM-routefallback/" class="">Lite Llm Route&amp;fallback</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-9aa1a1e7091b07da4599c138f61024b2" class="toggle"  />
+    <label for="section-9aa1a1e7091b07da4599c138f61024b2" class="flex justify-between">
+      <a role="button" class="">对话混合架构</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E5%AF%B9%E8%AF%9D%E6%B7%B7%E5%90%88%E6%9E%B6%E6%9E%84/claw/" class="">Claw</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E5%AF%B9%E8%AF%9D%E6%B7%B7%E5%90%88%E6%9E%B6%E6%9E%84/hermes/" class="">Hermes</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-9b09c4b066b1e1cccae213b0b98306e9" class="toggle"  />
+    <label for="section-9b09c4b066b1e1cccae213b0b98306e9" class="flex justify-between">
+      <a role="button" class="">开放平台</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E5%BC%80%E6%94%BE%E5%B9%B3%E5%8F%B0/claw/" class="">Claw</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E5%BC%80%E6%94%BE%E5%B9%B3%E5%8F%B0/hermes/" class="">Hermes</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-27989a5e3be10a7f5e8020a8a410d4e6" class="toggle" checked />
+    <label for="section-27989a5e3be10a7f5e8020a8a410d4e6" class="flex justify-between">
+      <a role="button" class="">端云混合架构</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E7%AB%AF%E4%BA%91%E6%B7%B7%E5%90%88%E6%9E%B6%E6%9E%84/claw&#43;/" class="">Claw[ ]</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E7%AB%AF%E4%BA%91%E6%B7%B7%E5%90%88%E6%9E%B6%E6%9E%84/hermes/" class="active">Hermes</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/LLMOps/" class="">LLMOps</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-d80e9a068046a412cee1ba7f653b5c86" class="toggle"  />
+    <label for="section-d80e9a068046a412cee1ba7f653b5c86" class="flex justify-between">
+      <a role="button" class="">MaaS</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/MaaS/MaaS1/" class="">MaaS</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/MaaS/MaaS2/" class="">MaaS</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/MaaS/MaaS3/" class="">智算中心[A1]</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/MaaS/MaaS-observe/" class="">MaaS 监控</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/MaaS/MaaSali/" class="">智能体基础设施[阿里][A1]</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/MaaS/MaaS-command/" class="">Maa S Command</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-62de713685ff13478495b8520fd59705" class="toggle"  />
+    <label for="section-62de713685ff13478495b8520fd59705" class="flex justify-between">
+      <a role="button" class="">Infra</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Infra/LLamaFactory/" class="">LLama-Factory</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-120653a01c96b9ed76377f47423942f0" class="toggle"  />
+    <label for="section-120653a01c96b9ed76377f47423942f0" class="flex justify-between">
+      <a role="button" class="">GPU</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Infra/GPU/GPUk8s/" class="">(实战)K8s部署GPU</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Infra/GPU/GPU%E6%9E%B6%E6%9E%84A1/" class="">(A1)GPU 架构 *</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Infra/GPU/GPUMetrics/" class="">GPU 指标&amp;监控</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Infra/GPU/GPU/" class="">GPU 算力平台</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-b4210e18b73dee1304d22035008e50e8" class="toggle"  />
+    <label for="section-b4210e18b73dee1304d22035008e50e8" class="flex justify-between">
+      <a role="button" class="">显存估算</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Infra/%E6%98%BE%E5%AD%98%E4%BC%B0%E7%AE%97/GPU-InferA1/" class="">(A1)推理显存估算 *</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Infra/%E6%98%BE%E5%AD%98%E4%BC%B0%E7%AE%97/GPUComputing/" class="">显存估算</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/www6vMLSys/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <h3>Hermes</h3>
+
+  <label for="toc-control">
+    
+    <img src="/www6vMLSys/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#端云协同的ai-agent硬件助手架构方案">端云协同的AI Agent硬件助手架构方案</a>
+      <ul>
+        <li><a href="#一引言">一、引言</a></li>
+        <li><a href="#二总体架构设计">二、总体架构设计</a>
+          <ul>
+            <li><a href="#21-三层架构总览">2.1 三层架构总览</a></li>
+            <li><a href="#22-架构原则">2.2 架构原则</a></li>
+            <li><a href="#23-端云职责边界">2.3 端云职责边界</a></li>
+          </ul>
+        </li>
+        <li><a href="#三端侧edge-layer设计">三、端侧（Edge Layer）设计</a>
+          <ul>
+            <li><a href="#31-端侧能力边界与模型选型">3.1 端侧能力边界与模型选型</a></li>
+            <li><a href="#32-端侧推理管线">3.2 端侧推理管线</a></li>
+            <li><a href="#33-端云协同策略">3.3 端云协同策略</a></li>
+          </ul>
+        </li>
+        <li><a href="#四云侧cloud-layer设计">四、云侧（Cloud Layer）设计</a>
+          <ul>
+            <li><a href="#41-云端agent核心引擎">4.1 云端Agent核心引擎</a></li>
+            <li><a href="#42-多设备协同与记忆同步">4.2 多设备协同与记忆同步</a></li>
+            <li><a href="#43-智能体技能市场插件体系">4.3 智能体技能市场（插件体系）</a></li>
+          </ul>
+        </li>
+        <li><a href="#五第三方apithird-party-layer设计">五、第三方API（Third-Party Layer）设计</a>
+          <ul>
+            <li><a href="#51-开放平台接入架构">5.1 开放平台接入架构</a></li>
+            <li><a href="#52-第三方服务治理">5.2 第三方服务治理</a></li>
+            <li><a href="#53-安全沙箱与数据脱敏">5.3 安全沙箱与数据脱敏</a></li>
+          </ul>
+        </li>
+        <li><a href="#六云端第三方api不可用应对方案">六、云端/第三方API不可用应对方案</a>
+          <ul>
+            <li><a href="#61-故障场景分类与影响矩阵">6.1 故障场景分类与影响矩阵</a></li>
+            <li><a href="#62-云端api不可用应对策略">6.2 云端API不可用应对策略</a></li>
+            <li><a href="#63-第三方api不可用应对策略">6.3 第三方API不可用应对策略</a></li>
+            <li><a href="#64-端侧兜底能力清单">6.4 端侧兜底能力清单</a></li>
+            <li><a href="#65-故障恢复与自愈">6.5 故障恢复与自愈</a></li>
+          </ul>
+        </li>
+        <li><a href="#七关键技术实现">七、关键技术实现</a>
+          <ul>
+            <li><a href="#71-端云通信协议">7.1 端云通信协议</a></li>
+            <li><a href="#72-端侧摘要--云端增量更新">7.2 端侧摘要 → 云端增量更新</a></li>
+            <li><a href="#73-弹性降级策略">7.3 弹性降级策略</a></li>
+          </ul>
+        </li>
+        <li><a href="#八非洲本地化适配">八、非洲本地化适配</a>
+          <ul>
+            <li><a href="#81-弱网环境优化">8.1 弱网环境优化</a></li>
+            <li><a href="#82-低端设备适配">8.2 低端设备适配</a></li>
+            <li><a href="#83-多语言端侧支持">8.3 多语言端侧支持</a></li>
+          </ul>
+        </li>
+        <li><a href="#九总结">九、总结</a>
+          <ul>
+            <li><a href="#核心架构要点">核心架构要点</a></li>
+            <li><a href="#面试金句">面试金句</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><h1 id="端云协同的ai-agent硬件助手架构方案">
+  端云协同的AI Agent硬件助手架构方案
+  <a class="anchor" href="#%e7%ab%af%e4%ba%91%e5%8d%8f%e5%90%8c%e7%9a%84ai-agent%e7%a1%ac%e4%bb%b6%e5%8a%a9%e6%89%8b%e6%9e%b6%e6%9e%84%e6%96%b9%e6%a1%88">#</a>
+</h1>
+<blockquote>
+<p><em>&ldquo;在非洲，一个好的助手不是在云端有多聪明，而是在断网时还能帮你拨通电话。&rdquo;</em></p>
+</blockquote>
+<h2 id="一引言">
+  一、引言
+  <a class="anchor" href="#%e4%b8%80%e5%bc%95%e8%a8%80">#</a>
+</h2>
+<p>传音作为&quot;非洲手机之王&quot;，其硬件助手产品（如os语音助手）正面临从<strong>指令式语音助手</strong>向<strong>自主AI Agent</strong>的范式升级。与硅谷的AI助手不同，传音的AI Agent必须面对三个独特约束：</p>
+<ol>
+<li><strong>网络环境恶劣</strong>：非洲部分地区3G仍为主流，断网是常态而非异常</li>
+<li><strong>设备资源受限</strong>：中低端机型内存1-2GB、存储16-32GB、无NPU或低端NPU</li>
+<li><strong>多语言碎片化</strong>：豪萨语、斯瓦西里语、阿姆哈拉语等小语种离线支持</li>
+</ol>
+<p>本文提出<strong>端-云-第三方三层架构</strong>，核心设计原则是：<strong>端侧保可用、云侧提供智能、第三方扩展生态</strong>。</p>
+<hr>
+<h2 id="二总体架构设计">
+  二、总体架构设计
+  <a class="anchor" href="#%e4%ba%8c%e6%80%bb%e4%bd%93%e6%9e%b6%e6%9e%84%e8%ae%be%e8%ae%a1">#</a>
+</h2>
+<h3 id="21-三层架构总览">
+  2.1 三层架构总览
+  <a class="anchor" href="#21-%e4%b8%89%e5%b1%82%e6%9e%b6%e6%9e%84%e6%80%bb%e8%a7%88">#</a>
+</h3>
+
+
+<script src="/www6vMLSys/mermaid.min.js"></script>
+
+  <script>mermaid.initialize({
+  "flowchart": {
+    "useMaxWidth":true
+  },
+  "theme": "default"
+}
+)</script>
+
+
+
+<pre class="mermaid">graph TB
+    subgraph &#34;📱 端侧 Edge Layer（设备本体）&#34;
+        VAD[VAD唤醒]
+        SLM[轻量SLM推理]
+        LOCAL_MEM[(本地记忆)]
+        LOCAL_TOOL[本地工具执行]
+        SYNC[端云同步引擎]
+    end
+    
+    subgraph &#34;☁️ 云侧 Cloud Layer（传音AI平台）&#34;
+        AGENT_CORE[Agent核心引擎]
+        MEMORY[(云端Memory)]
+        RAG[(RAG检索引擎)]
+        TOOL_REG[(工具注册中心)]
+        DIALOGUE[对话管理DM]
+        MONITOR[可观测性]
+    end
+    
+    subgraph &#34;🌐 第三方 Third-Party Layer&#34;
+        OAUTH[OAuth鉴权网关]
+        MARKETPLACE[技能市场]
+        EXT_API[第三方API]
+        AUDIT[审计与计量]
+    end
+    
+    SYNC &lt;--&gt; AGENT_CORE
+    VAD --&gt; SLM --&gt; LOCAL_TOOL
+    SLM -.置信度高.-&gt; LOCAL_TOOL
+    SLM -.需云端智能.-&gt; SYNC
+    AGENT_CORE --&gt; MEMORY
+    AGENT_CORE --&gt; RAG
+    AGENT_CORE --&gt; TOOL_REG
+    TOOL_REG --&gt; OAUTH
+    OAUTH --&gt; MARKETPLACE --&gt; EXT_API
+    EXT_API --&gt; AUDIT
+    SYNC -.断网降级.-&gt; LOCAL_MEM</pre>
+<h3 id="22-架构原则">
+  2.2 架构原则
+  <a class="anchor" href="#22-%e6%9e%b6%e6%9e%84%e5%8e%9f%e5%88%99">#</a>
+</h3>
+<table>
+<thead>
+<tr>
+<th>原则</th>
+<th>设计含义</th>
+<th>传音场景意义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>隐私优先</strong></td>
+<td>个人数据默认端侧处理，仅脱敏摘要上云</td>
+<td>非洲POPIA/NDPR合规要求</td>
+</tr>
+<tr>
+<td><strong>延迟分层</strong></td>
+<td>简单操作本地响应&lt;100ms，复杂请求云端处理</td>
+<td>弱网环境下用户体验保障</td>
+</tr>
+<tr>
+<td><strong>弹性降级</strong></td>
+<td>云端不可用时端侧自主运行核心功能</td>
+<td>非洲断网场景兜底</td>
+</tr>
+<tr>
+<td><strong>开放扩展</strong></td>
+<td>第三方API通过标准协议接入，沙箱隔离执行</td>
+<td>生态构建与商业化</td>
+</tr>
+</tbody>
+</table>
+<h3 id="23-端云职责边界">
+  2.3 端云职责边界
+  <a class="anchor" href="#23-%e7%ab%af%e4%ba%91%e8%81%8c%e8%b4%a3%e8%be%b9%e7%95%8c">#</a>
+</h3>
+<pre tabindex="0"><code>┌─────────────────────────────────────────────────────────────────┐
+│                        端云职责矩阵                              │
+├────────────────┬───────────────────┬────────────────────────────┤
+│     能力       │     端侧           │     云端                    │
+├────────────────┼───────────────────┼────────────────────────────┤
+│ 语音唤醒        │ 关键词唤醒 (Always On)│ 自定义唤醒词训练          │
+│ 语音识别        │ 离线ASR (5种核心语言) │ 在线ASR (全量语言+口音)    │
+│ 意图理解        │ 规则+轻量SLM (Top 20意图)│ LLM全量意图理解          │
+│ 本地控制        │ 直接执行 (拨号/设置/闹钟) │ 无                       │
+│ 知识问答        │ 本地知识库 (FAQ)     │ RAG + LLM 全量知识        │
+│ 工具调用        │ 本地API (通讯录/相机)   │ 第三方API (天气/外卖/打车) │
+│ 多轮对话        │ 上下文窗口&lt;5轮        │ 无限轮次 + Memory检索      │
+│ 个性化记忆      │ 最近7天摘要          │ 全量用户画像 + 长期记忆    │
+└────────────────┴───────────────────┴────────────────────────────┘
+</code></pre><hr>
+<h2 id="三端侧edge-layer设计">
+  三、端侧（Edge Layer）设计
+  <a class="anchor" href="#%e4%b8%89%e7%ab%af%e4%be%a7edge-layer%e8%ae%be%e8%ae%a1">#</a>
+</h2>
+<h3 id="31-端侧能力边界与模型选型">
+  3.1 端侧能力边界与模型选型
+  <a class="anchor" href="#31-%e7%ab%af%e4%be%a7%e8%83%bd%e5%8a%9b%e8%be%b9%e7%95%8c%e4%b8%8e%e6%a8%a1%e5%9e%8b%e9%80%89%e5%9e%8b">#</a>
+</h3>
+<p>端侧是&quot;可用性的最后防线&quot;，必须在有限资源下保证核心功能。</p>
+<p><strong>端侧模型量化对比：</strong></p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>参数量</th>
+<th>量化后大小</th>
+<th>首Token延迟</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Qwen2.5-0.5B</td>
+<td>0.5B</td>
+<td>350MB (INT4)</td>
+<td>~200ms</td>
+<td>意图分类、简单问答</td>
+</tr>
+<tr>
+<td>Gemma-2-2B</td>
+<td>2B</td>
+<td>1.2GB (INT4)</td>
+<td>~800ms</td>
+<td>复杂理解、多轮对话</td>
+</tr>
+<tr>
+<td>Whisper-Tiny</td>
+<td>39M</td>
+<td>75MB (FP16)</td>
+<td>~50ms</td>
+<td>离线语音识别</td>
+</tr>
+<tr>
+<td>自研SLM-300M</td>
+<td>300M</td>
+<td>180MB (INT4)</td>
+<td>~120ms</td>
+<td>本地意图路由</td>
+</tr>
+</tbody>
+</table>
+<p><strong>推荐方案</strong>：采用自研300M SLM作为端侧路由核心，配合Whisper-Tiny做离线ASR，整体端侧模型包控制在500MB以内，适配低端机型。</p>
+<h3 id="32-端侧推理管线">
+  3.2 端侧推理管线
+  <a class="anchor" href="#32-%e7%ab%af%e4%be%a7%e6%8e%a8%e7%90%86%e7%ae%a1%e7%ba%bf">#</a>
+</h3>
+
+<pre class="mermaid">graph LR
+    MIC[麦克风输入] --&gt; VAD[VAD检测]
+    VAD --&gt;|语音片段| ASR[离线ASR]
+    ASR --&gt;|文本| ROUTER[意图路由器 SLM]
+    
+    ROUTER --&gt;|置信度&gt;0.8| LOCAL[本地执行]
+    ROUTER --&gt;|置信度&lt;0.8| CLOUD[上传云端]
+    ROUTER --&gt;|网络不可用| FALLBACK[本地兜底]
+    
+    LOCAL --&gt; RESP[端侧响应]
+    CLOUD --&gt; SYNC[端云同步]
+    FALLBACK --&gt; RESP
+    
+    SYNC --&gt;|云端响应| RESP
+    RESP --&gt; TTS[本地/云端TTS]
+    TTS --&gt; SPK[扬声器输出]</pre>
+<p><strong>端侧意图路由器实现：</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// IntentRouter - 端侧轻量意图分类与路由决策
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">IntentRouter</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">model</span>    <span style="color:#f92672">*</span><span style="color:#a6e22e">SLM</span>           <span style="color:#75715e">// 端侧小模型
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">rules</span>    <span style="color:#f92672">*</span><span style="color:#a6e22e">RuleEngine</span>    <span style="color:#75715e">// 规则引擎兜底
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">config</span>   <span style="color:#f92672">*</span><span style="color:#a6e22e">RouterConfig</span>  <span style="color:#75715e">// 路由阈值配置
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">IntentRouter</span>) <span style="color:#a6e22e">Route</span>(<span style="color:#a6e22e">text</span> <span style="color:#66d9ef">string</span>) <span style="color:#f92672">*</span><span style="color:#a6e22e">RouteDecision</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 1. 规则优先（高确定性意图直接匹配，零推理成本）
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">ruleMatch</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">rules</span>.<span style="color:#a6e22e">Match</span>(<span style="color:#a6e22e">text</span>); <span style="color:#a6e22e">ruleMatch</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">ruleMatch</span>.<span style="color:#a6e22e">Confidence</span> &gt; <span style="color:#ae81ff">0.95</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">RouteDecision</span>{
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">Target</span>:  <span style="color:#a6e22e">ExecutionTargetLocal</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">Action</span>:  <span style="color:#a6e22e">ruleMatch</span>.<span style="color:#a6e22e">Action</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">Reason</span>:  <span style="color:#e6db74">&#34;rule_match&#34;</span>,
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 2. SLM推理（0.3B参数，INT4量化，内存占用~180MB）
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">result</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">model</span>.<span style="color:#a6e22e">Predict</span>(<span style="color:#a6e22e">text</span>)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 3. 路由决策
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">result</span>.<span style="color:#a6e22e">Confidence</span> <span style="color:#f92672">&gt;=</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">config</span>.<span style="color:#a6e22e">LocalThreshold</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 高置信度：本地执行
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">RouteDecision</span>{
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">Target</span>:  <span style="color:#a6e22e">ExecutionTargetLocal</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">Action</span>:  <span style="color:#a6e22e">result</span>.<span style="color:#a6e22e">Action</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">Reason</span>:  <span style="color:#e6db74">&#34;slm_high_confidence&#34;</span>,
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">result</span>.<span style="color:#a6e22e">Confidence</span> <span style="color:#f92672">&gt;=</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">config</span>.<span style="color:#a6e22e">CloudThreshold</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 中等置信度：需要云端增强
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">RouteDecision</span>{
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">Target</span>:  <span style="color:#a6e22e">ExecutionTargetCloud</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">Action</span>:  <span style="color:#a6e22e">result</span>.<span style="color:#a6e22e">Action</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">Reason</span>:  <span style="color:#e6db74">&#34;slm_medium_confidence&#34;</span>,
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">isNetworkAvailable</span>() {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 低置信度：云端LLM处理
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">RouteDecision</span>{
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">Target</span>:  <span style="color:#a6e22e">ExecutionTargetCloud</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">Action</span>:  <span style="color:#e6db74">&#34;general_query&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">Reason</span>:  <span style="color:#e6db74">&#34;slm_low_confidence&#34;</span>,
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 网络不可用：端侧兜底
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">RouteDecision</span>{
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">Target</span>:  <span style="color:#a6e22e">ExecutionTargetFallback</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">Action</span>:  <span style="color:#e6db74">&#34;fallback_response&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">Reason</span>:  <span style="color:#e6db74">&#34;no_network&#34;</span>,
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="33-端云协同策略">
+  3.3 端云协同策略
+  <a class="anchor" href="#33-%e7%ab%af%e4%ba%91%e5%8d%8f%e5%90%8c%e7%ad%96%e7%95%a5">#</a>
+</h3>
+<p><strong>何时本地？何时上云？</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">EdgeCloudPolicy</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;&#34;&#34;端云协同策略引擎&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">decide</span>(self, intent: Intent, context: Context) <span style="color:#f92672">-&gt;</span> ExecutionTarget:
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 规则1：隐私敏感操作优先本地</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> intent<span style="color:#f92672">.</span>category <span style="color:#f92672">in</span> [PRIVACY_LOCAL_EXECUTION]:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> LOCAL
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 规则2：网络状态评估</span>
+</span></span><span style="display:flex;"><span>        network_quality <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>measure_network()
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> network_quality <span style="color:#f92672">&lt;</span> THRESHOLD_POOR:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> LOCAL_FALLBACK  <span style="color:#75715e"># 弱网强制本地</span>
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 规则3：延迟预算评估</span>
+</span></span><span style="display:flex;"><span>        estimated_cloud_latency <span style="color:#f92672">=</span> (
+</span></span><span style="display:flex;"><span>            self<span style="color:#f92672">.</span>rtt_to_cloud() <span style="color:#f92672">+</span> 
+</span></span><span style="display:flex;"><span>            self<span style="color:#f92672">.</span>estimate_cloud_processing(intent)
+</span></span><span style="display:flex;"><span>        )
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> estimated_cloud_latency <span style="color:#f92672">&gt;</span> intent<span style="color:#f92672">.</span>max_acceptable_latency:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> LOCAL  <span style="color:#75715e"># 云端太慢，降级本地</span>
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 规则4：能力匹配</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> self<span style="color:#f92672">.</span>local_model<span style="color:#f92672">.</span>can_handle(intent):
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> CLOUD  <span style="color:#75715e"># 端侧模型不支持</span>
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 规则5：成本权衡（云侧LLM调用成本 vs 本地推理电量消耗）</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>should_save_cloud_quota(intent):
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> LOCAL  <span style="color:#75715e"># 节省云端配额</span>
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> CLOUD  <span style="color:#75715e"># 默认走云端</span>
+</span></span></code></pre></div><hr>
+<h2 id="四云侧cloud-layer设计">
+  四、云侧（Cloud Layer）设计
+  <a class="anchor" href="#%e5%9b%9b%e4%ba%91%e4%be%a7cloud-layer%e8%ae%be%e8%ae%a1">#</a>
+</h2>
+<h3 id="41-云端agent核心引擎">
+  4.1 云端Agent核心引擎
+  <a class="anchor" href="#41-%e4%ba%91%e7%ab%afagent%e6%a0%b8%e5%bf%83%e5%bc%95%e6%93%8e">#</a>
+</h3>
+<p>云端是智能的&quot;大脑&quot;，负责复杂推理、Memory管理、Tool编排。</p>
+
+<pre class="mermaid">graph TB
+    subgraph &#34;Agent核心&#34;
+        PLANNER[任务规划器]
+        MEMORY_MGR[Memory管理器]
+        TOOL_ORCH[工具编排器]
+        RESPONSE_GEN[响应生成器]
+    end
+    
+    subgraph &#34;支撑服务&#34;
+        LLM[LLM推理服务]
+        VECTOR_DB[(向量数据库)]
+        TOOL_REG[(工具注册中心)]
+        DIALOGUE_STATE[(对话状态存储)]
+    end
+    
+    USER_REQUEST --&gt; PLANNER
+    PLANNER --&gt; MEMORY_MGR
+    MEMORY_MGR --&gt; VECTOR_DB
+    PLANNER --&gt; TOOL_ORCH
+    TOOL_ORCH --&gt; TOOL_REG
+    TOOL_REG --&gt; LLM
+    PLANNER --&gt; RESPONSE_GEN
+    RESPONSE_GEN --&gt; LLM
+    LLM --&gt; RESPONSE_GEN
+    RESPONSE_GEN --&gt; USER_RESPONSE
+    PLANNER -.写入.-&gt; DIALOGUE_STATE</pre>
+<p><strong>Agent执行流程（ReAct模式）：</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">CloudAgent</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;&#34;&#34;云端AI Agent核心&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">async</span> <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">execute</span>(self, request: AgentRequest) <span style="color:#f92672">-&gt;</span> AgentResponse:
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 1. 加载对话上下文</span>
+</span></span><span style="display:flex;"><span>        context <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> self<span style="color:#f92672">.</span>memory<span style="color:#f92672">.</span>load_context(request<span style="color:#f92672">.</span>session_id)
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 2. 检索相关记忆</span>
+</span></span><span style="display:flex;"><span>        memories <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> self<span style="color:#f92672">.</span>memory<span style="color:#f92672">.</span>retrieve(request<span style="color:#f92672">.</span>query, top_k<span style="color:#f92672">=</span><span style="color:#ae81ff">5</span>)
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 3. 任务规划（LLM生成行动计划）</span>
+</span></span><span style="display:flex;"><span>        plan <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> self<span style="color:#f92672">.</span>planner<span style="color:#f92672">.</span>generate(
+</span></span><span style="display:flex;"><span>            query<span style="color:#f92672">=</span>request<span style="color:#f92672">.</span>query,
+</span></span><span style="display:flex;"><span>            context<span style="color:#f92672">=</span>context,
+</span></span><span style="display:flex;"><span>            memories<span style="color:#f92672">=</span>memories
+</span></span><span style="display:flex;"><span>        )
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 4. 工具编排执行</span>
+</span></span><span style="display:flex;"><span>        results <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> step <span style="color:#f92672">in</span> plan<span style="color:#f92672">.</span>steps:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> step<span style="color:#f92672">.</span>requires_tool:
+</span></span><span style="display:flex;"><span>                tool_result <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> self<span style="color:#f92672">.</span>tool_orchestrator<span style="color:#f92672">.</span>execute(step)
+</span></span><span style="display:flex;"><span>                results<span style="color:#f92672">.</span>append(tool_result)
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 5. 响应生成</span>
+</span></span><span style="display:flex;"><span>        response <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> self<span style="color:#f92672">.</span>response_generator<span style="color:#f92672">.</span>generate(
+</span></span><span style="display:flex;"><span>            plan<span style="color:#f92672">=</span>plan,
+</span></span><span style="display:flex;"><span>            results<span style="color:#f92672">=</span>results,
+</span></span><span style="display:flex;"><span>            context<span style="color:#f92672">=</span>context
+</span></span><span style="display:flex;"><span>        )
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 6. 更新Memory</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">await</span> self<span style="color:#f92672">.</span>memory<span style="color:#f92672">.</span>store(
+</span></span><span style="display:flex;"><span>            session_id<span style="color:#f92672">=</span>request<span style="color:#f92672">.</span>session_id,
+</span></span><span style="display:flex;"><span>            interaction<span style="color:#f92672">=</span>request<span style="color:#f92672">.</span>query,
+</span></span><span style="display:flex;"><span>            response<span style="color:#f92672">=</span>response<span style="color:#f92672">.</span>text,
+</span></span><span style="display:flex;"><span>            metadata<span style="color:#f92672">=</span>{<span style="color:#e6db74">&#34;tools_used&#34;</span>: [t<span style="color:#f92672">.</span>name <span style="color:#66d9ef">for</span> t <span style="color:#f92672">in</span> results]}
+</span></span><span style="display:flex;"><span>        )
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> response
+</span></span></code></pre></div><h3 id="42-多设备协同与记忆同步">
+  4.2 多设备协同与记忆同步
+  <a class="anchor" href="#42-%e5%a4%9a%e8%ae%be%e5%a4%87%e5%8d%8f%e5%90%8c%e4%b8%8e%e8%ae%b0%e5%bf%86%e5%90%8c%e6%ad%a5">#</a>
+</h3>
+<p>传音用户通常拥有多台设备（手机+手表+电视），Agent需要跨设备协同。</p>
+<pre tabindex="0"><code>┌─────────────────────────────────────────────────────────────┐
+│                   跨设备记忆同步架构                         │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│   Phone ────┐                                               │
+│             │  端侧摘要 ──► 云端Memory ──► 广播增量更新       │
+│   Watch ────┤                    │                          │
+│             │                    ▼                          │
+│   TV    ────┘              ┌──────────────┐                 │
+│                            │ Conflict     │                 │
+│                            │ Resolver     │                 │
+│                            └──────────────┘                 │
+│                                   │                         │
+│                                   ▼                         │
+│                          ┌──────────────┐                   │
+│                          │ 统一用户画像  │                   │
+│                          └──────────────┘                   │
+└─────────────────────────────────────────────────────────────┘
+</code></pre><p><strong>冲突解决策略：</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// MemorySyncResolver - 处理多设备记忆冲突
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">MemorySyncResolver</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">store</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">MemoryStore</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">MemorySyncResolver</span>) <span style="color:#a6e22e">Resolve</span>(<span style="color:#a6e22e">conflicts</span> []<span style="color:#a6e22e">MemoryEntry</span>) <span style="color:#a6e22e">MemoryEntry</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 策略1：时间戳优先（最新覆盖）
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">latest</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">conflicts</span>[<span style="color:#ae81ff">0</span>]
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">entry</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">conflicts</span>[<span style="color:#ae81ff">1</span>:] {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">entry</span>.<span style="color:#a6e22e">UpdatedAt</span>.<span style="color:#a6e22e">After</span>(<span style="color:#a6e22e">latest</span>.<span style="color:#a6e22e">UpdatedAt</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">latest</span> = <span style="color:#a6e22e">entry</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 策略2：设备权重（手机 &gt; 手表 &gt; TV）
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 同时间戳时，高优先级设备的数据更可信
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">hasTie</span>(<span style="color:#a6e22e">conflicts</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">resolveByDevicePriority</span>(<span style="color:#a6e22e">conflicts</span>)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">latest</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="43-智能体技能市场插件体系">
+  4.3 智能体技能市场（插件体系）
+  <a class="anchor" href="#43-%e6%99%ba%e8%83%bd%e4%bd%93%e6%8a%80%e8%83%bd%e5%b8%82%e5%9c%ba%e6%8f%92%e4%bb%b6%e4%bd%93%e7%b3%bb">#</a>
+</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#75715e"># 技能注册表（云端维护）</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">skills</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">skill_id</span>: <span style="color:#e6db74">&#34;weather_query&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;天气查询&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">provider</span>: <span style="color:#e6db74">&#34;third_party:openweathermap&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">endpoint</span>: <span style="color:#e6db74">&#34;https://api.openweathermap.org/data/2.5/weather&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">auth_type</span>: <span style="color:#e6db74">&#34;api_key&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">description</span>: <span style="color:#e6db74">&#34;查询全球城市实时天气&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">capabilities</span>: [<span style="color:#e6db74">&#34;current&#34;</span>, <span style="color:#e6db74">&#34;forecast&#34;</span>]
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">languages</span>: [<span style="color:#e6db74">&#34;en&#34;</span>, <span style="color:#e6db74">&#34;fr&#34;</span>, <span style="color:#e6db74">&#34;ha&#34;</span>, <span style="color:#e6db74">&#34;sw&#34;</span>, <span style="color:#e6db74">&#34;am&#34;</span>]
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">rate_limit</span>: <span style="color:#ae81ff">100</span><span style="color:#ae81ff">/minute</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">latency_p99</span>: <span style="color:#e6db74">&#34;500ms&#34;</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">skill_id</span>: <span style="color:#e6db74">&#34;local_taxi&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;本地打车&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">provider</span>: <span style="color:#e6db74">&#34;third_party:bolt_africa&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">endpoint</span>: <span style="color:#e6db74">&#34;https://api.bolt.eu/v1/ride&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">auth_type</span>: <span style="color:#e6db74">&#34;oauth2&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">description</span>: <span style="color:#e6db74">&#34;非洲本地打车服务&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">capabilities</span>: [<span style="color:#e6db74">&#34;estimate&#34;</span>, <span style="color:#e6db74">&#34;book&#34;</span>, <span style="color:#e6db74">&#34;track&#34;</span>]
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">regions</span>: [<span style="color:#e6db74">&#34;ng&#34;</span>, <span style="color:#e6db74">&#34;ke&#34;</span>, <span style="color:#e6db74">&#34;za&#34;</span>, <span style="color:#e6db74">&#34;eg&#34;</span>]
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">rate_limit</span>: <span style="color:#ae81ff">50</span><span style="color:#ae81ff">/minute</span>
+</span></span></code></pre></div><hr>
+<h2 id="五第三方apithird-party-layer设计">
+  五、第三方API（Third-Party Layer）设计
+  <a class="anchor" href="#%e4%ba%94%e7%ac%ac%e4%b8%89%e6%96%b9apithird-party-layer%e8%ae%be%e8%ae%a1">#</a>
+</h2>
+<h3 id="51-开放平台接入架构">
+  5.1 开放平台接入架构
+  <a class="anchor" href="#51-%e5%bc%80%e6%94%be%e5%b9%b3%e5%8f%b0%e6%8e%a5%e5%85%a5%e6%9e%b6%e6%9e%84">#</a>
+</h3>
+<p>第三方API是Agent能力扩展的关键，必须通过标准化协议接入。</p>
+
+<pre class="mermaid">graph LR
+    AGENT[Agent引擎] --&gt; GATEWAY[API网关]
+    GATEWAY --&gt; AUTH[OAuth鉴权]
+    AUTH --&gt; RATE[限流熔断]
+    RATE --&gt; SANDBOX[执行沙箱]
+    SANDBOX --&gt; EXT[第三方API]
+    EXT --&gt; MONITOR[调用审计]
+    MONITOR --&gt; BILL[计量计费]
+    
+    SANDBOX -.超时.-&gt; FALLBACK[降级响应]
+    SANDBOX -.异常.-&gt; CIRCUIT[熔断器]</pre>
+<h3 id="52-第三方服务治理">
+  5.2 第三方服务治理
+  <a class="anchor" href="#52-%e7%ac%ac%e4%b8%89%e6%96%b9%e6%9c%8d%e5%8a%a1%e6%b2%bb%e7%90%86">#</a>
+</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ThirdPartyGateway</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;&#34;&#34;第三方API网关 - 安全、可控、可观测&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> __init__(self, config: GatewayConfig):
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>circuit_breaker <span style="color:#f92672">=</span> CircuitBreaker(
+</span></span><span style="display:flex;"><span>            failure_threshold<span style="color:#f92672">=</span><span style="color:#ae81ff">5</span>,
+</span></span><span style="display:flex;"><span>            recovery_timeout<span style="color:#f92672">=</span><span style="color:#ae81ff">60</span>  <span style="color:#75715e"># 60秒后尝试恢复</span>
+</span></span><span style="display:flex;"><span>        )
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>timeout <span style="color:#f92672">=</span> config<span style="color:#f92672">.</span>timeout  <span style="color:#75715e"># 默认3秒超时</span>
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>retry_policy <span style="color:#f92672">=</span> RetryPolicy(max_retries<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">async</span> <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">call</span>(self, skill_id: str, params: dict) <span style="color:#f92672">-&gt;</span> ToolResult:
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 1. 查找技能配置</span>
+</span></span><span style="display:flex;"><span>        skill <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>skill_registry<span style="color:#f92672">.</span>get(skill_id)
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 2. 鉴权注入</span>
+</span></span><span style="display:flex;"><span>        auth_header <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> self<span style="color:#f92672">.</span>auth_manager<span style="color:#f92672">.</span>get_token(skill)
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 3. 熔断器检查</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>circuit_breaker<span style="color:#f92672">.</span>is_open(skill_id):
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> self<span style="color:#f92672">.</span>fallback_response(skill_id)
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># 4. 带超时的HTTP调用</span>
+</span></span><span style="display:flex;"><span>            response <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> self<span style="color:#f92672">.</span>http_client<span style="color:#f92672">.</span>post(
+</span></span><span style="display:flex;"><span>                url<span style="color:#f92672">=</span>skill<span style="color:#f92672">.</span>endpoint,
+</span></span><span style="display:flex;"><span>                json<span style="color:#f92672">=</span>params,
+</span></span><span style="display:flex;"><span>                headers<span style="color:#f92672">=</span>{<span style="color:#e6db74">&#34;Authorization&#34;</span>: auth_header},
+</span></span><span style="display:flex;"><span>                timeout<span style="color:#f92672">=</span>self<span style="color:#f92672">.</span>timeout
+</span></span><span style="display:flex;"><span>            )
+</span></span><span style="display:flex;"><span>            
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># 5. 结果校验</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> response<span style="color:#f92672">.</span>status_code <span style="color:#f92672">!=</span> <span style="color:#ae81ff">200</span>:
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">raise</span> APIError(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;HTTP </span><span style="color:#e6db74">{</span>response<span style="color:#f92672">.</span>status_code<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>)
+</span></span><span style="display:flex;"><span>            
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># 6. 审计记录</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">await</span> self<span style="color:#f92672">.</span>audit<span style="color:#f92672">.</span>record(skill_id, response)
+</span></span><span style="display:flex;"><span>            
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> ToolResult(data<span style="color:#f92672">=</span>response<span style="color:#f92672">.</span>json(), success<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>)
+</span></span><span style="display:flex;"><span>            
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">except</span> <span style="color:#a6e22e">TimeoutError</span>:
+</span></span><span style="display:flex;"><span>            self<span style="color:#f92672">.</span>circuit_breaker<span style="color:#f92672">.</span>record_failure(skill_id)
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> self<span style="color:#f92672">.</span>fallback_response(skill_id)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">except</span> APIError <span style="color:#66d9ef">as</span> e:
+</span></span><span style="display:flex;"><span>            self<span style="color:#f92672">.</span>circuit_breaker<span style="color:#f92672">.</span>record_failure(skill_id)
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> ToolResult(error<span style="color:#f92672">=</span>str(e), success<span style="color:#f92672">=</span><span style="color:#66d9ef">False</span>)
+</span></span></code></pre></div><h3 id="53-安全沙箱与数据脱敏">
+  5.3 安全沙箱与数据脱敏
+  <a class="anchor" href="#53-%e5%ae%89%e5%85%a8%e6%b2%99%e7%ae%b1%e4%b8%8e%e6%95%b0%e6%8d%ae%e8%84%b1%e6%95%8f">#</a>
+</h3>
+<p>第三方API调用必须经过严格的安全审查：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// DataSanitizer -  outgoing数据脱敏
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">SanitizeForThirdParty</span>(<span style="color:#a6e22e">data</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">interface</span>{}, <span style="color:#a6e22e">policy</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">PrivacyPolicy</span>) <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">interface</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">sanitized</span> <span style="color:#f92672">:=</span> make(<span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">interface</span>{})
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">key</span>, <span style="color:#a6e22e">value</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">data</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">policy</span>.<span style="color:#a6e22e">IsSensitive</span>(<span style="color:#a6e22e">key</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 脱敏处理
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#66d9ef">switch</span> <span style="color:#a6e22e">policy</span>.<span style="color:#a6e22e">GetMaskType</span>(<span style="color:#a6e22e">key</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">MASK_HASH</span>:
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">sanitized</span>[<span style="color:#a6e22e">key</span>] = <span style="color:#a6e22e">sha256Hash</span>(<span style="color:#a6e22e">value</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">MASK_REDACT</span>:
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">sanitized</span>[<span style="color:#a6e22e">key</span>] = <span style="color:#e6db74">&#34;[REDACTED]&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">case</span> <span style="color:#a6e22e">MASK_PARTIAL</span>:
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">sanitized</span>[<span style="color:#a6e22e">key</span>] = <span style="color:#a6e22e">partialMask</span>(<span style="color:#a6e22e">value</span>)
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">sanitized</span>[<span style="color:#a6e22e">key</span>] = <span style="color:#a6e22e">value</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">sanitized</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><hr>
+<h2 id="六云端第三方api不可用应对方案">
+  六、云端/第三方API不可用应对方案
+  <a class="anchor" href="#%e5%85%ad%e4%ba%91%e7%ab%af%e7%ac%ac%e4%b8%89%e6%96%b9api%e4%b8%8d%e5%8f%af%e7%94%a8%e5%ba%94%e5%af%b9%e6%96%b9%e6%a1%88">#</a>
+</h2>
+<blockquote>
+<p><em>&ldquo;在非洲，API的不可用不是异常，而是常态。好的架构不是假设一切正常，而是假设一切都会失败。&rdquo;</em></p>
+</blockquote>
+<p>在端云协同架构中，云端API和第三方服务的不可用是最关键的系统性风险。本节从<strong>检测、隔离、降级、恢复</strong>四个维度构建完整的容错体系。</p>
+<h3 id="61-故障场景分类与影响矩阵">
+  6.1 故障场景分类与影响矩阵
+  <a class="anchor" href="#61-%e6%95%85%e9%9a%9c%e5%9c%ba%e6%99%af%e5%88%86%e7%b1%bb%e4%b8%8e%e5%bd%b1%e5%93%8d%e7%9f%a9%e9%98%b5">#</a>
+</h3>
+<table>
+<thead>
+<tr>
+<th>故障场景</th>
+<th>典型表现</th>
+<th>影响范围</th>
+<th>用户感知</th>
+<th>应对级别</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>云端LLM服务宕机</td>
+<td>502/503、超时</td>
+<td>复杂推理、知识问答</td>
+<td>回答变简单或拒绝</td>
+<td>🔴 P0</td>
+</tr>
+<tr>
+<td>云端Memory服务不可用</td>
+<td>向量库连接失败</td>
+<td>个性化、多轮对话</td>
+<td>遗忘用户偏好</td>
+<td>🟡 P1</td>
+</tr>
+<tr>
+<td>第三方API限流/超时</td>
+<td>429、5xx、高延迟</td>
+<td>天气/打车/外卖等技能</td>
+<td>部分功能不可用</td>
+<td>🟡 P1</td>
+</tr>
+<tr>
+<td>第三方OAuth失效</td>
+<td>401 Unauthorized</td>
+<td>需要授权的技能</td>
+<td>提示重新登录</td>
+<td>🟢 P2</td>
+</tr>
+<tr>
+<td>区域网络中断</td>
+<td>DNS失败、连接超时</td>
+<td>所有云端能力</td>
+<td>整体降级到端侧</td>
+<td>🔴 P0</td>
+</tr>
+<tr>
+<td>CDN/边缘节点故障</td>
+<td>模型包下载失败</td>
+<td>OTA更新、语言包</td>
+<td>无法获取新能力</td>
+<td>🟢 P2</td>
+</tr>
+</tbody>
+</table>
+<h3 id="62-云端api不可用应对策略">
+  6.2 云端API不可用应对策略
+  <a class="anchor" href="#62-%e4%ba%91%e7%ab%afapi%e4%b8%8d%e5%8f%af%e7%94%a8%e5%ba%94%e5%af%b9%e7%ad%96%e7%95%a5">#</a>
+</h3>
+<h4 id="621-多层健康检测">
+  6.2.1 多层健康检测
+  <a class="anchor" href="#621-%e5%a4%9a%e5%b1%82%e5%81%a5%e5%ba%b7%e6%a3%80%e6%b5%8b">#</a>
+</h4>
+
+<pre class="mermaid">graph LR
+    A[主动探测] --&gt;|每30s心跳| B[健康状态]
+    C[被动监控] --&gt;|请求失败率| B
+    D[端侧探针] --&gt;|多端RTT统计| B
+    B --&gt;|状态变化| E[降级管理器]
+    E --&gt;|触发| F[切换降级层级]</pre>
+<p><strong>多维度健康判定：</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">CloudHealthMonitor</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;&#34;&#34;云端服务健康度评估&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> __init__(self):
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>active_probe_interval <span style="color:#f92672">=</span> <span style="color:#ae81ff">30</span>  <span style="color:#75715e"># 主动探测间隔（秒）</span>
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>failure_window <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>         <span style="color:#75715e"># 滑动窗口大小</span>
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>failure_threshold <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.4</span>     <span style="color:#75715e"># 失败率阈值</span>
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">async</span> <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">evaluate</span>(self, session_id: str) <span style="color:#f92672">-&gt;</span> ServiceHealth:
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 1. 主动探测（轻量心跳请求）</span>
+</span></span><span style="display:flex;"><span>        active <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> self<span style="color:#f92672">.</span>probe_health_check()
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 2. 被动监控（近期请求失败率）</span>
+</span></span><span style="display:flex;"><span>        recent_failures <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>get_failure_rate(window<span style="color:#f92672">=</span>self<span style="color:#f92672">.</span>failure_window)
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 3. 端侧探针（多设备RTT统计）</span>
+</span></span><span style="display:flex;"><span>        edge_rtt <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> self<span style="color:#f92672">.</span>aggregate_edge_probes()
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 4. 综合判定</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> active<span style="color:#f92672">.</span>status <span style="color:#f92672">!=</span> <span style="color:#ae81ff">200</span> <span style="color:#f92672">or</span> recent_failures <span style="color:#f92672">&gt;</span> self<span style="color:#f92672">.</span>failure_threshold:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> ServiceHealth(
+</span></span><span style="display:flex;"><span>                status<span style="color:#f92672">=</span>UNHEALTHY,
+</span></span><span style="display:flex;"><span>                reason<span style="color:#f92672">=</span><span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;active=</span><span style="color:#e6db74">{</span>active<span style="color:#f92672">.</span>status<span style="color:#e6db74">}</span><span style="color:#e6db74">, failure_rate=</span><span style="color:#e6db74">{</span>recent_failures<span style="color:#e6db74">:</span><span style="color:#e6db74">.2f</span><span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>,
+</span></span><span style="display:flex;"><span>                suggested_level<span style="color:#f92672">=</span>self<span style="color:#f92672">.</span>compute_degradation_level()
+</span></span><span style="display:flex;"><span>            )
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> ServiceHealth(status<span style="color:#f92672">=</span>HEALTHY, rtt<span style="color:#f92672">=</span>edge_rtt<span style="color:#f92672">.</span>median)
+</span></span></code></pre></div><h4 id="622-云端api降级路径">
+  6.2.2 云端API降级路径
+  <a class="anchor" href="#622-%e4%ba%91%e7%ab%afapi%e9%99%8d%e7%ba%a7%e8%b7%af%e5%be%84">#</a>
+</h4>
+<pre tabindex="0"><code>云端LLM不可用时的降级路径：
+┌─────────────────────────────────────────────────────────────────┐
+│ L0: 云端完整LLM (GPT-4级别)                                      │
+│    ↓ 不可用                                                      │
+│ L1: 云端备用模型 (同一平台的不同模型/不同区域)                      │
+│    ↓ 不可用                                                      │
+│ L2: 云端轻量模型 (同一平台的小模型，成本更低但更稳定)               │
+│    ↓ 不可用                                                      │
+│ L3: 端侧SLM (300M INT4量化)                                      │
+│    ↓ 不可用/置信度低                                              │
+│ L4: 端侧规则引擎 (预置意图模板 + 关键词匹配)                       │
+│    ↓ 不可用                                                      │
+│ L5: 预置回复库 (常见问题的标准话术)                                │
+└─────────────────────────────────────────────────────────────────┘
+</code></pre><p><strong>云端多活与备用路由：</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">CloudRouter</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;&#34;&#34;云端服务路由与故障切换&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> __init__(self):
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>providers <span style="color:#f92672">=</span> [
+</span></span><span style="display:flex;"><span>            Provider(name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;primary&#34;</span>,   endpoint<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;api.transsion.com/v1&#34;</span>,  priority<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>),
+</span></span><span style="display:flex;"><span>            Provider(name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;fallback-1&#34;</span>, endpoint<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;api-backup.transsion.com/v1&#34;</span>, priority<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>),
+</span></span><span style="display:flex;"><span>            Provider(name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;fallback-2&#34;</span>, endpoint<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;api-edge.transsion.com/v1&#34;</span>, priority<span style="color:#f92672">=</span><span style="color:#ae81ff">3</span>),
+</span></span><span style="display:flex;"><span>        ]
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>circuit_breakers <span style="color:#f92672">=</span> {p<span style="color:#f92672">.</span>name: CircuitBreaker() <span style="color:#66d9ef">for</span> p <span style="color:#f92672">in</span> self<span style="color:#f92672">.</span>providers}
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">async</span> <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">route</span>(self, request: AgentRequest) <span style="color:#f92672">-&gt;</span> AgentResponse:
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 按优先级尝试可用provider</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> provider <span style="color:#f92672">in</span> sorted(self<span style="color:#f92672">.</span>providers, key<span style="color:#f92672">=</span><span style="color:#66d9ef">lambda</span> p: p<span style="color:#f92672">.</span>priority):
+</span></span><span style="display:flex;"><span>            cb <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>circuit_breakers[provider<span style="color:#f92672">.</span>name]
+</span></span><span style="display:flex;"><span>            
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> cb<span style="color:#f92672">.</span>state <span style="color:#f92672">==</span> OPEN:
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">continue</span>  <span style="color:#75715e"># 熔断中，跳过</span>
+</span></span><span style="display:flex;"><span>            
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>                response <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> self<span style="color:#f92672">.</span>call_provider(provider, request)
+</span></span><span style="display:flex;"><span>                cb<span style="color:#f92672">.</span>record_success()
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> response
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">except</span> <span style="color:#a6e22e">Exception</span> <span style="color:#66d9ef">as</span> e:
+</span></span><span style="display:flex;"><span>                cb<span style="color:#f92672">.</span>record_failure()
+</span></span><span style="display:flex;"><span>                logger<span style="color:#f92672">.</span>warning(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;Provider </span><span style="color:#e6db74">{</span>provider<span style="color:#f92672">.</span>name<span style="color:#e6db74">}</span><span style="color:#e6db74"> failed: </span><span style="color:#e6db74">{</span>e<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>)
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">continue</span>
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 所有云端provider均不可用 → 降级到端侧</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> self<span style="color:#f92672">.</span>trigger_edge_fallback(request)
+</span></span></code></pre></div><h3 id="63-第三方api不可用应对策略">
+  6.3 第三方API不可用应对策略
+  <a class="anchor" href="#63-%e7%ac%ac%e4%b8%89%e6%96%b9api%e4%b8%8d%e5%8f%af%e7%94%a8%e5%ba%94%e5%af%b9%e7%ad%96%e7%95%a5">#</a>
+</h3>
+<h4 id="631-多供应商冗余">
+  6.3.1 多供应商冗余
+  <a class="anchor" href="#631-%e5%a4%9a%e4%be%9b%e5%ba%94%e5%95%86%e5%86%97%e4%bd%99">#</a>
+</h4>
+<p>对于关键第三方服务（天气、地图、翻译等），应接入多个供应商，自动切换：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#75715e"># 第三方服务多供应商配置</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">services</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">weather</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">primary</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">provider</span>: <span style="color:#e6db74">&#34;openweathermap&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">endpoint</span>: <span style="color:#e6db74">&#34;https://api.openweathermap.org/data/2.5/weather&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">rate_limit</span>: <span style="color:#ae81ff">100</span><span style="color:#ae81ff">/min</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">cost_tier</span>: <span style="color:#e6db74">&#34;free&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">backup</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">provider</span>: <span style="color:#e6db74">&#34;weatherapi&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">endpoint</span>: <span style="color:#e6db74">&#34;https://api.weatherapi.com/v1/current.json&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">rate_limit</span>: <span style="color:#ae81ff">1000000</span><span style="color:#ae81ff">/month</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">cost_tier</span>: <span style="color:#e6db74">&#34;paid&#34;</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">provider</span>: <span style="color:#e6db74">&#34;accuweather&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">endpoint</span>: <span style="color:#e6db74">&#34;https://dataservice.accuweather.com/currentconditions&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">cost_tier</span>: <span style="color:#e6db74">&#34;paid&#34;</span>
+</span></span><span style="display:flex;"><span>      
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">translation</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">primary</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">provider</span>: <span style="color:#e6db74">&#34;google_translate&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">backup</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">provider</span>: <span style="color:#e6db74">&#34;deepl&#34;</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">provider</span>: <span style="color:#e6db74">&#34;local_model&#34;</span>  <span style="color:#75715e"># 端侧轻量翻译模型</span>
+</span></span><span style="display:flex;"><span>      
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">maps</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">primary</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">provider</span>: <span style="color:#e6db74">&#34;google_maps&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">backup</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">provider</span>: <span style="color:#e6db74">&#34;mapbox&#34;</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">provider</span>: <span style="color:#e6db74">&#34;osm_local&#34;</span>  <span style="color:#75715e"># 离线OpenStreetMap数据</span>
+</span></span></code></pre></div><p><strong>供应商自动切换逻辑：</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ThirdPartyMultiProvider</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;&#34;&#34;第三方服务多供应商路由&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">async</span> <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">call</span>(self, service: str, <span style="color:#f92672">**</span>params) <span style="color:#f92672">-&gt;</span> ServiceResult:
+</span></span><span style="display:flex;"><span>        config <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>service_config[service]
+</span></span><span style="display:flex;"><span>        providers <span style="color:#f92672">=</span> [config<span style="color:#f92672">.</span>primary] <span style="color:#f92672">+</span> config<span style="color:#f92672">.</span>backup
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> provider <span style="color:#f92672">in</span> providers:
+</span></span><span style="display:flex;"><span>            health <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>health_checker<span style="color:#f92672">.</span>check(provider)
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> health <span style="color:#f92672">!=</span> HEALTHY:
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">continue</span>
+</span></span><span style="display:flex;"><span>                
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>                result <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> self<span style="color:#f92672">.</span>invoke(provider, params)
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e"># 记录成功，更新provider优先级（成功的排前面）</span>
+</span></span><span style="display:flex;"><span>                self<span style="color:#f92672">.</span>promote_provider(service, provider)
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> result
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">except</span> (<span style="color:#a6e22e">TimeoutError</span>, APIError) <span style="color:#66d9ef">as</span> e:
+</span></span><span style="display:flex;"><span>                self<span style="color:#f92672">.</span>demote_provider(service, provider)
+</span></span><span style="display:flex;"><span>                logger<span style="color:#f92672">.</span>warning(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;Provider </span><span style="color:#e6db74">{</span>provider<span style="color:#f92672">.</span>name<span style="color:#e6db74">}</span><span style="color:#e6db74"> failed: </span><span style="color:#e6db74">{</span>e<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>)
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">continue</span>
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 所有供应商均不可用 → 使用缓存或兜底回复</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> self<span style="color:#f92672">.</span>fallback_for_service(service, params)
+</span></span></code></pre></div><h4 id="632-智能缓存与预取">
+  6.3.2 智能缓存与预取
+  <a class="anchor" href="#632-%e6%99%ba%e8%83%bd%e7%bc%93%e5%ad%98%e4%b8%8e%e9%a2%84%e5%8f%96">#</a>
+</h4>
+<pre tabindex="0"><code>缓存策略矩阵：
+┌──────────────┬──────────┬───────────┬────────────────────────────┐
+│ 数据类型      │ TTL       │ 过期策略   │ 非洲场景优化               │
+├──────────────┼──────────┼───────────┼────────────────────────────┤
+│ 天气数据      │ 30分钟   │ Stale-while-revalidate │ 提前缓存当日预报    │
+│ 翻译结果      │ 永久     │ 内容哈希不变即有效      │ 常用短语预缓存      │
+│ 地图路线      │ 10分钟   │ 距离过期              │ 离线地图包常驻      │
+│ 新闻/资讯     │ 1小时    │ LRU淘汰               │ WiFi时预下载        │
+│ 用户偏好      │ 永久     │ 增量更新               │ 端侧持久化          │
+│ 商品/价格     │ 5分钟    │ 严格一致              │ 不可缓存，需实时     │
+└──────────────┴──────────┴───────────┴────────────────────────────┘
+</code></pre><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">SmartCache</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;&#34;&#34;智能缓存 - 支持预取、过期降级、staleness容忍&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">async</span> <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get</span>(self, key: str, service: str) <span style="color:#f92672">-&gt;</span> CacheResult:
+</span></span><span style="display:flex;"><span>        cached <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>store<span style="color:#f92672">.</span>get(key)
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> cached <span style="color:#f92672">and</span> <span style="color:#f92672">not</span> cached<span style="color:#f92672">.</span>expired:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> CacheResult(data<span style="color:#f92672">=</span>cached<span style="color:#f92672">.</span>value, source<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;cache_fresh&#34;</span>)
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> cached <span style="color:#f92672">and</span> cached<span style="color:#f92672">.</span>stale_while_revalidate:
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># 返回过期数据，后台异步刷新</span>
+</span></span><span style="display:flex;"><span>            asyncio<span style="color:#f92672">.</span>create_task(self<span style="color:#f92672">.</span>refresh(key, service))
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> CacheResult(data<span style="color:#f92672">=</span>cached<span style="color:#f92672">.</span>value, source<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;cache_stale&#34;</span>)
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 缓存未命中，尝试同步获取</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>            fresh <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> self<span style="color:#f92672">.</span>fetch_and_cache(key, service)
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> CacheResult(data<span style="color:#f92672">=</span>fresh, source<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;live&#34;</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">except</span> <span style="color:#a6e22e">Exception</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># 即使过期缓存也优于无响应</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> cached:
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> CacheResult(data<span style="color:#f92672">=</span>cached<span style="color:#f92672">.</span>value, source<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;cache_expired_fallback&#34;</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">raise</span> ServiceUnavailable(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;No cached data for </span><span style="color:#e6db74">{</span>key<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">async</span> <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">prefetch</span>(self, predictions: List[PrefetchHint]):
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;&#34;&#34;WiFi连接时预取可能需要的数据&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>is_wifi_connected() <span style="color:#f92672">and</span> self<span style="color:#f92672">.</span>is_charging():
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> hint <span style="color:#f92672">in</span> predictions:
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">await</span> self<span style="color:#f92672">.</span>fetch_and_cache(hint<span style="color:#f92672">.</span>key, hint<span style="color:#f92672">.</span>service)
+</span></span></code></pre></div><h4 id="633-降级回复生成">
+  6.3.3 降级回复生成
+  <a class="anchor" href="#633-%e9%99%8d%e7%ba%a7%e5%9b%9e%e5%a4%8d%e7%94%9f%e6%88%90">#</a>
+</h4>
+<p>当第三方API完全不可用且无缓存时，生成体面的降级回复：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">GracefulFallback</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;&#34;&#34;优雅降级回复生成&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    FALLBACK_TEMPLATES <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;weather&#34;</span>: {
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;offline&#34;</span>: <span style="color:#e6db74">&#34;目前无法获取实时天气数据。建议您查看手机天气组件，或稍后网络恢复时再问我。&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;partial&#34;</span>: <span style="color:#e6db74">&#34;我能查到</span><span style="color:#e6db74">{city}</span><span style="color:#e6db74">的历史平均气温约</span><span style="color:#e6db74">{temp}</span><span style="color:#e6db74">°C，但实时数据暂不可用。&#34;</span>,
+</span></span><span style="display:flex;"><span>        },
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;taxi&#34;</span>: {
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;offline&#34;</span>: <span style="color:#e6db74">&#34;打车服务暂时不可用。您可以直接打开Bolt/Uber应用叫车。&#34;</span>,
+</span></span><span style="display:flex;"><span>        },
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;translation&#34;</span>: {
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;offline&#34;</span>: <span style="color:#e6db74">&#34;离线翻译引擎已启动（准确率约85%）。如需更精准的翻译，请连接网络。&#34;</span>,
+</span></span><span style="display:flex;"><span>        },
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;general&#34;</span>: {
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;offline&#34;</span>: <span style="color:#e6db74">&#34;这个功能需要联网才能使用。我现在可以帮您做这些本地操作：</span><span style="color:#e6db74">{local_capabilities}</span><span style="color:#e6db74">&#34;</span>,
+</span></span><span style="display:flex;"><span>        },
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">generate</span>(self, service: str, context: dict, network_state: str) <span style="color:#f92672">-&gt;</span> str:
+</span></span><span style="display:flex;"><span>        templates <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>FALLBACK_TEMPLATES<span style="color:#f92672">.</span>get(service, self<span style="color:#f92672">.</span>FALLBACK_TEMPLATES[<span style="color:#e6db74">&#34;general&#34;</span>])
+</span></span><span style="display:flex;"><span>        template <span style="color:#f92672">=</span> templates<span style="color:#f92672">.</span>get(network_state, templates<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#34;offline&#34;</span>))
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 填充模板变量</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> template<span style="color:#f92672">.</span>format(<span style="color:#f92672">**</span>context)
+</span></span></code></pre></div><h3 id="64-端侧兜底能力清单">
+  6.4 端侧兜底能力清单
+  <a class="anchor" href="#64-%e7%ab%af%e4%be%a7%e5%85%9c%e5%ba%95%e8%83%bd%e5%8a%9b%e6%b8%85%e5%8d%95">#</a>
+</h3>
+<p>当所有云端和第三方API都不可用时，端侧必须能独立完成的核心功能：</p>
+<pre tabindex="0"><code>端侧兜底能力清单（断网可用）：
+├── 📞 通信类
+│   ├── 拨打电话 / 发送短信 / 查询通话记录
+│   ├── 读取/编辑通讯录
+│   └── 读取未读消息
+├── 📱 设备控制类
+│   ├── 调节音量/亮度/WiFi/蓝牙
+│   ├── 打开/关闭应用
+│   ├── 设置闹钟/定时器/提醒
+│   └── 音乐播放控制（本地媒体）
+├── 📝 个人助理类
+│   ├── 创建/查询/编辑备忘录
+│   ├── 本地日历查询
+│   └── 计算器/单位换算
+├── 🌍 离线知识类
+│   ├── 预置FAQ问答（500+条目）
+│   ├── 离线翻译（核心语言对，准确率~85%）
+│   └── 离线地图导航（已下载区域）
+└── 💬 对话兜底类
+    ├── &#34;我不知道，但网络恢复后我会记住这个问题&#34;
+    ├── &#34;这个问题需要联网，目前可以做的是：...&#34;
+    └── 记录用户问题，网络恢复后异步查询并推送
+</code></pre><h3 id="65-故障恢复与自愈">
+  6.5 故障恢复与自愈
+  <a class="anchor" href="#65-%e6%95%85%e9%9a%9c%e6%81%a2%e5%a4%8d%e4%b8%8e%e8%87%aa%e6%84%88">#</a>
+</h3>
+
+<pre class="mermaid">graph TB
+    DETECT[故障检测] --&gt; ISOLATE[隔离故障服务]
+    ISOLATE --&gt; DEGRADE[激活降级方案]
+    DEGRADE --&gt; MONITOR[持续健康探测]
+    MONITOR --&gt;|3次连续成功| RECOVER{服务恢复?}
+    RECOVER --&gt;|是| GRADUAL[渐进式恢复]
+    RECOVER --&gt;|否| MONITOR
+    GRADUAL --&gt; VERIFY[验证数据一致性]
+    VERIFY --&gt; NORMAL[恢复正常服务]
+    
+    DEGRADED -.断网期间.-&gt; QUEUE[(请求队列)]
+    QUEUE -.网络恢复.-&gt; REPLAY[重放未处理请求]
+    REPLAY --&gt; NORMAL</pre>
+<p><strong>渐进式恢复策略：</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">GradualRecovery</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;&#34;&#34;服务恢复不是瞬间完成的，需要渐进式验证&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">async</span> <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">on_service_restored</span>(self, service: str):
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># Phase 1: 小流量验证（1%请求走新恢复的服务）</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">await</span> self<span style="color:#f92672">.</span>canary_test(service, traffic_pct<span style="color:#f92672">=</span><span style="color:#ae81ff">0.01</span>)
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># Phase 2: 逐步放量（10% → 50% → 100%）</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> pct <span style="color:#f92672">in</span> [<span style="color:#ae81ff">0.1</span>, <span style="color:#ae81ff">0.5</span>, <span style="color:#ae81ff">1.0</span>]:
+</span></span><span style="display:flex;"><span>            success_rate <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> self<span style="color:#f92672">.</span>ramp_traffic(service, pct)
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> success_rate <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0.95</span>:
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e"># 恢复不稳定，回退</span>
+</span></span><span style="display:flex;"><span>                self<span style="color:#f92672">.</span>rollback(service)
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># Phase 3: 重放断网期间的积压请求</span>
+</span></span><span style="display:flex;"><span>        pending <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>dequeue_pending_requests(service)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> req <span style="color:#f92672">in</span> pending:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">await</span> self<span style="color:#f92672">.</span>replay_request(req)
+</span></span><span style="display:flex;"><span>            
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># Phase 4: 通知端侧恢复全功能</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">await</span> self<span style="color:#f92672">.</span>broadcast_service_restored(service)
+</span></span></code></pre></div><hr>
+<h2 id="七关键技术实现">
+  七、关键技术实现
+  <a class="anchor" href="#%e4%b8%83%e5%85%b3%e9%94%ae%e6%8a%80%e6%9c%af%e5%ae%9e%e7%8e%b0">#</a>
+</h2>
+<h3 id="71-端云通信协议">
+  7.1 端云通信协议
+  <a class="anchor" href="#71-%e7%ab%af%e4%ba%91%e9%80%9a%e4%bf%a1%e5%8d%8f%e8%ae%ae">#</a>
+</h3>
+<table>
+<thead>
+<tr>
+<th>协议</th>
+<th>适用场景</th>
+<th>优势</th>
+<th>劣势</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>gRPC</strong></td>
+<td>结构化数据传输（记忆同步、状态更新）</td>
+<td>高性能、强类型、双向流</td>
+<td>需要代理、防火墙穿透复杂</td>
+</tr>
+<tr>
+<td><strong>WebSocket</strong></td>
+<td>实时音频流、流式对话</td>
+<td>全双工、低延迟</td>
+<td>连接管理开销大</td>
+</tr>
+<tr>
+<td><strong>SSE</strong></td>
+<td>云端向端侧推送（通知、增量更新）</td>
+<td>简单、HTTP兼容</td>
+<td>单向、连接数限制</td>
+</tr>
+<tr>
+<td><strong>HTTP/2</strong></td>
+<td>批量请求、非实时数据</td>
+<td>多路复用、头部压缩</td>
+<td>不适合流式音频</td>
+</tr>
+</tbody>
+</table>
+<p><strong>推荐方案</strong>：音频流用WebSocket，状态同步用gRPC，推送通知用SSE。</p>
+<h3 id="72-端侧摘要--云端增量更新">
+  7.2 端侧摘要 → 云端增量更新
+  <a class="anchor" href="#72-%e7%ab%af%e4%be%a7%e6%91%98%e8%a6%81--%e4%ba%91%e7%ab%af%e5%a2%9e%e9%87%8f%e6%9b%b4%e6%96%b0">#</a>
+</h3>
+<p>为节省带宽，端侧不上传原始对话，而是上传结构化摘要：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">EdgeSummary</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;&#34;&#34;端侧对话摘要 - 最小化云端同步数据量&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">summarize</span>(self, conversation: List[Turn]) <span style="color:#f92672">-&gt;</span> SyncPayload:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> SyncPayload(
+</span></span><span style="display:flex;"><span>            session_id<span style="color:#f92672">=</span>self<span style="color:#f92672">.</span>session_id,
+</span></span><span style="display:flex;"><span>            device_id<span style="color:#f92672">=</span>self<span style="color:#f92672">.</span>device_id,
+</span></span><span style="display:flex;"><span>            timestamp<span style="color:#f92672">=</span>time<span style="color:#f92672">.</span>now(),
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># 不上传原始对话，只上传结构化摘要</span>
+</span></span><span style="display:flex;"><span>            intents<span style="color:#f92672">=</span>[turn<span style="color:#f92672">.</span>intent <span style="color:#66d9ef">for</span> turn <span style="color:#f92672">in</span> conversation],
+</span></span><span style="display:flex;"><span>            entities_extracted<span style="color:#f92672">=</span>self<span style="color:#f92672">.</span>extract_entities(conversation),
+</span></span><span style="display:flex;"><span>            user_preferences<span style="color:#f92672">=</span>self<span style="color:#f92672">.</span>detect_preferences(conversation),
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># 关键记忆点（而非完整对话）</span>
+</span></span><span style="display:flex;"><span>            key_memories<span style="color:#f92672">=</span>[
+</span></span><span style="display:flex;"><span>                MemoryPoint(
+</span></span><span style="display:flex;"><span>                    type<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;preference&#34;</span>,
+</span></span><span style="display:flex;"><span>                    content<span style="color:#f92672">=</span><span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;用户喜欢</span><span style="color:#e6db74">{</span>topic<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>,
+</span></span><span style="display:flex;"><span>                    confidence<span style="color:#f92672">=</span><span style="color:#ae81ff">0.85</span>
+</span></span><span style="display:flex;"><span>                )
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">for</span> topic <span style="color:#f92672">in</span> self<span style="color:#f92672">.</span>detect_topics(conversation)
+</span></span><span style="display:flex;"><span>            ],
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># 统计信息</span>
+</span></span><span style="display:flex;"><span>            turn_count<span style="color:#f92672">=</span>len(conversation),
+</span></span><span style="display:flex;"><span>            total_duration<span style="color:#f92672">=</span>conversation[<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]<span style="color:#f92672">.</span>timestamp <span style="color:#f92672">-</span> conversation[<span style="color:#ae81ff">0</span>]<span style="color:#f92672">.</span>timestamp,
+</span></span><span style="display:flex;"><span>        )
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">payload_size</span>(self) <span style="color:#f92672">-&gt;</span> int:
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;&#34;&#34;摘要大小通常 &lt; 2KB，原始对话可能 &gt; 50KB&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> len(json<span style="color:#f92672">.</span>dumps(self<span style="color:#f92672">.</span>summarize([])))
+</span></span></code></pre></div><h3 id="73-弹性降级策略">
+  7.3 弹性降级策略
+  <a class="anchor" href="#73-%e5%bc%b9%e6%80%a7%e9%99%8d%e7%ba%a7%e7%ad%96%e7%95%a5">#</a>
+</h3>
+<pre tabindex="0"><code>┌─────────────────────────────────────────────────────────────┐
+│                    弹性降级层级                               │
+├────────┬────────────────────────────────────────────────────┤
+│ L0 全功能│ 云端LLM + 全量Memory + 第三方工具                  │
+│ L1 精简云│ 云端轻量模型 + 短期Memory + 核心工具                │
+│ L2 端侧智能│ 端侧SLM + 本地记忆 + 本地工具                      │
+│ L3 端侧规则│ 规则引擎 + 预置回复 + 基础控制                     │
+│ L4 基础控制│ 仅设备控制（拨号、设置、播放）                      │
+└────────┴────────────────────────────────────────────────────┘
+</code></pre><p>降级触发条件：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">DegradationManager</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">evaluate</span>(self, metrics: SystemMetrics) <span style="color:#f92672">-&gt;</span> DegradationLevel:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> metrics<span style="color:#f92672">.</span>cloud_available <span style="color:#f92672">and</span> metrics<span style="color:#f92672">.</span>network_quality <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0.7</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> L0_FULL
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">elif</span> metrics<span style="color:#f92672">.</span>cloud_available <span style="color:#f92672">and</span> metrics<span style="color:#f92672">.</span>network_quality <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0.3</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> L1_LITE
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">elif</span> <span style="color:#f92672">not</span> metrics<span style="color:#f92672">.</span>cloud_available <span style="color:#f92672">and</span> metrics<span style="color:#f92672">.</span>slm_available:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> L2_EDGE
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">elif</span> <span style="color:#f92672">not</span> metrics<span style="color:#f92672">.</span>slm_available <span style="color:#f92672">and</span> metrics<span style="color:#f92672">.</span>rules_available:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> L3_RULES
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> L4_BASIC
+</span></span></code></pre></div><hr>
+<h2 id="八非洲本地化适配">
+  八、非洲本地化适配
+  <a class="anchor" href="#%e5%85%ab%e9%9d%9e%e6%b4%b2%e6%9c%ac%e5%9c%b0%e5%8c%96%e9%80%82%e9%85%8d">#</a>
+</h2>
+<h3 id="81-弱网环境优化">
+  8.1 弱网环境优化
+  <a class="anchor" href="#81-%e5%bc%b1%e7%bd%91%e7%8e%af%e5%a2%83%e4%bc%98%e5%8c%96">#</a>
+</h3>
+<table>
+<thead>
+<tr>
+<th>优化策略</th>
+<th>技术方案</th>
+<th>效果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>离线能力包</td>
+<td>端侧预置5种核心语言的ASR+SLM模型</td>
+<td>断网可用核心功能</td>
+</tr>
+<tr>
+<td>断点续传</td>
+<td>请求失败自动缓存，网络恢复后重试</td>
+<td>弱网请求不丢失</td>
+</tr>
+<tr>
+<td>边缘节点</td>
+<td>在拉各斯、内罗毕、约翰内斯堡部署边缘推理</td>
+<td>延迟从800ms降至150ms</td>
+</tr>
+<tr>
+<td>数据压缩</td>
+<td>Opus音频编码（12kbps）+ Protobuf序列化</td>
+<td>带宽占用降低80%</td>
+</tr>
+</tbody>
+</table>
+<h3 id="82-低端设备适配">
+  8.2 低端设备适配
+  <a class="anchor" href="#82-%e4%bd%8e%e7%ab%af%e8%ae%be%e5%a4%87%e9%80%82%e9%85%8d">#</a>
+</h3>
+<table>
+<thead>
+<tr>
+<th>约束条件</th>
+<th>适配方案</th>
+<th>资源占用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>内存1GB</td>
+<td>模型按需加载（非全量常驻）</td>
+<td>运行时内存&lt;300MB</td>
+</tr>
+<tr>
+<td>存储16GB</td>
+<td>模型包压缩+增量更新</td>
+<td>模型包&lt;500MB</td>
+</tr>
+<tr>
+<td>无NPU</td>
+<td>CPU推理+INT4量化</td>
+<td>延迟增加但可用</td>
+</tr>
+<tr>
+<td>电池小</td>
+<td>推理时CPU频率限制+VAD唤醒</td>
+<td>功耗&lt;5%日常使用</td>
+</tr>
+</tbody>
+</table>
+<h3 id="83-多语言端侧支持">
+  8.3 多语言端侧支持
+  <a class="anchor" href="#83-%e5%a4%9a%e8%af%ad%e8%a8%80%e7%ab%af%e4%be%a7%e6%94%af%e6%8c%81">#</a>
+</h3>
+<pre tabindex="0"><code>端侧预置语言包策略：
+├── 核心语言（预装，始终可用）
+│   ├── 英语（非洲口音）
+│   ├── 法语（非洲口音）
+│   └── 斯瓦西里语
+├── 扩展语言（按需下载，WiFi推荐）
+│   ├── 豪萨语
+│   ├── 约鲁巴语
+│   ├── 阿姆哈拉语
+│   └── 祖鲁语
+└── 云端语言（仅在线可用）
+    ├── 所有非洲语言（50+）
+    └── 多语言混合输入
+</code></pre><hr>
+<h2 id="九总结">
+  九、总结
+  <a class="anchor" href="#%e4%b9%9d%e6%80%bb%e7%bb%93">#</a>
+</h2>
+<h3 id="核心架构要点">
+  核心架构要点
+  <a class="anchor" href="#%e6%a0%b8%e5%bf%83%e6%9e%b6%e6%9e%84%e8%a6%81%e7%82%b9">#</a>
+</h3>
+<table>
+<thead>
+<tr>
+<th>设计维度</th>
+<th>方案选择</th>
+<th>理由</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>端侧模型</td>
+<td>300M SLM INT4量化</td>
+<td>低端设备可运行、延迟&lt;200ms</td>
+</tr>
+<tr>
+<td>通信协议</td>
+<td>WebSocket音频 + gRPC状态</td>
+<td>兼顾实时性和结构化传输</td>
+</tr>
+<tr>
+<td>降级策略</td>
+<td>5层弹性降级</td>
+<td>从全功能到基础控制的平滑过渡</td>
+</tr>
+<tr>
+<td>第三方接入</td>
+<td>沙箱隔离 + 熔断保护</td>
+<td>安全可控的生态扩展</td>
+</tr>
+<tr>
+<td>记忆同步</td>
+<td>端侧摘要 → 云端增量</td>
+<td>带宽优化80%+</td>
+</tr>
+<tr>
+<td><strong>API容错</strong></td>
+<td>多供应商 + 智能缓存 + 渐进恢复</td>
+<td>云端/第三方不可用时自动切换</td>
+</tr>
+</tbody>
+</table>
+<h3 id="面试金句">
+  面试金句
+  <a class="anchor" href="#%e9%9d%a2%e8%af%95%e9%87%91%e5%8f%a5">#</a>
+</h3>
+<blockquote>
+<p><em>&ldquo;端云协同不是把云端的能力搬一部分到端侧，而是让端侧和云端各司其职——端侧保可用，云端供智能。&rdquo;</em></p>
+</blockquote>
+<blockquote>
+<p><em>&ldquo;在非洲，一个不能在断网时拨电话的助手，再聪明也是摆设。&rdquo;</em></p>
+</blockquote>
+<blockquote>
+<p><em>&ldquo;第三方API的接入不是越多越好，而是越可控越好——沙箱、熔断、脱敏，缺一不可。&rdquo;</em></p>
+</blockquote>
+<blockquote>
+<p><em>&ldquo;端侧摘要同步的设计精髓：不传原始对话，只传结构化记忆——既省带宽，又保隐私。&rdquo;</em></p>
+</blockquote>
+<blockquote>
+<p><em>&ldquo;好的API容错不是祈祷服务永远可用，而是假设一切都会失败——多供应商冗余、智能缓存、渐进恢复，缺一不可。&rdquo;</em></p>
+</blockquote>
+<hr>
+<p><em>本文档为面试技术方案，实际落地需结合传音硬件平台（芯片、NPU、OS）做进一步适配。</em></p>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#端云协同的ai-agent硬件助手架构方案">端云协同的AI Agent硬件助手架构方案</a>
+      <ul>
+        <li><a href="#一引言">一、引言</a></li>
+        <li><a href="#二总体架构设计">二、总体架构设计</a>
+          <ul>
+            <li><a href="#21-三层架构总览">2.1 三层架构总览</a></li>
+            <li><a href="#22-架构原则">2.2 架构原则</a></li>
+            <li><a href="#23-端云职责边界">2.3 端云职责边界</a></li>
+          </ul>
+        </li>
+        <li><a href="#三端侧edge-layer设计">三、端侧（Edge Layer）设计</a>
+          <ul>
+            <li><a href="#31-端侧能力边界与模型选型">3.1 端侧能力边界与模型选型</a></li>
+            <li><a href="#32-端侧推理管线">3.2 端侧推理管线</a></li>
+            <li><a href="#33-端云协同策略">3.3 端云协同策略</a></li>
+          </ul>
+        </li>
+        <li><a href="#四云侧cloud-layer设计">四、云侧（Cloud Layer）设计</a>
+          <ul>
+            <li><a href="#41-云端agent核心引擎">4.1 云端Agent核心引擎</a></li>
+            <li><a href="#42-多设备协同与记忆同步">4.2 多设备协同与记忆同步</a></li>
+            <li><a href="#43-智能体技能市场插件体系">4.3 智能体技能市场（插件体系）</a></li>
+          </ul>
+        </li>
+        <li><a href="#五第三方apithird-party-layer设计">五、第三方API（Third-Party Layer）设计</a>
+          <ul>
+            <li><a href="#51-开放平台接入架构">5.1 开放平台接入架构</a></li>
+            <li><a href="#52-第三方服务治理">5.2 第三方服务治理</a></li>
+            <li><a href="#53-安全沙箱与数据脱敏">5.3 安全沙箱与数据脱敏</a></li>
+          </ul>
+        </li>
+        <li><a href="#六云端第三方api不可用应对方案">六、云端/第三方API不可用应对方案</a>
+          <ul>
+            <li><a href="#61-故障场景分类与影响矩阵">6.1 故障场景分类与影响矩阵</a></li>
+            <li><a href="#62-云端api不可用应对策略">6.2 云端API不可用应对策略</a></li>
+            <li><a href="#63-第三方api不可用应对策略">6.3 第三方API不可用应对策略</a></li>
+            <li><a href="#64-端侧兜底能力清单">6.4 端侧兜底能力清单</a></li>
+            <li><a href="#65-故障恢复与自愈">6.5 故障恢复与自愈</a></li>
+          </ul>
+        </li>
+        <li><a href="#七关键技术实现">七、关键技术实现</a>
+          <ul>
+            <li><a href="#71-端云通信协议">7.1 端云通信协议</a></li>
+            <li><a href="#72-端侧摘要--云端增量更新">7.2 端侧摘要 → 云端增量更新</a></li>
+            <li><a href="#73-弹性降级策略">7.3 弹性降级策略</a></li>
+          </ul>
+        </li>
+        <li><a href="#八非洲本地化适配">八、非洲本地化适配</a>
+          <ul>
+            <li><a href="#81-弱网环境优化">8.1 弱网环境优化</a></li>
+            <li><a href="#82-低端设备适配">8.2 低端设备适配</a></li>
+            <li><a href="#83-多语言端侧支持">8.3 多语言端侧支持</a></li>
+          </ul>
+        </li>
+        <li><a href="#九总结">九、总结</a>
+          <ul>
+            <li><a href="#核心架构要点">核心架构要点</a></li>
+            <li><a href="#面试金句">面试金句</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

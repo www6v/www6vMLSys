@@ -3,61 +3,13 @@
 <head>
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="
-  LLM 首字延迟（TTFT）优化方案
-  #
-
-
-版本: v1.0 | 状态: 初稿
-适用范围: 基于 Transformer Decoder-Only 架构的生成式 LLM 推理系统
-风格: DDIA 式技术深度 — 每项主张均有论文/官方文档/GitHub 依据
-
-
+<meta name="description" content="LLM 首字延迟（TTFT）优化方案 # 版本: v1.0 | 状态: 初稿 适用范围: 基于 Transformer Decoder-Only 架构的生成式 LLM 推理系统 风格: DDIA 式技术深度 — 每项主张均有论文/官方文档/GitHub 依据
 文档状态：Draft v0.1
 适用范围：基于 Transformer Decoder-Only 架构的生成式 LLM 推理系统
 写作风格：DDIA（Designing Data-Intensive Applications）式技术写作——以机制为本，以数据为据
-
-
-  一、TTFT 定义与瓶颈拆解
-  #
-
-
-  1.1 TTFT 是什么？
-  #
-
-TTFT（Time to First Token）——从客户端发出推理请求（POST /v1/completions 或 /v1/chat/completions），到服务端通过 SSE（Server-Sent Events）或 HTTP chunked transfer 发出第一个生成的 token 之间的端到端延迟。
+一、TTFT 定义与瓶颈拆解 # 1.1 TTFT 是什么？ # TTFT（Time to First Token）——从客户端发出推理请求（POST /v1/completions 或 /v1/chat/completions），到服务端通过 SSE（Server-Sent Events）或 HTTP chunked transfer 发出第一个生成的 token 之间的端到端延迟。
 在生成式 LLM 的 SLO 体系中，TTFT 与 TPOT、Total Latency 共同构成三元指标：
-
-  
-      
-          指标
-          定义
-          公式
-          用户感知
-      
-  
-  
-      
-          TTFT
-          请求 → 首个输出 token
-          $t_{\text{first_token}} - t_{\text{request}}$
-          &ldquo;响应有多快&rdquo;
-      
-      
-          TPOT
-          相邻输出 token 间隔
-          $t_{i&#43;1} - t_i$（解码阶段）
-          &ldquo;生成有多流畅&rdquo;
-      
-      
-          Total Latency
-          请求 → 最后一个 token
-          $t_{\text{last_token}} - t_{\text{request}}$
-          &ldquo;任务多久完成&rdquo;
-      
-  
-
-三者之间存在结构性 trade-off：在固定 GPU 算力下，增大 batch size 降低 TPOT 但拉长 TTFT；启用 speculative decoding 降低 TPOT 但可能略微增加 TTFT（额外验证开销）。理解这一点是后续优化方向选择的基石。">
+指标 定义 公式 用户感知 TTFT 请求 → 首个输出 token $t_{\text{first_token}} - t_{\text{request}}$ &ldquo;响应有多快&rdquo; TPOT 相邻输出 token 间隔 $t_{i&#43;1} - t_i$（解码阶段） &ldquo;生成有多流畅&rdquo; Total Latency 请求 → 最后一个 token $t_{\text{last_token}} - t_{\text{request}}$ &ldquo;任务多久完成&rdquo; 三者之间存在结构性 trade-off：在固定 GPU 算力下，增大 batch size 降低 TPOT 但拉长 TTFT；启用 speculative decoding 降低 TPOT 但可能略微增加 TTFT（额外验证开销）。理解这一点是后续优化方向选择的基石。">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
 <meta name="color-scheme" content="light dark"><meta property="og:url" content="https://www6v.github.io/www6vMLSys/docs/Inference-Opt/TTFT/TTFT/">
@@ -78,7 +30,10 @@ TTFT（Time to First Token）——从客户端发出推理请求（POST /v1/com
 <link rel="canonical" href="https://www6v.github.io/www6vMLSys/docs/Inference-Opt/TTFT/TTFT/">
 <link rel="stylesheet" href="/www6vMLSys/book.min.6c8b9d2a1fc95075ed7da46ca81060b39add8fff6741ac51259f768929281e2c.css" integrity="sha256-bIudKh/JUHXtfaRsqBBgs5rdj/9nQaxRJZ92iSkoHiw=" crossorigin="anonymous">
   <script defer src="/www6vMLSys/fuse.min.js"></script>
-  <script defer src="/www6vMLSys/en.search.min.db2b384d5b81b23e57c3928b924af72dfab74a96bcdb893c600ff8115b61d590.js" integrity="sha256-2ys4TVuBsj5Xw5KLkkr3Lfq3Spa824k8YA/4EVth1ZA=" crossorigin="anonymous"></script>
+  <script defer src="/www6vMLSys/en.search.min.d594248518fa2a9931066040a9448183d47749b3a47fcc00e0496d62a93dcc35.js" integrity="sha256-1ZQkhRj6KpkxBmBAqUSBg9R3SbOkf8wA4EltYqk9zDU=" crossorigin="anonymous"></script>
+
+  
+
 <link rel="alternate" type="application/rss+xml" href="https://www6v.github.io/www6vMLSys/docs/Inference-Opt/TTFT/TTFT/index.xml" title="MLSys" />
 <!--
 Made with Book Theme
@@ -131,8 +86,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-bf23c006d2140684cc90ded82ec74653" class="toggle"  />
-    <label for="section-bf23c006d2140684cc90ded82ec74653" class="flex justify-between">
+    <input type="checkbox" id="section-46f9f019ac1cd81d3adb5dce8195fad5" class="toggle"  />
+    <label for="section-46f9f019ac1cd81d3adb5dce8195fad5" class="flex justify-between">
       <a role="button" class="">Inference</a>
     </label>
   
@@ -147,8 +102,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-e2782e122236beb02b611a4b4376c5ba" class="toggle"  />
-    <label for="section-e2782e122236beb02b611a4b4376c5ba" class="flex justify-between">
+    <input type="checkbox" id="section-0df477e9a94394863b60b08953bb3faf" class="toggle"  />
+    <label for="section-0df477e9a94394863b60b08953bb3faf" class="flex justify-between">
       <a role="button" class="">框架</a>
     </label>
   
@@ -258,8 +213,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-280e12f1588c5189fc8326fb4998fa2a" class="toggle"  />
-    <label for="section-280e12f1588c5189fc8326fb4998fa2a" class="flex justify-between">
+    <input type="checkbox" id="section-e80661aabb05786d73bb02617f11551b" class="toggle"  />
+    <label for="section-e80661aabb05786d73bb02617f11551b" class="flex justify-between">
       <a role="button" class="">框架vLLM</a>
     </label>
   
@@ -464,8 +419,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-d659e6fde8f172d5e6d65a0b2bc79031" class="toggle" checked />
-    <label for="section-d659e6fde8f172d5e6d65a0b2bc79031" class="flex justify-between">
+    <input type="checkbox" id="section-206d1962a731b68760cf02563d9a81c7" class="toggle" checked />
+    <label for="section-206d1962a731b68760cf02563d9a81c7" class="flex justify-between">
       <a role="button" class="">Inference 优化</a>
     </label>
   
@@ -480,8 +435,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-8cc4904ea51a1aff793d6755622ea54b" class="toggle"  />
-    <label for="section-8cc4904ea51a1aff793d6755622ea54b" class="flex justify-between">
+    <input type="checkbox" id="section-9d5a2c196d1ea980f1966f0de0e49d52" class="toggle"  />
+    <label for="section-9d5a2c196d1ea980f1966f0de0e49d52" class="flex justify-between">
       <a role="button" class="">Overview</a>
     </label>
   
@@ -555,8 +510,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-75fffd45c4e3af9b253513bcf99a1e7e" class="toggle"  />
-    <label for="section-75fffd45c4e3af9b253513bcf99a1e7e" class="flex justify-between">
+    <input type="checkbox" id="section-733ec9f169a904e7d2ec539e5c012c44" class="toggle"  />
+    <label for="section-733ec9f169a904e7d2ec539e5c012c44" class="flex justify-between">
       <a role="button" class="">系统层优化</a>
     </label>
   
@@ -571,8 +526,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-2c31e36f5b0e9f84d75738e603bcdfd3" class="toggle"  />
-    <label for="section-2c31e36f5b0e9f84d75738e603bcdfd3" class="flex justify-between">
+    <input type="checkbox" id="section-1b6eb1bafb777938ce54ed28062f31be" class="toggle"  />
+    <label for="section-1b6eb1bafb777938ce54ed28062f31be" class="flex justify-between">
       <a role="button" class="">FlashAttention</a>
     </label>
   
@@ -646,8 +601,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-903dc4762e53fc23899b8b41e24d4e3d" class="toggle"  />
-    <label for="section-903dc4762e53fc23899b8b41e24d4e3d" class="flex justify-between">
+    <input type="checkbox" id="section-90df0a4e1b32a319152ceba8d1068844" class="toggle"  />
+    <label for="section-90df0a4e1b32a319152ceba8d1068844" class="flex justify-between">
       <a role="button" class="">SpeculativeDecoding</a>
     </label>
   
@@ -757,8 +712,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-9c3aeee5bee9d8a45b6959715db1f460" class="toggle"  />
-    <label for="section-9c3aeee5bee9d8a45b6959715db1f460" class="flex justify-between">
+    <input type="checkbox" id="section-84b07ff725756ccf253ca224735e34fe" class="toggle"  />
+    <label for="section-84b07ff725756ccf253ca224735e34fe" class="flex justify-between">
       <a role="button" class="">KVCache</a>
     </label>
   
@@ -809,8 +764,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-a0d66f65a2c7b4e05694f79579d1f686" class="toggle"  />
-    <label for="section-a0d66f65a2c7b4e05694f79579d1f686" class="flex justify-between">
+    <input type="checkbox" id="section-9fd8feeeaec2f719941a1e3edb14d741" class="toggle"  />
+    <label for="section-9fd8feeeaec2f719941a1e3edb14d741" class="flex justify-between">
       <a role="button" class="">Compress</a>
     </label>
   
@@ -853,8 +808,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-cc89fec5cef17da80426c3ab29dc55f2" class="toggle"  />
-    <label for="section-cc89fec5cef17da80426c3ab29dc55f2" class="flex justify-between">
+    <input type="checkbox" id="section-58684618fdc4965e2b35a333cfc0751c" class="toggle"  />
+    <label for="section-58684618fdc4965e2b35a333cfc0751c" class="flex justify-between">
       <a role="button" class="">Batch</a>
     </label>
   
@@ -910,8 +865,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-a86001c551f91c9d6742692d85235ce9" class="toggle"  />
-    <label for="section-a86001c551f91c9d6742692d85235ce9" class="flex justify-between">
+    <input type="checkbox" id="section-2bda16ee9eb1cc424ad4bacfc46e2574" class="toggle"  />
+    <label for="section-2bda16ee9eb1cc424ad4bacfc46e2574" class="flex justify-between">
       <a role="button" class="">PD 分离</a>
     </label>
   
@@ -1026,8 +981,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-0a8aa3616751d94d876ab5a7638dfee2" class="toggle"  />
-    <label for="section-0a8aa3616751d94d876ab5a7638dfee2" class="flex justify-between">
+    <input type="checkbox" id="section-d8e4bc101aba8bbf9039eb3ecb0f14f5" class="toggle"  />
+    <label for="section-d8e4bc101aba8bbf9039eb3ecb0f14f5" class="flex justify-between">
       <a role="button" class="">模型层优化</a>
     </label>
   
@@ -1042,8 +997,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-5a6462bfaadf7adfe8b66d09bc58303b" class="toggle"  />
-    <label for="section-5a6462bfaadf7adfe8b66d09bc58303b" class="flex justify-between">
+    <input type="checkbox" id="section-d7414f59e2a23d21985181d6022ec263" class="toggle"  />
+    <label for="section-d7414f59e2a23d21985181d6022ec263" class="flex justify-between">
       <a role="button" class="">量化</a>
     </label>
   
@@ -1058,8 +1013,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-2d87a22f91be75b78e6616958283b668" class="toggle"  />
-    <label for="section-2d87a22f91be75b78e6616958283b668" class="flex justify-between">
+    <input type="checkbox" id="section-20f0402fb3cbae252a4184f400e05533" class="toggle"  />
+    <label for="section-20f0402fb3cbae252a4184f400e05533" class="flex justify-between">
       <a role="button" class="">Overview</a>
     </label>
   
@@ -1115,8 +1070,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-88d52cf49c9a5295f0c154e14ccc03a5" class="toggle"  />
-    <label for="section-88d52cf49c9a5295f0c154e14ccc03a5" class="flex justify-between">
+    <input type="checkbox" id="section-ec2eb87afcd086e2bb436dac77ebdcbc" class="toggle"  />
+    <label for="section-ec2eb87afcd086e2bb436dac77ebdcbc" class="flex justify-between">
       <a role="button" class="">PTQ</a>
     </label>
   
@@ -1149,8 +1104,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-359a9d256fc5cc0b6a903de93454a7d5" class="toggle"  />
-    <label for="section-359a9d256fc5cc0b6a903de93454a7d5" class="flex justify-between">
+    <input type="checkbox" id="section-571b73d60a6cc0ec292d9f6baa3bece7" class="toggle"  />
+    <label for="section-571b73d60a6cc0ec292d9f6baa3bece7" class="flex justify-between">
       <a role="button" class="">Weight Only</a>
     </label>
   
@@ -1206,8 +1161,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-80f1cfdbb0d11740a87708737d9705d1" class="toggle"  />
-    <label for="section-80f1cfdbb0d11740a87708737d9705d1" class="flex justify-between">
+    <input type="checkbox" id="section-c949cfd2d8034a11b389f2d023507d5e" class="toggle"  />
+    <label for="section-c949cfd2d8034a11b389f2d023507d5e" class="flex justify-between">
       <a role="button" class="">Weight&amp;Activation</a>
     </label>
   
@@ -1271,8 +1226,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-0fae359329dcf38fe41928a875455a3a" class="toggle"  />
-    <label for="section-0fae359329dcf38fe41928a875455a3a" class="flex justify-between">
+    <input type="checkbox" id="section-2cc6a020e92cde89b28dd1b9a8dde151" class="toggle"  />
+    <label for="section-2cc6a020e92cde89b28dd1b9a8dde151" class="flex justify-between">
       <a role="button" class="">Practice</a>
     </label>
   
@@ -1315,8 +1270,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-1bda5152ea8335d4cdc6a16fa79ec8a2" class="toggle"  />
-    <label for="section-1bda5152ea8335d4cdc6a16fa79ec8a2" class="flex justify-between">
+    <input type="checkbox" id="section-c621aaebb7e229715dd0809d059d2fc9" class="toggle"  />
+    <label for="section-c621aaebb7e229715dd0809d059d2fc9" class="flex justify-between">
       <a role="button" class="">Sparse Attention</a>
     </label>
   
@@ -1359,8 +1314,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-0e872e900c80202bf8d3f77fb2b652dd" class="toggle" checked />
-    <label for="section-0e872e900c80202bf8d3f77fb2b652dd" class="flex justify-between">
+    <input type="checkbox" id="section-d41c5815cabb16367a7704d1b8979f2c" class="toggle" checked />
+    <label for="section-d41c5815cabb16367a7704d1b8979f2c" class="flex justify-between">
       <a role="button" class="">TTFT</a>
     </label>
   
@@ -1421,8 +1376,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-f4030e06a7cd0b4d4f01c69f804511e3" class="toggle"  />
-    <label for="section-f4030e06a7cd0b4d4f01c69f804511e3" class="flex justify-between">
+    <input type="checkbox" id="section-0510211b4577a4de8bc6d0c3b60e33ff" class="toggle"  />
+    <label for="section-0510211b4577a4de8bc6d0c3b60e33ff" class="flex justify-between">
       <a role="button" class="">Training</a>
     </label>
   
@@ -1437,8 +1392,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-a3302ad31d47b6b33edaefb16b9595c8" class="toggle"  />
-    <label for="section-a3302ad31d47b6b33edaefb16b9595c8" class="flex justify-between">
+    <input type="checkbox" id="section-9fc08442b7ae0ae2d037ffc5cac491be" class="toggle"  />
+    <label for="section-9fc08442b7ae0ae2d037ffc5cac491be" class="flex justify-between">
       <a role="button" class="">分布式</a>
     </label>
   
@@ -1453,8 +1408,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-ca35777dc3dc1df2cd1c182701911ffb" class="toggle"  />
-    <label for="section-ca35777dc3dc1df2cd1c182701911ffb" class="flex justify-between">
+    <input type="checkbox" id="section-57a5e3e5fe9ab455f342e1e697db1803" class="toggle"  />
+    <label for="section-57a5e3e5fe9ab455f342e1e697db1803" class="flex justify-between">
       <a role="button" class="">Overview</a>
     </label>
   
@@ -1492,8 +1447,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-ae4385c3230d5a72d0fd739cfe337330" class="toggle"  />
-    <label for="section-ae4385c3230d5a72d0fd739cfe337330" class="flex justify-between">
+    <input type="checkbox" id="section-8b31b6b471f5762e9d2da631bee73022" class="toggle"  />
+    <label for="section-8b31b6b471f5762e9d2da631bee73022" class="flex justify-between">
       <a role="button" class="">DP</a>
     </label>
   
@@ -1585,8 +1540,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-0cfa5a342351431197e06859d2a0b5dd" class="toggle"  />
-    <label for="section-0cfa5a342351431197e06859d2a0b5dd" class="flex justify-between">
+    <input type="checkbox" id="section-3dc64482add8914f3b5f9110dbb829fa" class="toggle"  />
+    <label for="section-3dc64482add8914f3b5f9110dbb829fa" class="flex justify-between">
       <a role="button" class="">TP</a>
     </label>
   
@@ -1624,8 +1579,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-bf4278f3920999fc3bb13908e22d34bb" class="toggle"  />
-    <label for="section-bf4278f3920999fc3bb13908e22d34bb" class="flex justify-between">
+    <input type="checkbox" id="section-8ff0d8df45f2751ebc315ae9eab02b9f" class="toggle"  />
+    <label for="section-8ff0d8df45f2751ebc315ae9eab02b9f" class="flex justify-between">
       <a role="button" class="">PP</a>
     </label>
   
@@ -1663,8 +1618,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-30fd02881b0903fc1d9b6c52304de566" class="toggle"  />
-    <label for="section-30fd02881b0903fc1d9b6c52304de566" class="flex justify-between">
+    <input type="checkbox" id="section-fbf3e2ed6e8d99c8615a31980d156c0b" class="toggle"  />
+    <label for="section-fbf3e2ed6e8d99c8615a31980d156c0b" class="flex justify-between">
       <a role="button" class="">混合并行</a>
     </label>
   
@@ -1725,8 +1680,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-25028652b0e6469d4e603a946ea402c4" class="toggle"  />
-    <label for="section-25028652b0e6469d4e603a946ea402c4" class="flex justify-between">
+    <input type="checkbox" id="section-19cde628a5e79f95519e1f1e2cf1e6a6" class="toggle"  />
+    <label for="section-19cde628a5e79f95519e1f1e2cf1e6a6" class="flex justify-between">
       <a role="button" class="">低精度</a>
     </label>
   
@@ -1777,8 +1732,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-644e6fa45ba6f6c0dcdfc190025a39fb" class="toggle"  />
-    <label for="section-644e6fa45ba6f6c0dcdfc190025a39fb" class="flex justify-between">
+    <input type="checkbox" id="section-5d6602fbd107263f71b49720e8a5770b" class="toggle"  />
+    <label for="section-5d6602fbd107263f71b49720e8a5770b" class="flex justify-between">
       <a role="button" class="">AI平台</a>
     </label>
   
@@ -1829,8 +1784,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-f61cbb1f2645b362442da027a971ba18" class="toggle"  />
-    <label for="section-f61cbb1f2645b362442da027a971ba18" class="flex justify-between">
+    <input type="checkbox" id="section-17c42b222b84095c605f66bfd3a5d5af" class="toggle"  />
+    <label for="section-17c42b222b84095c605f66bfd3a5d5af" class="flex justify-between">
       <a role="button" class="">AI网关</a>
     </label>
   
@@ -1904,6 +1859,177 @@ https://github.com/alex-shpak/hugo-book
   
 
   
+    <input type="checkbox" id="section-9aa1a1e7091b07da4599c138f61024b2" class="toggle"  />
+    <label for="section-9aa1a1e7091b07da4599c138f61024b2" class="flex justify-between">
+      <a role="button" class="">对话混合架构</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E5%AF%B9%E8%AF%9D%E6%B7%B7%E5%90%88%E6%9E%B6%E6%9E%84/claw/" class="">Claw</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E5%AF%B9%E8%AF%9D%E6%B7%B7%E5%90%88%E6%9E%B6%E6%9E%84/hermes/" class="">Hermes</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-9b09c4b066b1e1cccae213b0b98306e9" class="toggle"  />
+    <label for="section-9b09c4b066b1e1cccae213b0b98306e9" class="flex justify-between">
+      <a role="button" class="">开放平台</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E5%BC%80%E6%94%BE%E5%B9%B3%E5%8F%B0/claw/" class="">Claw</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E5%BC%80%E6%94%BE%E5%B9%B3%E5%8F%B0/hermes/" class="">Hermes</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-27989a5e3be10a7f5e8020a8a410d4e6" class="toggle"  />
+    <label for="section-27989a5e3be10a7f5e8020a8a410d4e6" class="flex justify-between">
+      <a role="button" class="">端云混合架构</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E7%AB%AF%E4%BA%91%E6%B7%B7%E5%90%88%E6%9E%B6%E6%9E%84/claw&#43;/" class="">Claw[ ]</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E7%AB%AF%E4%BA%91%E6%B7%B7%E5%90%88%E6%9E%B6%E6%9E%84/hermes/" class="">Hermes</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
     <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/LLMOps/" class="">LLMOps</a>
   
 
@@ -1927,8 +2053,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-327fb05179acab9fa2e8db471e2465cd" class="toggle"  />
-    <label for="section-327fb05179acab9fa2e8db471e2465cd" class="flex justify-between">
+    <input type="checkbox" id="section-d80e9a068046a412cee1ba7f653b5c86" class="toggle"  />
+    <label for="section-d80e9a068046a412cee1ba7f653b5c86" class="flex justify-between">
       <a role="button" class="">MaaS</a>
     </label>
   
@@ -2056,8 +2182,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-e5df6522c4b2ff6188291204672608c8" class="toggle"  />
-    <label for="section-e5df6522c4b2ff6188291204672608c8" class="flex justify-between">
+    <input type="checkbox" id="section-62de713685ff13478495b8520fd59705" class="toggle"  />
+    <label for="section-62de713685ff13478495b8520fd59705" class="flex justify-between">
       <a role="button" class="">Infra</a>
     </label>
   
@@ -2090,8 +2216,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-79fcd731bc33432daba619103c18a87a" class="toggle"  />
-    <label for="section-79fcd731bc33432daba619103c18a87a" class="flex justify-between">
+    <input type="checkbox" id="section-120653a01c96b9ed76377f47423942f0" class="toggle"  />
+    <label for="section-120653a01c96b9ed76377f47423942f0" class="flex justify-between">
       <a role="button" class="">GPU</a>
     </label>
   
@@ -2183,8 +2309,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-1048340579f6168f3a532057403baf28" class="toggle"  />
-    <label for="section-1048340579f6168f3a532057403baf28" class="flex justify-between">
+    <input type="checkbox" id="section-b4210e18b73dee1304d22035008e50e8" class="toggle"  />
+    <label for="section-b4210e18b73dee1304d22035008e50e8" class="flex justify-between">
       <a role="button" class="">显存估算</a>
     </label>
   
@@ -2444,12 +2570,14 @@ https://github.com/alex-shpak/hugo-book
 <blockquote>
 <p><strong>版本</strong>: v1.0 | <strong>状态</strong>: 初稿
 <strong>适用范围</strong>: 基于 Transformer Decoder-Only 架构的生成式 LLM 推理系统
-<strong>风格</strong>: DDIA 式技术深度 — 每项主张均有论文/官方文档/GitHub 依据</p></blockquote>
+<strong>风格</strong>: DDIA 式技术深度 — 每项主张均有论文/官方文档/GitHub 依据</p>
+</blockquote>
 <hr>
 <blockquote>
 <p><strong>文档状态</strong>：Draft v0.1<br>
 <strong>适用范围</strong>：基于 Transformer Decoder-Only 架构的生成式 LLM 推理系统<br>
-<strong>写作风格</strong>：DDIA（Designing Data-Intensive Applications）式技术写作——以机制为本，以数据为据</p></blockquote>
+<strong>写作风格</strong>：DDIA（Designing Data-Intensive Applications）式技术写作——以机制为本，以数据为据</p>
+</blockquote>
 <hr>
 <h1 id="一ttft-定义与瓶颈拆解">
   一、TTFT 定义与瓶颈拆解
@@ -2462,38 +2590,39 @@ https://github.com/alex-shpak/hugo-book
 <p><strong>TTFT（Time to First Token）</strong>——从客户端发出推理请求（<code>POST /v1/completions</code> 或 <code>/v1/chat/completions</code>），到服务端通过 SSE（Server-Sent Events）或 HTTP chunked transfer 发出<strong>第一个生成的 token</strong> 之间的端到端延迟。</p>
 <p>在生成式 LLM 的 SLO 体系中，TTFT 与 TPOT、Total Latency 共同构成三元指标：</p>
 <table>
-  <thead>
-      <tr>
-          <th>指标</th>
-          <th>定义</th>
-          <th>公式</th>
-          <th>用户感知</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><strong>TTFT</strong></td>
-          <td>请求 → 首个输出 token</td>
-          <td>$t_{\text{first_token}} - t_{\text{request}}$</td>
-          <td>&ldquo;响应有多快&rdquo;</td>
-      </tr>
-      <tr>
-          <td><strong>TPOT</strong></td>
-          <td>相邻输出 token 间隔</td>
-          <td>$t_{i+1} - t_i$（解码阶段）</td>
-          <td>&ldquo;生成有多流畅&rdquo;</td>
-      </tr>
-      <tr>
-          <td><strong>Total Latency</strong></td>
-          <td>请求 → 最后一个 token</td>
-          <td>$t_{\text{last_token}} - t_{\text{request}}$</td>
-          <td>&ldquo;任务多久完成&rdquo;</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>指标</th>
+<th>定义</th>
+<th>公式</th>
+<th>用户感知</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>TTFT</strong></td>
+<td>请求 → 首个输出 token</td>
+<td>$t_{\text{first_token}} - t_{\text{request}}$</td>
+<td>&ldquo;响应有多快&rdquo;</td>
+</tr>
+<tr>
+<td><strong>TPOT</strong></td>
+<td>相邻输出 token 间隔</td>
+<td>$t_{i+1} - t_i$（解码阶段）</td>
+<td>&ldquo;生成有多流畅&rdquo;</td>
+</tr>
+<tr>
+<td><strong>Total Latency</strong></td>
+<td>请求 → 最后一个 token</td>
+<td>$t_{\text{last_token}} - t_{\text{request}}$</td>
+<td>&ldquo;任务多久完成&rdquo;</td>
+</tr>
+</tbody>
 </table>
 <p>三者之间存在结构性 trade-off：在固定 GPU 算力下，<strong>增大 batch size 降低 TPOT 但拉长 TTFT</strong>；<strong>启用 speculative decoding 降低 TPOT 但可能略微增加 TTFT</strong>（额外验证开销）。理解这一点是后续优化方向选择的基石。</p>
 <blockquote>
-<p><strong>注</strong>：OpenAI API 在 SSE stream 中通过 <code>server-timing</code> 响应头暴露首 token 时间；vLLM 在 metrics endpoint（<code>/metrics</code>）中以 <code>vllm:e2e_request_latency_seconds</code> 和 <code>vllm:time_to_first_token_seconds</code> histogram 导出。<sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup> <sup id="fnref:2"><a href="#fn:2" class="footnote-ref" role="doc-noteref">2</a></sup></p></blockquote>
+<p><strong>注</strong>：OpenAI API 在 SSE stream 中通过 <code>server-timing</code> 响应头暴露首 token 时间；vLLM 在 metrics endpoint（<code>/metrics</code>）中以 <code>vllm:e2e_request_latency_seconds</code> 和 <code>vllm:time_to_first_token_seconds</code> histogram 导出。<sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup> <sup id="fnref:2"><a href="#fn:2" class="footnote-ref" role="doc-noteref">2</a></sup></p>
+</blockquote>
 <h2 id="12-ttft-构成拆解">
   1.2 TTFT 构成拆解
   <a class="anchor" href="#12-ttft-%e6%9e%84%e6%88%90%e6%8b%86%e8%a7%a3">#</a>
@@ -2580,84 +2709,86 @@ https://github.com/alex-shpak/hugo-book
 </h2>
 <p>不同 prompt 长度下，TTFT 的瓶颈分布截然不同：</p>
 <table>
-  <thead>
-      <tr>
-          <th>场景</th>
-          <th>Prompt 长度</th>
-          <th>Prefill 占比</th>
-          <th>排队占比</th>
-          <th>网络占比</th>
-          <th>其他占比</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><strong>小 Prompt</strong></td>
-          <td>&lt; 500 tokens</td>
-          <td>40-60%</td>
-          <td>20-40%</td>
-          <td>10-15%</td>
-          <td>5-10%</td>
-      </tr>
-      <tr>
-          <td><strong>中等 Prompt</strong></td>
-          <td>500 - 4K tokens</td>
-          <td>55-75%</td>
-          <td>15-30%</td>
-          <td>5-10%</td>
-          <td>5-10%</td>
-      </tr>
-      <tr>
-          <td><strong>大 Prompt</strong></td>
-          <td>&gt; 4K tokens</td>
-          <td>70-90%</td>
-          <td>5-15%</td>
-          <td>3-5%</td>
-          <td>2-5%</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>场景</th>
+<th>Prompt 长度</th>
+<th>Prefill 占比</th>
+<th>排队占比</th>
+<th>网络占比</th>
+<th>其他占比</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>小 Prompt</strong></td>
+<td>&lt; 500 tokens</td>
+<td>40-60%</td>
+<td>20-40%</td>
+<td>10-15%</td>
+<td>5-10%</td>
+</tr>
+<tr>
+<td><strong>中等 Prompt</strong></td>
+<td>500 - 4K tokens</td>
+<td>55-75%</td>
+<td>15-30%</td>
+<td>5-10%</td>
+<td>5-10%</td>
+</tr>
+<tr>
+<td><strong>大 Prompt</strong></td>
+<td>&gt; 4K tokens</td>
+<td>70-90%</td>
+<td>5-15%</td>
+<td>3-5%</td>
+<td>2-5%</td>
+</tr>
+</tbody>
 </table>
 <blockquote>
-<p><strong>关键洞察</strong>：小 Prompt 场景下，排队和网络开销是主要矛盾，优化需侧重调度策略和网络优化；大 Prompt 场景下，Prefill 计算量呈 $O(N^2)$ 增长，是 TTFT 的绝对大头，优化必须以 Prefill 阶段为核心。<sup id="fnref:6"><a href="#fn:6" class="footnote-ref" role="doc-noteref">6</a></sup></p></blockquote>
+<p><strong>关键洞察</strong>：小 Prompt 场景下，排队和网络开销是主要矛盾，优化需侧重调度策略和网络优化；大 Prompt 场景下，Prefill 计算量呈 $O(N^2)$ 增长，是 TTFT 的绝对大头，优化必须以 Prefill 阶段为核心。<sup id="fnref:6"><a href="#fn:6" class="footnote-ref" role="doc-noteref">6</a></sup></p>
+</blockquote>
 <p><strong>定量示例</strong>：在单张 A100-80GB 上部署 Llama-3-70B，使用 vLLM 的基准测试数据：</p>
 <table>
-  <thead>
-      <tr>
-          <th>Prompt Tokens</th>
-          <th>TTFT (ms)</th>
-          <th>Prefill (ms)</th>
-          <th>Prefill 占比</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>128</td>
-          <td>~45</td>
-          <td>~22</td>
-          <td>~49%</td>
-      </tr>
-      <tr>
-          <td>1024</td>
-          <td>~180</td>
-          <td>~140</td>
-          <td>~78%</td>
-      </tr>
-      <tr>
-          <td>4096</td>
-          <td>~620</td>
-          <td>~540</td>
-          <td>~87%</td>
-      </tr>
-      <tr>
-          <td>8192</td>
-          <td>~1250</td>
-          <td>~1120</td>
-          <td>~90%</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>Prompt Tokens</th>
+<th>TTFT (ms)</th>
+<th>Prefill (ms)</th>
+<th>Prefill 占比</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>128</td>
+<td>~45</td>
+<td>~22</td>
+<td>~49%</td>
+</tr>
+<tr>
+<td>1024</td>
+<td>~180</td>
+<td>~140</td>
+<td>~78%</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>~620</td>
+<td>~540</td>
+<td>~87%</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>~1250</td>
+<td>~1120</td>
+<td>~90%</td>
+</tr>
+</tbody>
 </table>
 <blockquote>
-<p>数据来源：基于 vLLM benchmark_serving 工具在 A100-80GB 上的实测趋势估算，实际值因量化精度、tensor parallelism 度而异。<sup id="fnref:7"><a href="#fn:7" class="footnote-ref" role="doc-noteref">7</a></sup></p></blockquote>
+<p>数据来源：基于 vLLM benchmark_serving 工具在 A100-80GB 上的实测趋势估算，实际值因量化精度、tensor parallelism 度而异。<sup id="fnref:7"><a href="#fn:7" class="footnote-ref" role="doc-noteref">7</a></sup></p>
+</blockquote>
 <hr>
 <h1 id="二prefill-阶段优化首-token-产生的核心">
   二、Prefill 阶段优化（首 Token 产生的核心）
@@ -2712,43 +2843,44 @@ $$</p>
 </ol>
 <p>当 $N$ 较小时（$N &lt; 4d$），线性层主导；当 $N$ 较大时，attention 的 $O(N^2)$ 项成为瓶颈。以 Llama-3-70B 为例（$L=80$, $d=8192$）：</p>
 <table>
-  <thead>
-      <tr>
-          <th>Prompt $N$</th>
-          <th>线性层 FLOPs (TF)</th>
-          <th>Attention FLOPs (TF)</th>
-          <th>占比</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>256</td>
-          <td>~268</td>
-          <td>~27</td>
-          <td>9%</td>
-      </tr>
-      <tr>
-          <td>1024</td>
-          <td>~1074</td>
-          <td>~436</td>
-          <td>29%</td>
-      </tr>
-      <tr>
-          <td>4096</td>
-          <td>~4295</td>
-          <td>~7000</td>
-          <td><strong>62%</strong></td>
-      </tr>
-      <tr>
-          <td>8192</td>
-          <td>~8590</td>
-          <td>~28000</td>
-          <td><strong>77%</strong></td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>Prompt $N$</th>
+<th>线性层 FLOPs (TF)</th>
+<th>Attention FLOPs (TF)</th>
+<th>占比</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>256</td>
+<td>~268</td>
+<td>~27</td>
+<td>9%</td>
+</tr>
+<tr>
+<td>1024</td>
+<td>~1074</td>
+<td>~436</td>
+<td>29%</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>~4295</td>
+<td>~7000</td>
+<td><strong>62%</strong></td>
+</tr>
+<tr>
+<td>8192</td>
+<td>~8590</td>
+<td>~28000</td>
+<td><strong>77%</strong></td>
+</tr>
+</tbody>
 </table>
 <blockquote>
-<p>计算：线性层 ≈ $8 \times 80 \times N \times 8192^2 / 10^{12}$；Attention ≈ $2 \times 80 \times N^2 \times 8192 / 10^{12}$</p></blockquote>
+<p>计算：线性层 ≈ $8 \times 80 \times N \times 8192^2 / 10^{12}$；Attention ≈ $2 \times 80 \times N^2 \times 8192 / 10^{12}$</p>
+</blockquote>
 <p><strong>结论</strong>：对 $N &gt; 4K$ 的长 prompt，attention 的二次复杂度是 Prefill 延迟的主导因素。这也是 FlashAttention、Ring Attention 等工作致力于加速 attention 计算的根本原因。<sup id="fnref:9"><a href="#fn:9" class="footnote-ref" role="doc-noteref">9</a></sup></p>
 <h3 id="gpu-利用率特征">
   GPU 利用率特征
@@ -2830,58 +2962,58 @@ $$</p>
 </h3>
 <p>与 KV Cache 复用（保留全部信息）不同，prompt 压缩通过<strong>信息筛选</strong>直接减少 token 数。</p>
 <table>
-  <thead>
-      <tr>
-          <th>方法</th>
-          <th>原理</th>
-          <th>压缩率</th>
-          <th>质量损失</th>
-          <th>适用场景</th>
-          <th>工具/实现</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><strong>LLMLingua</strong></td>
-          <td>基于小模型计算 token 重要性，保留高信息量 token</td>
-          <td>2-20x</td>
-          <td>可控（可配置保留率）</td>
-          <td>RAG 文档压缩、长上下文问答</td>
-          <td><a href="https://github.com/microsoft/LLMLingua">LLMLingua (GitHub)</a></td>
-      </tr>
-      <tr>
-          <td><strong>Selective Context</strong></td>
-          <td>基于 self-information 过滤低信息量句子/token</td>
-          <td>2-5x</td>
-          <td>较小</td>
-          <td>摘要、对话历史压缩</td>
-          <td><a href="https://github.com/liyucheng92/Selective-Context">Selective Context (GitHub)</a></td>
-      </tr>
-      <tr>
-          <td><strong>Prompt Pruning</strong></td>
-          <td>基于梯度/attention 分数移除不重要的 context token</td>
-          <td>2-10x</td>
-          <td>任务相关</td>
-          <td>特定任务优化</td>
-          <td>Jiang et al., 2023<sup id="fnref:13"><a href="#fn:13" class="footnote-ref" role="doc-noteref">13</a></sup></td>
-      </tr>
-      <tr>
-          <td><strong>LLM 摘要压缩</strong></td>
-          <td>用 LLM 对长文本生成摘要，替代原文</td>
-          <td>5-50x</td>
-          <td>较大（有损）</td>
-          <td>非精确问答场景</td>
-          <td>Claude / GPT API</td>
-      </tr>
-      <tr>
-          <td><strong>Embedding 过滤</strong></td>
-          <td>用 embedding 模型对 context chunk 做相似度打分，只保留高相关 chunk</td>
-          <td>2-10x</td>
-          <td>较小</td>
-          <td>RAG 检索前过滤</td>
-          <td>BGE / E5 等 embedding 模型</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>方法</th>
+<th>原理</th>
+<th>压缩率</th>
+<th>质量损失</th>
+<th>适用场景</th>
+<th>工具/实现</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>LLMLingua</strong></td>
+<td>基于小模型计算 token 重要性，保留高信息量 token</td>
+<td>2-20x</td>
+<td>可控（可配置保留率）</td>
+<td>RAG 文档压缩、长上下文问答</td>
+<td><a href="https://github.com/microsoft/LLMLingua">LLMLingua (GitHub)</a></td>
+</tr>
+<tr>
+<td><strong>Selective Context</strong></td>
+<td>基于 self-information 过滤低信息量句子/token</td>
+<td>2-5x</td>
+<td>较小</td>
+<td>摘要、对话历史压缩</td>
+<td><a href="https://github.com/liyucheng92/Selective-Context">Selective Context (GitHub)</a></td>
+</tr>
+<tr>
+<td><strong>Prompt Pruning</strong></td>
+<td>基于梯度/attention 分数移除不重要的 context token</td>
+<td>2-10x</td>
+<td>任务相关</td>
+<td>特定任务优化</td>
+<td>Jiang et al., 2023<sup id="fnref:13"><a href="#fn:13" class="footnote-ref" role="doc-noteref">13</a></sup></td>
+</tr>
+<tr>
+<td><strong>LLM 摘要压缩</strong></td>
+<td>用 LLM 对长文本生成摘要，替代原文</td>
+<td>5-50x</td>
+<td>较大（有损）</td>
+<td>非精确问答场景</td>
+<td>Claude / GPT API</td>
+</tr>
+<tr>
+<td><strong>Embedding 过滤</strong></td>
+<td>用 embedding 模型对 context chunk 做相似度打分，只保留高相关 chunk</td>
+<td>2-10x</td>
+<td>较小</td>
+<td>RAG 检索前过滤</td>
+<td>BGE / E5 等 embedding 模型</td>
+</tr>
+</tbody>
 </table>
 <p><strong>LLMLingua 工作机制详解</strong>（以代表性工作为例）：</p>
 <pre tabindex="0"><code>原始 Prompt: [系统指令] + [文档1] + [文档2] + ... + [文档K] + [用户问题]
@@ -2989,7 +3121,8 @@ $$</p>
 <li><strong>通信瓶颈</strong>：TP 的 All-Reduce 在每一层后执行，网络带宽成为扩展上限。NVLink 互联（600 GB/s）下通信开销小；跨节点 PCIe/NVLink Switch 下开销显著增大。</li>
 </ul>
 <blockquote>
-<p><strong>Megatron-LM</strong> 最早系统化了 Tensor Parallelism 在 Transformer 中的实现：将 Attention 的 QKV 投影按 head 切分，将 FFN 的中间层按 neuron 切分，使得中间结果无需显式同步。<sup id="fnref:16"><a href="#fn:16" class="footnote-ref" role="doc-noteref">16</a></sup></p></blockquote>
+<p><strong>Megatron-LM</strong> 最早系统化了 Tensor Parallelism 在 Transformer 中的实现：将 Attention 的 QKV 投影按 head 切分，将 FFN 的中间层按 neuron 切分，使得中间结果无需显式同步。<sup id="fnref:16"><a href="#fn:16" class="footnote-ref" role="doc-noteref">16</a></sup></p>
+</blockquote>
 <h3 id="232-context-parallelismcp">
   2.3.2 Context Parallelism（CP）
   <a class="anchor" href="#232-context-parallelismcp">#</a>
@@ -3060,53 +3193,54 @@ $$</p>
   <a class="anchor" href="#234-%e5%88%86%e5%b8%83%e5%bc%8f-prefill-%e7%ad%96%e7%95%a5%e5%af%b9%e6%af%94">#</a>
 </h3>
 <table>
-  <thead>
-      <tr>
-          <th>策略</th>
-          <th>切分维度</th>
-          <th>通信开销</th>
-          <th>适用场景</th>
-          <th>生产成熟度</th>
-          <th>代表实现</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><strong>Tensor Parallelism</strong></td>
-          <td>模型权重</td>
-          <td>中（每层 All-Reduce）</td>
-          <td>大模型推理</td>
-          <td>⭐⭐⭐⭐⭐</td>
-          <td>Megatron-LM, vLLM, TensorRT-LLM</td>
-      </tr>
-      <tr>
-          <td><strong>Context Parallelism</strong></td>
-          <td>序列长度</td>
-          <td>高（Ring All-Gather）</td>
-          <td>超长 prompt (&gt;32K)</td>
-          <td>⭐⭐⭐⭐</td>
-          <td>DeepSpeed-Ulysses, Ring Attention</td>
-      </tr>
-      <tr>
-          <td><strong>Pipeline Parallelism</strong></td>
-          <td>Transformer 层</td>
-          <td>低（阶段间传递）</td>
-          <td>超大模型部署</td>
-          <td>⭐⭐⭐⭐</td>
-          <td>Megatron-DeepSpeed, vLLM</td>
-      </tr>
-      <tr>
-          <td><strong>Speculative Prefill</strong></td>
-          <td>模型精度</td>
-          <td>低（单向传递）</td>
-          <td>延迟敏感场景</td>
-          <td>⭐⭐</td>
-          <td>研究阶段</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>策略</th>
+<th>切分维度</th>
+<th>通信开销</th>
+<th>适用场景</th>
+<th>生产成熟度</th>
+<th>代表实现</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Tensor Parallelism</strong></td>
+<td>模型权重</td>
+<td>中（每层 All-Reduce）</td>
+<td>大模型推理</td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>Megatron-LM, vLLM, TensorRT-LLM</td>
+</tr>
+<tr>
+<td><strong>Context Parallelism</strong></td>
+<td>序列长度</td>
+<td>高（Ring All-Gather）</td>
+<td>超长 prompt (&gt;32K)</td>
+<td>⭐⭐⭐⭐</td>
+<td>DeepSpeed-Ulysses, Ring Attention</td>
+</tr>
+<tr>
+<td><strong>Pipeline Parallelism</strong></td>
+<td>Transformer 层</td>
+<td>低（阶段间传递）</td>
+<td>超大模型部署</td>
+<td>⭐⭐⭐⭐</td>
+<td>Megatron-DeepSpeed, vLLM</td>
+</tr>
+<tr>
+<td><strong>Speculative Prefill</strong></td>
+<td>模型精度</td>
+<td>低（单向传递）</td>
+<td>延迟敏感场景</td>
+<td>⭐⭐</td>
+<td>研究阶段</td>
+</tr>
+</tbody>
 </table>
 <blockquote>
-<p><strong>选型建议</strong>：对于 TTFT 优化，优先考虑 <strong>Prompt Caching（零计算收益）</strong> → <strong>Prompt 压缩（减少计算量）</strong> → <strong>Tensor Parallelism（并行计算）</strong> → <strong>Context Parallelism（超长序列）</strong>。Speculative Prefill 作为前沿方向值得关注但暂不建议生产部署。</p></blockquote>
+<p><strong>选型建议</strong>：对于 TTFT 优化，优先考虑 <strong>Prompt Caching（零计算收益）</strong> → <strong>Prompt 压缩（减少计算量）</strong> → <strong>Tensor Parallelism（并行计算）</strong> → <strong>Context Parallelism（超长序列）</strong>。Speculative Prefill 作为前沿方向值得关注但暂不建议生产部署。</p>
+</blockquote>
 <hr>
 <h2 id="小结part-1-核心观点">
   小结：Part 1 核心观点
@@ -3125,7 +3259,8 @@ $$</p>
 </h1>
 <blockquote>
 <p>设计数据密集型系统，核心在于理解延迟的构成与放大机制。TTFT 不是单一指标，而是调度策略、内存管理与计算内核三者耦合的产物。</p>
-<p>— 仿 Martin Kleppmann, <em>Designing Data-Intensive Applications</em></p></blockquote>
+<p>— 仿 Martin Kleppmann, <em>Designing Data-Intensive Applications</em></p>
+</blockquote>
 <hr>
 <h2 id="三调度与排队优化">
   三、调度与排队优化
@@ -3156,45 +3291,45 @@ $$</p>
 └─────────────┘     └──────────────────┘     └─────────────────┘
 </code></pre><p>关键设计原则：</p>
 <table>
-  <thead>
-      <tr>
-          <th>调度策略</th>
-          <th>延迟目标</th>
-          <th>吞吐量影响</th>
-          <th>实现复杂度</th>
-          <th>适用场景</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>FIFO（默认）</td>
-          <td>无保证</td>
-          <td>最大</td>
-          <td>低</td>
-          <td>单租户、均匀负载</td>
-      </tr>
-      <tr>
-          <td>优先级队列</td>
-          <td>分级保证</td>
-          <td>中等</td>
-          <td>中</td>
-          <td>多租户、混合工作负载</td>
-      </tr>
-      <tr>
-          <td>deadline-aware</td>
-          <td>硬性上限</td>
-          <td>较低</td>
-          <td>高</td>
-          <td>SLA 驱动的生产系统</td>
-      </tr>
-      <tr>
-          <td>Fair Share</td>
-          <td>加权公平</td>
-          <td>中等</td>
-          <td>中高</td>
-          <td>多部门共享集群</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>调度策略</th>
+<th>延迟目标</th>
+<th>吞吐量影响</th>
+<th>实现复杂度</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FIFO（默认）</td>
+<td>无保证</td>
+<td>最大</td>
+<td>低</td>
+<td>单租户、均匀负载</td>
+</tr>
+<tr>
+<td>优先级队列</td>
+<td>分级保证</td>
+<td>中等</td>
+<td>中</td>
+<td>多租户、混合工作负载</td>
+</tr>
+<tr>
+<td>deadline-aware</td>
+<td>硬性上限</td>
+<td>较低</td>
+<td>高</td>
+<td>SLA 驱动的生产系统</td>
+</tr>
+<tr>
+<td>Fair Share</td>
+<td>加权公平</td>
+<td>中等</td>
+<td>中高</td>
+<td>多部门共享集群</td>
+</tr>
+</tbody>
 </table>
 <p><strong>实现机制</strong>。在 vLLM 中，调度器维护两个队列：<code>waiting</code>（等待 KV Cache 分配）和 <code>running</code>（正在执行）。请求优先级可以通过 <code>priority</code> 参数注入，调度器在每轮调度决策时优先从高优先级队列中选取请求进行 prefill。SGLang 的 <a href="https://github.com/sgl-project/sglang">RadixAttention</a> 进一步将前缀匹配与优先级结合——相同前缀的高优先级请求不仅优先调度，还能直接复用已有 KV，实现双重加速。</p>
 
@@ -3230,7 +3365,8 @@ $$</p>
 </ul>
 <p>vLLM 的 <code>preemption_mode</code> 参数支持 <code>recompute</code>（重新计算 prefill）和 <code>swap</code>（换出到 CPU）两种模式，前者适用于 prompt 较短的场景（重新计算快于 swap），后者适用于 prompt 较长的场景（swap 快于重新计算数千个 token）。</p>
 <blockquote>
-<p><strong>实践经验</strong>：在 QPS &gt; 50、prompt 长度 P99 &gt; 4K tokens 的生产环境中，启用 swap-based preemption 可将 P99 TTFT 降低 40-60%，代价是 P50 TTFT 增加 5-15ms（swap 开销均摊）。</p></blockquote>
+<p><strong>实践经验</strong>：在 QPS &gt; 50、prompt 长度 P99 &gt; 4K tokens 的生产环境中，启用 swap-based preemption 可将 P99 TTFT 降低 40-60%，代价是 P50 TTFT 增加 5-15ms（swap 开销均摊）。</p>
+</blockquote>
 <hr>
 <h3 id="32-kv-cache-管理">
   3.2 KV Cache 管理
@@ -3273,40 +3409,40 @@ GPU Memory:
     A3 ~~~ B7</pre>
 <p><strong>技术细节</strong>：</p>
 <table>
-  <thead>
-      <tr>
-          <th>维度</th>
-          <th>传统方式</th>
-          <th>PagedAttention</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>分配粒度</td>
-          <td>整个请求连续分配</td>
-          <td>固定大小 block（如 16 tokens）</td>
-      </tr>
-      <tr>
-          <td>内存碎片</td>
-          <td>严重（外部碎片）</td>
-          <td>消除（块大小固定）</td>
-      </tr>
-      <tr>
-          <td>内存利用率</td>
-          <td>60-70%（碎片浪费）</td>
-          <td>95%+</td>
-      </tr>
-      <tr>
-          <td>并发请求数</td>
-          <td>受限</td>
-          <td>提升 2-4x</td>
-      </tr>
-      <tr>
-          <td>页表开销</td>
-          <td>无</td>
-          <td>极小（每请求 O(num_blocks)）</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>维度</th>
+<th>传统方式</th>
+<th>PagedAttention</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>分配粒度</td>
+<td>整个请求连续分配</td>
+<td>固定大小 block（如 16 tokens）</td>
+</tr>
+<tr>
+<td>内存碎片</td>
+<td>严重（外部碎片）</td>
+<td>消除（块大小固定）</td>
+</tr>
+<tr>
+<td>内存利用率</td>
+<td>60-70%（碎片浪费）</td>
+<td>95%+</td>
+</tr>
+<tr>
+<td>并发请求数</td>
+<td>受限</td>
+<td>提升 2-4x</td>
+</tr>
+<tr>
+<td>页表开销</td>
+<td>无</td>
+<td>极小（每请求 O(num_blocks)）</td>
+</tr>
+</tbody>
 </table>
 <p><strong>Block 大小的选择</strong>是一个经典的空间-时间权衡：</p>
 <ul>
@@ -3352,44 +3488,45 @@ GPU Memory:
 </ol>
 <p><strong>缓存命中率的影响因素</strong>：</p>
 <table>
-  <thead>
-      <tr>
-          <th>场景</th>
-          <th>预期命中率</th>
-          <th>说明</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>多轮对话</td>
-          <td>70-90%</td>
-          <td>每轮仅新增一轮对话内容，历史全部复用</td>
-      </tr>
-      <tr>
-          <td>RAG + 相同文档</td>
-          <td>50-80%</td>
-          <td>检索到的文档内容相同，仅 query 不同</td>
-      </tr>
-      <tr>
-          <td>Few-shot 推理</td>
-          <td>60-85%</td>
-          <td>示例部分相同，仅测试样本不同</td>
-      </tr>
-      <tr>
-          <td>独立生成任务</td>
-          <td>&lt; 20%</td>
-          <td>前缀无共享，收益有限</td>
-      </tr>
-      <tr>
-          <td>流式对话（长上下文）</td>
-          <td>90%+</td>
-          <td>几乎全部上下文复用</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>场景</th>
+<th>预期命中率</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>多轮对话</td>
+<td>70-90%</td>
+<td>每轮仅新增一轮对话内容，历史全部复用</td>
+</tr>
+<tr>
+<td>RAG + 相同文档</td>
+<td>50-80%</td>
+<td>检索到的文档内容相同，仅 query 不同</td>
+</tr>
+<tr>
+<td>Few-shot 推理</td>
+<td>60-85%</td>
+<td>示例部分相同，仅测试样本不同</td>
+</tr>
+<tr>
+<td>独立生成任务</td>
+<td>&lt; 20%</td>
+<td>前缀无共享，收益有限</td>
+</tr>
+<tr>
+<td>流式对话（长上下文）</td>
+<td>90%+</td>
+<td>几乎全部上下文复用</td>
+</tr>
+</tbody>
 </table>
 <p><strong>缓存淘汰策略</strong>：Radix Tree 的内存并非无限。当显存紧张时，SGLang 采用 <strong>LRU（Least Recently Used）</strong> 策略淘汰最少访问的叶节点。需要注意的是，淘汰一个中间节点会连带淘汰其所有后代——这使得淘汰决策需要<strong>子树权重计算</strong>，而非简单的单节点 LRU。</p>
 <blockquote>
-<p><strong>实现注意</strong>：RadixAttention 的缓存命中率高度依赖请求到达的<strong>时间局部性</strong>。如果两个共享前缀的请求间隔过长，中间节点的 KV 可能已被淘汰。因此，在高并发场景下，配合<strong>请求亲和性调度</strong>（将相同前缀的请求调度到同一 GPU）可显著提升命中率。</p></blockquote>
+<p><strong>实现注意</strong>：RadixAttention 的缓存命中率高度依赖请求到达的<strong>时间局部性</strong>。如果两个共享前缀的请求间隔过长，中间节点的 KV 可能已被淘汰。因此，在高并发场景下，配合<strong>请求亲和性调度</strong>（将相同前缀的请求调度到同一 GPU）可显著提升命中率。</p>
+</blockquote>
 <h4 id="kv-cache-预热高频-prompt-预计算">
   KV Cache 预热：高频 Prompt 预计算
   <a class="anchor" href="#kv-cache-%e9%a2%84%e7%83%ad%e9%ab%98%e9%a2%91-prompt-%e9%a2%84%e8%ae%a1%e7%ae%97">#</a>
@@ -3467,46 +3604,46 @@ GPU Memory:
 </ol>
 <p><strong>效果量化</strong>（基于 vLLM 论文数据）：</p>
 <table>
-  <thead>
-      <tr>
-          <th>指标</th>
-          <th>Static Batching</th>
-          <th>Continuous Batching</th>
-          <th>改善</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>吞吐量 (token/s)</td>
-          <td>基准</td>
-          <td>+2.3x</td>
-          <td>显著提升</td>
-      </tr>
-      <tr>
-          <td>P50 TTFT</td>
-          <td>基准</td>
-          <td>-40%</td>
-          <td>显著降低</td>
-      </tr>
-      <tr>
-          <td>P99 TTFT</td>
-          <td>基准</td>
-          <td>-55%</td>
-          <td>大幅降低</td>
-      </tr>
-      <tr>
-          <td>GPU 利用率</td>
-          <td>60-70%</td>
-          <td>85-95%</td>
-          <td>显著提升</td>
-      </tr>
-      <tr>
-          <td>最大并发请求数</td>
-          <td>基准</td>
-          <td>+3-5x</td>
-          <td>显著提升</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>指标</th>
+<th>Static Batching</th>
+<th>Continuous Batching</th>
+<th>改善</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>吞吐量 (token/s)</td>
+<td>基准</td>
+<td>+2.3x</td>
+<td>显著提升</td>
+</tr>
+<tr>
+<td>P50 TTFT</td>
+<td>基准</td>
+<td>-40%</td>
+<td>显著降低</td>
+</tr>
+<tr>
+<td>P99 TTFT</td>
+<td>基准</td>
+<td>-55%</td>
+<td>大幅降低</td>
+</tr>
+<tr>
+<td>GPU 利用率</td>
+<td>60-70%</td>
+<td>85-95%</td>
+<td>显著提升</td>
+</tr>
+<tr>
+<td>最大并发请求数</td>
+<td>基准</td>
+<td>+3-5x</td>
+<td>显著提升</td>
+</tr>
+</tbody>
 </table>
 <p>Continuous Batching 的代价是<strong>调度开销增加</strong>——每次 forward pass 都需要重新计算 batch 组成。但在现代 GPU 上，这个开销通常 &lt; 1ms，远低于 prefill 和 decode 的计算时间。</p>
 <h4 id="chunked-prefill大-prompt-的拆分执行">
@@ -3532,45 +3669,45 @@ GPU Memory:
     end</pre>
 <p><strong>Chunk 大小的选择</strong>同样是一个权衡：</p>
 <table>
-  <thead>
-      <tr>
-          <th>Chunk Size</th>
-          <th>Prefill 延迟</th>
-          <th>Decode 阻塞时间</th>
-          <th>调度频率</th>
-          <th>推荐场景</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>512 tokens</td>
-          <td>很低</td>
-          <td>极低</td>
-          <td>很高</td>
-          <td>极致 TTFT 优化</td>
-      </tr>
-      <tr>
-          <td>2048 tokens</td>
-          <td>低</td>
-          <td>低</td>
-          <td>中等</td>
-          <td>生产环境默认</td>
-      </tr>
-      <tr>
-          <td>8192 tokens</td>
-          <td>中等</td>
-          <td>中等</td>
-          <td>低</td>
-          <td>长 context 为主</td>
-      </tr>
-      <tr>
-          <td>不拆分 (完整)</td>
-          <td>高</td>
-          <td>高</td>
-          <td>最低</td>
-          <td>无混合负载</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>Chunk Size</th>
+<th>Prefill 延迟</th>
+<th>Decode 阻塞时间</th>
+<th>调度频率</th>
+<th>推荐场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>512 tokens</td>
+<td>很低</td>
+<td>极低</td>
+<td>很高</td>
+<td>极致 TTFT 优化</td>
+</tr>
+<tr>
+<td>2048 tokens</td>
+<td>低</td>
+<td>低</td>
+<td>中等</td>
+<td>生产环境默认</td>
+</tr>
+<tr>
+<td>8192 tokens</td>
+<td>中等</td>
+<td>中等</td>
+<td>低</td>
+<td>长 context 为主</td>
+</tr>
+<tr>
+<td>不拆分 (完整)</td>
+<td>高</td>
+<td>高</td>
+<td>最低</td>
+<td>无混合负载</td>
+</tr>
+</tbody>
 </table>
 <p>vLLM 通过 <code>chunked_prefill_enabled</code> 参数支持此功能，默认 chunk size 与 block size 对齐（如 16 的倍数），以减少内存分配开销。</p>
 <p><strong>Chunked Prefill 的数学分析</strong>：</p>
@@ -3587,74 +3724,74 @@ GPU Memory:
 </h3>
 <p>将上述调度策略进行系统性对比，帮助在实际系统中做出合理选择：</p>
 <table>
-  <thead>
-      <tr>
-          <th>策略</th>
-          <th>优化目标</th>
-          <th>实现复杂度</th>
-          <th>硬件要求</th>
-          <th>典型 TTFT 改善</th>
-          <th>适用场景</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>优先级调度</td>
-          <td>高优请求 TTFT</td>
-          <td>中</td>
-          <td>无额外</td>
-          <td>P99 降低 30-50%</td>
-          <td>多租户 SaaS</td>
-      </tr>
-      <tr>
-          <td>Preemptive Scheduling</td>
-          <td>避免队头阻塞</td>
-          <td>中高</td>
-          <td>需要 CPU 内存 swap 空间</td>
-          <td>P99 降低 40-60%</td>
-          <td>高 QPS 生产环境</td>
-      </tr>
-      <tr>
-          <td>PagedAttention</td>
-          <td>显存利用率</td>
-          <td>高（框架级）</td>
-          <td>无额外</td>
-          <td>并发提升 2-4x → 间接降低 TTFT</td>
-          <td>所有场景</td>
-      </tr>
-      <tr>
-          <td>RadixAttention</td>
-          <td>重复计算消除</td>
-          <td>高（框架级）</td>
-          <td>无额外</td>
-          <td>命中请求 TTFT 降低 60-90%</td>
-          <td>对话、RAG、Few-shot</td>
-      </tr>
-      <tr>
-          <td>KV Cache 预热</td>
-          <td>热点预计算</td>
-          <td>中</td>
-          <td>额外显存</td>
-          <td>预热请求 TTFT 接近 0</td>
-          <td>固定 prompt 场景</td>
-      </tr>
-      <tr>
-          <td>Continuous Batching</td>
-          <td>GPU 利用率 + TTFT</td>
-          <td>高（框架级）</td>
-          <td>无额外</td>
-          <td>P50 降低 40%, P99 降低 55%</td>
-          <td>混合负载</td>
-      </tr>
-      <tr>
-          <td>Chunked Prefill</td>
-          <td>减少 decode 阻塞</td>
-          <td>中高</td>
-          <td>无额外</td>
-          <td>P99 降低 50-80%</td>
-          <td>长 context + 短 decode 混合</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>策略</th>
+<th>优化目标</th>
+<th>实现复杂度</th>
+<th>硬件要求</th>
+<th>典型 TTFT 改善</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>优先级调度</td>
+<td>高优请求 TTFT</td>
+<td>中</td>
+<td>无额外</td>
+<td>P99 降低 30-50%</td>
+<td>多租户 SaaS</td>
+</tr>
+<tr>
+<td>Preemptive Scheduling</td>
+<td>避免队头阻塞</td>
+<td>中高</td>
+<td>需要 CPU 内存 swap 空间</td>
+<td>P99 降低 40-60%</td>
+<td>高 QPS 生产环境</td>
+</tr>
+<tr>
+<td>PagedAttention</td>
+<td>显存利用率</td>
+<td>高（框架级）</td>
+<td>无额外</td>
+<td>并发提升 2-4x → 间接降低 TTFT</td>
+<td>所有场景</td>
+</tr>
+<tr>
+<td>RadixAttention</td>
+<td>重复计算消除</td>
+<td>高（框架级）</td>
+<td>无额外</td>
+<td>命中请求 TTFT 降低 60-90%</td>
+<td>对话、RAG、Few-shot</td>
+</tr>
+<tr>
+<td>KV Cache 预热</td>
+<td>热点预计算</td>
+<td>中</td>
+<td>额外显存</td>
+<td>预热请求 TTFT 接近 0</td>
+<td>固定 prompt 场景</td>
+</tr>
+<tr>
+<td>Continuous Batching</td>
+<td>GPU 利用率 + TTFT</td>
+<td>高（框架级）</td>
+<td>无额外</td>
+<td>P50 降低 40%, P99 降低 55%</td>
+<td>混合负载</td>
+</tr>
+<tr>
+<td>Chunked Prefill</td>
+<td>减少 decode 阻塞</td>
+<td>中高</td>
+<td>无额外</td>
+<td>P99 降低 50-80%</td>
+<td>长 context + 短 decode 混合</td>
+</tr>
+</tbody>
 </table>
 <hr>
 <h2 id="四推理引擎优化">
@@ -3726,79 +3863,80 @@ GPU Memory:
   <a class="anchor" href="#%e5%bc%95%e6%93%8e%e7%bb%bc%e5%90%88%e5%af%b9%e6%af%94">#</a>
 </h4>
 <table>
-  <thead>
-      <tr>
-          <th>维度</th>
-          <th>vLLM</th>
-          <th>SGLang</th>
-          <th>TGI</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><strong>核心优化</strong></td>
-          <td>PagedAttention + Continuous Batching</td>
-          <td>RadixAttention + 前缀树复用</td>
-          <td>FlashAttention + FlashDecoding</td>
-      </tr>
-      <tr>
-          <td><strong>TTFT (短 prompt, P50)</strong></td>
-          <td>50-100ms</td>
-          <td>50-100ms</td>
-          <td>60-120ms</td>
-      </tr>
-      <tr>
-          <td><strong>TTFT (共享前缀, P50)</strong></td>
-          <td>50-100ms</td>
-          <td><strong>20-50ms</strong></td>
-          <td>60-120ms</td>
-      </tr>
-      <tr>
-          <td><strong>吞吐量 (tokens/s/GPU)</strong></td>
-          <td>高</td>
-          <td>高（高命中率时更高）</td>
-          <td>中高</td>
-      </tr>
-      <tr>
-          <td><strong>KV Cache 利用率</strong></td>
-          <td><strong>95%+</strong> (PagedAttention)</td>
-          <td><strong>95%+</strong> (Radix+Page)</td>
-          <td>70-85%</td>
-      </tr>
-      <tr>
-          <td><strong>长 Context 支持</strong></td>
-          <td>支持（Chunked Prefill）</td>
-          <td>支持</td>
-          <td>支持</td>
-      </tr>
-      <tr>
-          <td><strong>结构化解码</strong></td>
-          <td>有限</td>
-          <td><strong>原生支持</strong></td>
-          <td>有限</td>
-      </tr>
-      <tr>
-          <td><strong>部署复杂度</strong></td>
-          <td>低（pip install）</td>
-          <td>中</td>
-          <td>中（Docker）</td>
-      </tr>
-      <tr>
-          <td><strong>生态集成</strong></td>
-          <td>广泛</td>
-          <td>快速增长</td>
-          <td><strong>Hugging Face 原生</strong></td>
-      </tr>
-      <tr>
-          <td><strong>推荐场景</strong></td>
-          <td>通用推理服务</td>
-          <td>对话/RAG/结构化输出</td>
-          <td>Hugging Face 生态、Speculative Decoding</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>维度</th>
+<th>vLLM</th>
+<th>SGLang</th>
+<th>TGI</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心优化</strong></td>
+<td>PagedAttention + Continuous Batching</td>
+<td>RadixAttention + 前缀树复用</td>
+<td>FlashAttention + FlashDecoding</td>
+</tr>
+<tr>
+<td><strong>TTFT (短 prompt, P50)</strong></td>
+<td>50-100ms</td>
+<td>50-100ms</td>
+<td>60-120ms</td>
+</tr>
+<tr>
+<td><strong>TTFT (共享前缀, P50)</strong></td>
+<td>50-100ms</td>
+<td><strong>20-50ms</strong></td>
+<td>60-120ms</td>
+</tr>
+<tr>
+<td><strong>吞吐量 (tokens/s/GPU)</strong></td>
+<td>高</td>
+<td>高（高命中率时更高）</td>
+<td>中高</td>
+</tr>
+<tr>
+<td><strong>KV Cache 利用率</strong></td>
+<td><strong>95%+</strong> (PagedAttention)</td>
+<td><strong>95%+</strong> (Radix+Page)</td>
+<td>70-85%</td>
+</tr>
+<tr>
+<td><strong>长 Context 支持</strong></td>
+<td>支持（Chunked Prefill）</td>
+<td>支持</td>
+<td>支持</td>
+</tr>
+<tr>
+<td><strong>结构化解码</strong></td>
+<td>有限</td>
+<td><strong>原生支持</strong></td>
+<td>有限</td>
+</tr>
+<tr>
+<td><strong>部署复杂度</strong></td>
+<td>低（pip install）</td>
+<td>中</td>
+<td>中（Docker）</td>
+</tr>
+<tr>
+<td><strong>生态集成</strong></td>
+<td>广泛</td>
+<td>快速增长</td>
+<td><strong>Hugging Face 原生</strong></td>
+</tr>
+<tr>
+<td><strong>推荐场景</strong></td>
+<td>通用推理服务</td>
+<td>对话/RAG/结构化输出</td>
+<td>Hugging Face 生态、Speculative Decoding</td>
+</tr>
+</tbody>
 </table>
 <blockquote>
-<p><strong>选择建议</strong>：对于以 TTFT 为核心指标的生产系统，如果工作负载包含大量共享前缀的请求（如对话机器人、RAG），<strong>SGLang 的 RadixAttention 可带来最直接的 TTFT 改善</strong>。对于通用推理服务，<strong>vLLM 的成熟度和社区支持更优</strong>。如果已经深度绑定 Hugging Face 生态，TGI 是自然选择。</p></blockquote>
+<p><strong>选择建议</strong>：对于以 TTFT 为核心指标的生产系统，如果工作负载包含大量共享前缀的请求（如对话机器人、RAG），<strong>SGLang 的 RadixAttention 可带来最直接的 TTFT 改善</strong>。对于通用推理服务，<strong>vLLM 的成熟度和社区支持更优</strong>。如果已经深度绑定 Hugging Face 生态，TGI 是自然选择。</p>
+</blockquote>
 <hr>
 <h3 id="42-kernel-级优化">
   4.2 Kernel 级优化
@@ -3830,30 +3968,30 @@ O 写入:          O(N·d)
 <p>FlashAttention-3 是 FlashAttention 系列的最新版本，专门针对 NVIDIA Hopper 架构（H100/H200）的硬件特性进行了深度优化。<sup id="fnref:24"><a href="#fn:24" class="footnote-ref" role="doc-noteref">24</a></sup></p>
 <p><strong>Hopper 架构的三项关键硬件特性</strong>：</p>
 <table>
-  <thead>
-      <tr>
-          <th>特性</th>
-          <th>说明</th>
-          <th>对 FlashAttention 的意义</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><strong>TMA (Tensor Memory Accelerator)</strong></td>
-          <td>异步 DMA 引擎，支持从 HBM 到 SRAM 的异步数据传输</td>
-          <td>计算与数据传输<strong>并行执行</strong>，隐藏 HBM 延迟</td>
-      </tr>
-      <tr>
-          <td><strong>WGMMA (Warpgroup Matrix Multiply-Accumulate)</strong></td>
-          <td>新的矩阵乘累加指令，支持 warpgroup（4 warp）级别的同步操作</td>
-          <td>替代传统的 MMA 指令，<strong>减少同步开销</strong></td>
-      </tr>
-      <tr>
-          <td><strong>FP8 支持</strong></td>
-          <td>原生 FP8 Tensor Core 支持（E4M3/E5M2 格式）</td>
-          <td>KV Cache 和中间计算可以 FP8 执行，<strong>带宽减半</strong></td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>特性</th>
+<th>说明</th>
+<th>对 FlashAttention 的意义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>TMA (Tensor Memory Accelerator)</strong></td>
+<td>异步 DMA 引擎，支持从 HBM 到 SRAM 的异步数据传输</td>
+<td>计算与数据传输<strong>并行执行</strong>，隐藏 HBM 延迟</td>
+</tr>
+<tr>
+<td><strong>WGMMA (Warpgroup Matrix Multiply-Accumulate)</strong></td>
+<td>新的矩阵乘累加指令，支持 warpgroup（4 warp）级别的同步操作</td>
+<td>替代传统的 MMA 指令，<strong>减少同步开销</strong></td>
+</tr>
+<tr>
+<td><strong>FP8 支持</strong></td>
+<td>原生 FP8 Tensor Core 支持（E4M3/E5M2 格式）</td>
+<td>KV Cache 和中间计算可以 FP8 执行，<strong>带宽减半</strong></td>
+</tr>
+</tbody>
 </table>
 <p><strong>FlashAttention-3 的关键优化</strong>：</p>
 <ol>
@@ -3877,55 +4015,56 @@ FlashAttention-3 支持在 FP8 格式下执行注意力计算，将 HBM 带宽�
 </ol>
 <p><strong>性能数据</strong>（FlashAttention-3 vs FlashAttention-2，A100/H100 基准）：</p>
 <table>
-  <thead>
-      <tr>
-          <th>序列长度</th>
-          <th>架构</th>
-          <th>FA-2 速度</th>
-          <th>FA-3 速度</th>
-          <th>加速比</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>4K</td>
-          <td>H100</td>
-          <td>基准</td>
-          <td>2-3x</td>
-          <td><strong>2-3x</strong></td>
-      </tr>
-      <tr>
-          <td>8K</td>
-          <td>H100</td>
-          <td>基准</td>
-          <td>2-3x</td>
-          <td><strong>2-3x</strong></td>
-      </tr>
-      <tr>
-          <td>16K</td>
-          <td>H100</td>
-          <td>基准</td>
-          <td>1.5-2.5x</td>
-          <td><strong>1.5-2.5x</strong></td>
-      </tr>
-      <tr>
-          <td>32K</td>
-          <td>H100</td>
-          <td>基准</td>
-          <td>1.3-2x</td>
-          <td><strong>1.3-2x</strong></td>
-      </tr>
-      <tr>
-          <td>4K</td>
-          <td>A100</td>
-          <td>不适用（FA-3 仅 Hopper）</td>
-          <td>不适用</td>
-          <td>—</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>序列长度</th>
+<th>架构</th>
+<th>FA-2 速度</th>
+<th>FA-3 速度</th>
+<th>加速比</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>4K</td>
+<td>H100</td>
+<td>基准</td>
+<td>2-3x</td>
+<td><strong>2-3x</strong></td>
+</tr>
+<tr>
+<td>8K</td>
+<td>H100</td>
+<td>基准</td>
+<td>2-3x</td>
+<td><strong>2-3x</strong></td>
+</tr>
+<tr>
+<td>16K</td>
+<td>H100</td>
+<td>基准</td>
+<td>1.5-2.5x</td>
+<td><strong>1.5-2.5x</strong></td>
+</tr>
+<tr>
+<td>32K</td>
+<td>H100</td>
+<td>基准</td>
+<td>1.3-2x</td>
+<td><strong>1.3-2x</strong></td>
+</tr>
+<tr>
+<td>4K</td>
+<td>A100</td>
+<td>不适用（FA-3 仅 Hopper）</td>
+<td>不适用</td>
+<td>—</td>
+</tr>
+</tbody>
 </table>
 <blockquote>
-<p><strong>注意</strong>：FlashAttention-3 需要 Hopper 架构（H100/H200/B200），在 Ampere（A100/A6000）和 Ada（L40S）架构上无法使用 WGMMA 和 TMA，因此在这些架构上仍然使用 FlashAttention-2。</p></blockquote>
+<p><strong>注意</strong>：FlashAttention-3 需要 Hopper 架构（H100/H200/B200），在 Ampere（A100/A6000）和 Ada（L40S）架构上无法使用 WGMMA 和 TMA，因此在这些架构上仍然使用 FlashAttention-2。</p>
+</blockquote>
 <h4 id="其他-kernel-级优化">
   其他 Kernel 级优化
   <a class="anchor" href="#%e5%85%b6%e4%bb%96-kernel-%e7%ba%a7%e4%bc%98%e5%8c%96">#</a>
@@ -3941,58 +4080,58 @@ FlashAttention-3 支持在 FP8 格式下执行注意力计算，将 HBM 带宽�
 </h3>
 <p>量化（Quantization）通过降低权重和激活值的精度来减少计算量和内存占用，从而间接影响 TTFT。</p>
 <table>
-  <thead>
-      <tr>
-          <th>量化方案</th>
-          <th>精度</th>
-          <th>KV Cache 减少</th>
-          <th>Prefill 加速</th>
-          <th>质量损失</th>
-          <th>适用场景</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>FP16</td>
-          <td>16-bit</td>
-          <td>基准</td>
-          <td>基准</td>
-          <td>无</td>
-          <td>质量敏感</td>
-      </tr>
-      <tr>
-          <td>INT8</td>
-          <td>8-bit</td>
-          <td>50%</td>
-          <td>1.2-1.5x</td>
-          <td>极小</td>
-          <td>通用生产</td>
-      </tr>
-      <tr>
-          <td>FP8 (E4M3)</td>
-          <td>8-bit (float)</td>
-          <td>50%</td>
-          <td>1.3-1.8x</td>
-          <td>极小</td>
-          <td>Hopper 架构推荐</td>
-      </tr>
-      <tr>
-          <td>INT4/AWQ</td>
-          <td>4-bit</td>
-          <td>75%</td>
-          <td>1.5-2x</td>
-          <td>小</td>
-          <td>边缘部署、极致吞吐</td>
-      </tr>
-      <tr>
-          <td>GPTQ-4bit</td>
-          <td>4-bit</td>
-          <td>75%</td>
-          <td>1.5-2x</td>
-          <td>中小</td>
-          <td>需要后训练量化</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>量化方案</th>
+<th>精度</th>
+<th>KV Cache 减少</th>
+<th>Prefill 加速</th>
+<th>质量损失</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FP16</td>
+<td>16-bit</td>
+<td>基准</td>
+<td>基准</td>
+<td>无</td>
+<td>质量敏感</td>
+</tr>
+<tr>
+<td>INT8</td>
+<td>8-bit</td>
+<td>50%</td>
+<td>1.2-1.5x</td>
+<td>极小</td>
+<td>通用生产</td>
+</tr>
+<tr>
+<td>FP8 (E4M3)</td>
+<td>8-bit (float)</td>
+<td>50%</td>
+<td>1.3-1.8x</td>
+<td>极小</td>
+<td>Hopper 架构推荐</td>
+</tr>
+<tr>
+<td>INT4/AWQ</td>
+<td>4-bit</td>
+<td>75%</td>
+<td>1.5-2x</td>
+<td>小</td>
+<td>边缘部署、极致吞吐</td>
+</tr>
+<tr>
+<td>GPTQ-4bit</td>
+<td>4-bit</td>
+<td>75%</td>
+<td>1.5-2x</td>
+<td>中小</td>
+<td>需要后训练量化</td>
+</tr>
+</tbody>
 </table>
 <p><strong>量化对 TTFT 的双重影响</strong>：</p>
 <ol>
@@ -4007,7 +4146,8 @@ FlashAttention-3 支持在 FP8 格式下执行注意力计算，将 HBM 带宽�
 </h2>
 <hr>
 <blockquote>
-<p><strong>下一篇预告 (Part 3)</strong>：系统级优化 — 网络与端到端延迟优化（gRPC vs HTTP、Tensor Parallelism 通信优化、多实例负载均衡）、以及 TTFT 的可观测性与监控策略。</p></blockquote>
+<p><strong>下一篇预告 (Part 3)</strong>：系统级优化 — 网络与端到端延迟优化（gRPC vs HTTP、Tensor Parallelism 通信优化、多实例负载均衡）、以及 TTFT 的可观测性与监控策略。</p>
+</blockquote>
 <hr>
 <h1 id="第五章-模型级优化">
   第五章 模型级优化
@@ -4026,43 +4166,44 @@ FlashAttention-3 支持在 FP8 格式下执行注意力计算，将 HBM 带宽�
 <p>Transformer 架构的 prefill 计算复杂度与<strong>激活参数量</strong>（activated parameters）成正比，而非总参数量。这正是 Mixture-of-Experts（MoE）架构在 TTFT 优化中的理论优势所在。</p>
 <p><strong>MoE 的核心思想</strong>是将模型的 FFN 层替换为多个&quot;专家&quot;（expert）网络，并在每个前向传播中通过门控函数（gating function）仅激活其中少数几个专家。以 Mixtral 8x7B 为例：</p>
 <table>
-  <thead>
-      <tr>
-          <th>维度</th>
-          <th>Dense 7B</th>
-          <th>MoE 8x7B（Mixtral）</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>总参数量</td>
-          <td>7B</td>
-          <td>46.7B</td>
-      </tr>
-      <tr>
-          <td>激活参数量</td>
-          <td>7B</td>
-          <td>~12.9B（2/8 专家激活）</td>
-      </tr>
-      <tr>
-          <td>Prefill FLOPs</td>
-          <td>基准</td>
-          <td>~1.85x（非等比例增长）</td>
-      </tr>
-      <tr>
-          <td>吞吐量</td>
-          <td>基准</td>
-          <td>~2x（同 GPU 条件下）</td>
-      </tr>
-      <tr>
-          <td>峰值显存</td>
-          <td>基准</td>
-          <td>~6.7x（全参数加载）</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>维度</th>
+<th>Dense 7B</th>
+<th>MoE 8x7B（Mixtral）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>总参数量</td>
+<td>7B</td>
+<td>46.7B</td>
+</tr>
+<tr>
+<td>激活参数量</td>
+<td>7B</td>
+<td>~12.9B（2/8 专家激活）</td>
+</tr>
+<tr>
+<td>Prefill FLOPs</td>
+<td>基准</td>
+<td>~1.85x（非等比例增长）</td>
+</tr>
+<tr>
+<td>吞吐量</td>
+<td>基准</td>
+<td>~2x（同 GPU 条件下）</td>
+</tr>
+<tr>
+<td>峰值显存</td>
+<td>基准</td>
+<td>~6.7x（全参数加载）</td>
+</tr>
+</tbody>
 </table>
 <blockquote>
-<p>数据来源：Mixtral 8x7B 技术报告 (Jiang et al., 2024, arXiv:2401.04088)</p></blockquote>
+<p>数据来源：Mixtral 8x7B 技术报告 (Jiang et al., 2024, arXiv:2401.04088)</p>
+</blockquote>
 <p>这里存在一个关键认知偏差：MoE 的激活参数量虽然是 Dense 的 1.85 倍，但<strong>在相同显存预算下</strong>，MoE 可以用更大的总参数量换取更高的吞吐量。这意味着：</p>
 <ul>
 <li><strong>同等硬件条件下</strong>：MoE 模型的 prefill 吞吐（tokens/s）通常高于同激活参数量的 Dense 模型</li>
@@ -4142,45 +4283,45 @@ FlashAttention-3 支持在 FP8 格式下执行注意力计算，将 HBM 带宽�
   <a class="anchor" href="#514-%e6%9e%b6%e6%9e%84%e9%80%89%e6%8b%a9%e5%af%b9%e6%af%94%e6%80%bb%e7%bb%93">#</a>
 </h3>
 <table>
-  <thead>
-      <tr>
-          <th>策略</th>
-          <th>适用场景</th>
-          <th>TTFT 改善幅度</th>
-          <th>工程成熟度</th>
-          <th>质量影响</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>MoE 替换 Dense</td>
-          <td>高并发、长 prompt</td>
-          <td>15-30%</td>
-          <td>成熟（Mixtral/Qwen-MoE）</td>
-          <td>同等或更优</td>
-      </tr>
-      <tr>
-          <td>Speculative Prefill</td>
-          <td>超长 prompt（&gt;4K）</td>
-          <td>30-50%</td>
-          <td>实验性</td>
-          <td>可能轻微下降</td>
-      </tr>
-      <tr>
-          <td>Early Exit</td>
-          <td>简单 prompt 为主</td>
-          <td>20-40%（平均）</td>
-          <td>不成熟</td>
-          <td>取决于阈值选择</td>
-      </tr>
-      <tr>
-          <td>Speculative Decoding</td>
-          <td>Decode 阶段优化</td>
-          <td><strong>对 TTFT 无直接影响</strong></td>
-          <td>成熟</td>
-          <td>无损</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>策略</th>
+<th>适用场景</th>
+<th>TTFT 改善幅度</th>
+<th>工程成熟度</th>
+<th>质量影响</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MoE 替换 Dense</td>
+<td>高并发、长 prompt</td>
+<td>15-30%</td>
+<td>成熟（Mixtral/Qwen-MoE）</td>
+<td>同等或更优</td>
+</tr>
+<tr>
+<td>Speculative Prefill</td>
+<td>超长 prompt（&gt;4K）</td>
+<td>30-50%</td>
+<td>实验性</td>
+<td>可能轻微下降</td>
+</tr>
+<tr>
+<td>Early Exit</td>
+<td>简单 prompt 为主</td>
+<td>20-40%（平均）</td>
+<td>不成熟</td>
+<td>取决于阈值选择</td>
+</tr>
+<tr>
+<td>Speculative Decoding</td>
+<td>Decode 阶段优化</td>
+<td><strong>对 TTFT 无直接影响</strong></td>
+<td>成熟</td>
+<td>无损</td>
+</tr>
+</tbody>
 </table>
 <hr>
 <h2 id="52-量化对-ttft-的影响">
@@ -4209,66 +4350,66 @@ FlashAttention-3 支持在 FP8 格式下执行注意力计算，将 HBM 带宽�
   <a class="anchor" href="#522-%e4%b8%bb%e6%b5%81%e9%87%8f%e5%8c%96%e6%96%b9%e6%b3%95%e5%af%b9%e6%af%94">#</a>
 </h3>
 <table>
-  <thead>
-      <tr>
-          <th>方法</th>
-          <th>位宽</th>
-          <th>是否需要校准数据</th>
-          <th>加速比（Prefill）</th>
-          <th>精度损失（MMLU）</th>
-          <th>推理引擎支持</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>FP16（基线）</td>
-          <td>16</td>
-          <td>否</td>
-          <td>1.0x</td>
-          <td>0%</td>
-          <td>全部</td>
-      </tr>
-      <tr>
-          <td>INT8 动态量化</td>
-          <td>W8A8</td>
-          <td>否</td>
-          <td>~1.6x</td>
-          <td>0.5-2%</td>
-          <td>vLLM, TensorRT-LLM</td>
-      </tr>
-      <tr>
-          <td>AWQ</td>
-          <td>W4A16</td>
-          <td>否</td>
-          <td>~2.0x</td>
-          <td>&lt;1%</td>
-          <td>vLLM, SGLang</td>
-      </tr>
-      <tr>
-          <td>GPTQ</td>
-          <td>W4A16</td>
-          <td>是（128-256 样本）</td>
-          <td>~2.0x</td>
-          <td>0.5-1.5%</td>
-          <td>vLLM, exllama</td>
-      </tr>
-      <tr>
-          <td>SmoothQuant</td>
-          <td>W8A8</td>
-          <td>是（校准集）</td>
-          <td>~1.8x</td>
-          <td>&lt;1%</td>
-          <td>TensorRT-LLM</td>
-      </tr>
-      <tr>
-          <td>FP8 (E4M3)</td>
-          <td>8 (float)</td>
-          <td>否</td>
-          <td>~1.7x</td>
-          <td>&lt;1%</td>
-          <td>TensorRT-LLM, vLLM (Hopper+)</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>方法</th>
+<th>位宽</th>
+<th>是否需要校准数据</th>
+<th>加速比（Prefill）</th>
+<th>精度损失（MMLU）</th>
+<th>推理引擎支持</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FP16（基线）</td>
+<td>16</td>
+<td>否</td>
+<td>1.0x</td>
+<td>0%</td>
+<td>全部</td>
+</tr>
+<tr>
+<td>INT8 动态量化</td>
+<td>W8A8</td>
+<td>否</td>
+<td>~1.6x</td>
+<td>0.5-2%</td>
+<td>vLLM, TensorRT-LLM</td>
+</tr>
+<tr>
+<td>AWQ</td>
+<td>W4A16</td>
+<td>否</td>
+<td>~2.0x</td>
+<td>&lt;1%</td>
+<td>vLLM, SGLang</td>
+</tr>
+<tr>
+<td>GPTQ</td>
+<td>W4A16</td>
+<td>是（128-256 样本）</td>
+<td>~2.0x</td>
+<td>0.5-1.5%</td>
+<td>vLLM, exllama</td>
+</tr>
+<tr>
+<td>SmoothQuant</td>
+<td>W8A8</td>
+<td>是（校准集）</td>
+<td>~1.8x</td>
+<td>&lt;1%</td>
+<td>TensorRT-LLM</td>
+</tr>
+<tr>
+<td>FP8 (E4M3)</td>
+<td>8 (float)</td>
+<td>否</td>
+<td>~1.7x</td>
+<td>&lt;1%</td>
+<td>TensorRT-LLM, vLLM (Hopper+)</td>
+</tr>
+</tbody>
 </table>
 <blockquote>
 <p>数据来源：</p>
@@ -4277,7 +4418,8 @@ FlashAttention-3 支持在 FP8 格式下执行注意力计算，将 HBM 带宽�
 <li>GPTQ: <em>GPTQ: Accurate Post-Training Quantization for Generative Pre-trained Transformers</em> (Frantar et al., ICLR 2023, arXiv:2210.17323)</li>
 <li>SmoothQuant: <em>SmoothQuant: Accurate and Efficient Post-Training Quantization for Large Language Models</em> (Xiao et al., ICML 2023, arXiv:2211.10438)</li>
 <li>FP8: <em>FP8 Formats for Deep Learning</em> (Micikevicius et al., arXiv:2209.05433)</li>
-</ul></blockquote>
+</ul>
+</blockquote>
 <h3 id="523-awq量化--kernel-融合的典范">
   5.2.3 AWQ：量化 + Kernel 融合的典范
   <a class="anchor" href="#523-awq%e9%87%8f%e5%8c%96--kernel-%e8%9e%8d%e5%90%88%e7%9a%84%e5%85%b8%e8%8c%83">#</a>
@@ -4356,40 +4498,40 @@ FlashAttention-3 支持在 FP8 格式下执行注意力计算，将 HBM 带宽�
 <p><strong>图 5.4</strong> 分级模型路由架构：请求经过复杂度评估后分发至不同规模的模型服务层；小模型输出可通过置信度检查决定是否需要大模型复核。</p>
 <p><strong>路由策略设计</strong>：</p>
 <table>
-  <thead>
-      <tr>
-          <th>策略</th>
-          <th>判断依据</th>
-          <th>优点</th>
-          <th>缺点</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>启发式规则</td>
-          <td>Prompt 长度、关键词、任务类型</td>
-          <td>简单、零推理开销</td>
-          <td>规则维护成本高、泛化差</td>
-      </tr>
-      <tr>
-          <td>轻量分类器</td>
-          <td>独立的 BERT/fastText 分类模型</td>
-          <td>准确率较高（&gt;85%）</td>
-          <td>增加 ~10ms 路由延迟</td>
-      </tr>
-      <tr>
-          <td>小模型置信度</td>
-          <td>小模型输出的 token 概率分布熵</td>
-          <td>无需额外模型、自适应性</td>
-          <td>对小模型质量敏感</td>
-      </tr>
-      <tr>
-          <td>用户/场景标签</td>
-          <td>根据用户角色、产品线路由</td>
-          <td>工程实现简单</td>
-          <td>不够细粒度</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>策略</th>
+<th>判断依据</th>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>启发式规则</td>
+<td>Prompt 长度、关键词、任务类型</td>
+<td>简单、零推理开销</td>
+<td>规则维护成本高、泛化差</td>
+</tr>
+<tr>
+<td>轻量分类器</td>
+<td>独立的 BERT/fastText 分类模型</td>
+<td>准确率较高（&gt;85%）</td>
+<td>增加 ~10ms 路由延迟</td>
+</tr>
+<tr>
+<td>小模型置信度</td>
+<td>小模型输出的 token 概率分布熵</td>
+<td>无需额外模型、自适应性</td>
+<td>对小模型质量敏感</td>
+</tr>
+<tr>
+<td>用户/场景标签</td>
+<td>根据用户角色、产品线路由</td>
+<td>工程实现简单</td>
+<td>不够细粒度</td>
+</tr>
+</tbody>
 </table>
 <p><strong>工程实践参考</strong>：</p>
 <ul>
@@ -4455,45 +4597,45 @@ FlashAttention-3 支持在 FP8 格式下执行注意力计算，将 HBM 带宽�
 </h3>
 <p>当单张 GPU 无法容纳模型权重时，需要在多 GPU 间切分模型。两种主要策略对 TTFT 的影响截然不同：</p>
 <table>
-  <thead>
-      <tr>
-          <th>维度</th>
-          <th>Tensor Parallelism (TP)</th>
-          <th>Pipeline Parallelism (PP)</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>切分方式</td>
-          <td>每层内部按矩阵维度切分</td>
-          <td>按层切分到不同 GPU</td>
-      </tr>
-      <tr>
-          <td>每步通信量</td>
-          <td>O(hidden_size² / TP)</td>
-          <td>O(hidden_size)</td>
-      </tr>
-      <tr>
-          <td>Prefill 延迟</td>
-          <td>低（每步通信量小，但需同步）</td>
-          <td>较高（bubble 效应）</td>
-      </tr>
-      <tr>
-          <td>适用模型规模</td>
-          <td>13B-70B（2-8 GPU）</td>
-          <td>70B+（8+ GPU）</td>
-      </tr>
-      <tr>
-          <td>GPU 利用率</td>
-          <td>高（所有 GPU 同时参与）</td>
-          <td>较低（Pipeline bubble）</td>
-      </tr>
-      <tr>
-          <td>TTFT 影响</td>
-          <td>随 TP 度线性增加通信开销</td>
-          <td>受 bubble 影响，TTFT 增加显著</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>维度</th>
+<th>Tensor Parallelism (TP)</th>
+<th>Pipeline Parallelism (PP)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>切分方式</td>
+<td>每层内部按矩阵维度切分</td>
+<td>按层切分到不同 GPU</td>
+</tr>
+<tr>
+<td>每步通信量</td>
+<td>O(hidden_size² / TP)</td>
+<td>O(hidden_size)</td>
+</tr>
+<tr>
+<td>Prefill 延迟</td>
+<td>低（每步通信量小，但需同步）</td>
+<td>较高（bubble 效应）</td>
+</tr>
+<tr>
+<td>适用模型规模</td>
+<td>13B-70B（2-8 GPU）</td>
+<td>70B+（8+ GPU）</td>
+</tr>
+<tr>
+<td>GPU 利用率</td>
+<td>高（所有 GPU 同时参与）</td>
+<td>较低（Pipeline bubble）</td>
+</tr>
+<tr>
+<td>TTFT 影响</td>
+<td>随 TP 度线性增加通信开销</td>
+<td>受 bubble 影响，TTFT 增加显著</td>
+</tr>
+</tbody>
 </table>
 <p><strong>Tensor Parallelism 的通信开销分析</strong>：在 TP=8 的配置下（如 70B 模型部署在 8 张 A100 上），每层前向传播需要进行 All-Reduce 和 All-Gather 操作。以 hidden_size=8192 为例，单次 All-Reduce 的通信量约为 <code>8192² × 2 bytes / 8 ≈ 16 MB</code>。在 NVLink 带宽（600 GB/s）下，单次通信延迟约 27 μs，可忽略不计。但当 prompt 很长、需要多次迭代时，通信累积开销不可忽略。</p>
 <p><strong>Pipeline Parallelism 的 Bubble 问题</strong>：PP 将模型按层切分到不同 GPU 上，每个 micro-batch 依次流经各个阶段。对于单个请求（batch size = 1），PP 引入了 <code>num_stages × stage_latency</code> 的首字延迟，这一延迟远大于 TP。因此，<strong>对于 TTFT 敏感的场景，应优先选择 TP 而非 PP</strong>。</p>
@@ -4532,46 +4674,46 @@ FlashAttention-3 支持在 FP8 格式下执行注意力计算，将 HBM 带宽�
 </h3>
 <p>gRPC 基于 HTTP/2 和 Protocol Buffers，在 LLM 推理服务的内部通信中具有显著优势：</p>
 <table>
-  <thead>
-      <tr>
-          <th>对比维度</th>
-          <th>HTTP/1.1 + JSON</th>
-          <th>HTTP/2 + JSON</th>
-          <th>gRPC + Protobuf</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>序列化开销</td>
-          <td>高（文本解析）</td>
-          <td>高（文本解析）</td>
-          <td>低（二进制编码）</td>
-      </tr>
-      <tr>
-          <td>连接复用</td>
-          <td>❌</td>
-          <td>✅</td>
-          <td>✅</td>
-      </tr>
-      <tr>
-          <td>流式支持</td>
-          <td>SSE（Server-Sent Events）</td>
-          <td>✅</td>
-          <td>✅（双向流）</td>
-      </tr>
-      <tr>
-          <td>内部服务通信延迟</td>
-          <td>基准</td>
-          <td>-30%</td>
-          <td>-50%</td>
-      </tr>
-      <tr>
-          <td>客户端库成熟度</td>
-          <td>最高</td>
-          <td>高</td>
-          <td>高</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>对比维度</th>
+<th>HTTP/1.1 + JSON</th>
+<th>HTTP/2 + JSON</th>
+<th>gRPC + Protobuf</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>序列化开销</td>
+<td>高（文本解析）</td>
+<td>高（文本解析）</td>
+<td>低（二进制编码）</td>
+</tr>
+<tr>
+<td>连接复用</td>
+<td>❌</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>流式支持</td>
+<td>SSE（Server-Sent Events）</td>
+<td>✅</td>
+<td>✅（双向流）</td>
+</tr>
+<tr>
+<td>内部服务通信延迟</td>
+<td>基准</td>
+<td>-30%</td>
+<td>-50%</td>
+</tr>
+<tr>
+<td>客户端库成熟度</td>
+<td>最高</td>
+<td>高</td>
+<td>高</td>
+</tr>
+</tbody>
 </table>
 <p><strong>Protobuf vs JSON 的序列化差异</strong>：对于一个典型的 LLM 请求（prompt + 参数配置），JSON 编码约 2-5 KB，而 Protobuf 编码约 0.5-1.5 KB。序列化/反序列化开销在高频场景下（如 gateway → inference 服务）可达 1-5ms，这在 TTFT &lt; 500ms 的目标下是不可忽略的。</p>
 <p><strong>实践建议</strong>：</p>
@@ -4678,40 +4820,40 @@ FlashAttention-3 支持在 FP8 格式下执行注意力计算，将 HBM 带宽�
 <p>在高并发场景下，多个用户可能发送相同或高度相似的 prompt。请求去重和合并可减少冗余的 prefill 计算。</p>
 <p><strong>去重策略</strong>：</p>
 <table>
-  <thead>
-      <tr>
-          <th>策略</th>
-          <th>实现方式</th>
-          <th>收益</th>
-          <th>风险</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>精确匹配去重</td>
-          <td>基于 prompt hash 的 KV Cache 查找</td>
-          <td>完全消除重复 prefill</td>
-          <td>匹配率低（&lt; 5%）</td>
-      </tr>
-      <tr>
-          <td>Prefix Cache 复用</td>
-          <td>Radix Tree 查找公共前缀</td>
-          <td>中等收益（10-30%）</td>
-          <td>需要额外显存</td>
-      </tr>
-      <tr>
-          <td>语义去重</td>
-          <td>Embedding 相似度匹配</td>
-          <td>理论上收益高</td>
-          <td>误判风险，实现复杂</td>
-      </tr>
-      <tr>
-          <td>请求合并</td>
-          <td>相同 prompt 共享 prefill 结果</td>
-          <td>减少重复计算</td>
-          <td>增加调度复杂度</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>策略</th>
+<th>实现方式</th>
+<th>收益</th>
+<th>风险</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>精确匹配去重</td>
+<td>基于 prompt hash 的 KV Cache 查找</td>
+<td>完全消除重复 prefill</td>
+<td>匹配率低（&lt; 5%）</td>
+</tr>
+<tr>
+<td>Prefix Cache 复用</td>
+<td>Radix Tree 查找公共前缀</td>
+<td>中等收益（10-30%）</td>
+<td>需要额外显存</td>
+</tr>
+<tr>
+<td>语义去重</td>
+<td>Embedding 相似度匹配</td>
+<td>理论上收益高</td>
+<td>误判风险，实现复杂</td>
+</tr>
+<tr>
+<td>请求合并</td>
+<td>相同 prompt 共享 prefill 结果</td>
+<td>减少重复计算</td>
+<td>增加调度复杂度</td>
+</tr>
+</tbody>
 </table>
 <p><strong>请求合并的可行性分析</strong>：</p>
 <ul>
@@ -4786,40 +4928,40 @@ FlashAttention-3 支持在 FP8 格式下执行注意力计算，将 HBM 带宽�
 </span></span><span style="display:flex;"><span>        <span style="color:#f92672">nvidia.com/gpu</span>: <span style="color:#e6db74">&#34;4&#34;</span>  <span style="color:#75715e"># Tensor Parallelism = 4</span>
 </span></span></code></pre></div><p><strong>对 TTFT 的影响量化</strong>：</p>
 <table>
-  <thead>
-      <tr>
-          <th>场景</th>
-          <th>通信延迟（单次 All-Reduce）</th>
-          <th>对 TTFT 的影响</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>同 GPU（无需通信）</td>
-          <td>0</td>
-          <td>无影响</td>
-      </tr>
-      <tr>
-          <td>同 NVLink 域</td>
-          <td>~10-50 μs</td>
-          <td>可忽略</td>
-      </tr>
-      <tr>
-          <td>同 PCIe Switch</td>
-          <td>~100-500 μs</td>
-          <td>长 prompt 下累积可达 1-5ms</td>
-      </tr>
-      <tr>
-          <td>跨服务器（InfiniBand）</td>
-          <td>~1-5 ms</td>
-          <td>显著，TTFT 增加 5-20ms</td>
-      </tr>
-      <tr>
-          <td>跨地域（TCP）</td>
-          <td>~50-200 ms</td>
-          <td>不可接受，TTFT 增加数倍</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>场景</th>
+<th>通信延迟（单次 All-Reduce）</th>
+<th>对 TTFT 的影响</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>同 GPU（无需通信）</td>
+<td>0</td>
+<td>无影响</td>
+</tr>
+<tr>
+<td>同 NVLink 域</td>
+<td>~10-50 μs</td>
+<td>可忽略</td>
+</tr>
+<tr>
+<td>同 PCIe Switch</td>
+<td>~100-500 μs</td>
+<td>长 prompt 下累积可达 1-5ms</td>
+</tr>
+<tr>
+<td>跨服务器（InfiniBand）</td>
+<td>~1-5 ms</td>
+<td>显著，TTFT 增加 5-20ms</td>
+</tr>
+<tr>
+<td>跨地域（TCP）</td>
+<td>~50-200 ms</td>
+<td>不可接受，TTFT 增加数倍</td>
+</tr>
+</tbody>
 </table>
 <h3 id="632-numa-感知部署">
   6.3.2 NUMA 感知部署
@@ -4862,34 +5004,34 @@ FlashAttention-3 支持在 FP8 格式下执行注意力计算，将 HBM 带宽�
 </ul>
 <p><strong>量化对内存带宽的影响</strong>：</p>
 <table>
-  <thead>
-      <tr>
-          <th>量化方案</th>
-          <th>权重大小（70B）</th>
-          <th>权重加载时间（A100）</th>
-          <th>带宽利用率</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>FP16</td>
-          <td>140 GB</td>
-          <td>~93ms</td>
-          <td>内存密集型</td>
-      </tr>
-      <tr>
-          <td>INT8</td>
-          <td>70 GB</td>
-          <td>~47ms</td>
-          <td>向计算密集型转移</td>
-      </tr>
-      <tr>
-          <td>INT4 (AWQ)</td>
-          <td>35 GB</td>
-          <td>~23ms</td>
-          <td>计算密集型</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>量化方案</th>
+<th>权重大小（70B）</th>
+<th>权重加载时间（A100）</th>
+<th>带宽利用率</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FP16</td>
+<td>140 GB</td>
+<td>~93ms</td>
+<td>内存密集型</td>
+</tr>
+<tr>
+<td>INT8</td>
+<td>70 GB</td>
+<td>~47ms</td>
+<td>向计算密集型转移</td>
+</tr>
+<tr>
+<td>INT4 (AWQ)</td>
+<td>35 GB</td>
+<td>~23ms</td>
+<td>计算密集型</td>
+</tr>
+</tbody>
 </table>
 <p>量化不仅减少了计算量，更重要的是<strong>将 prefill 从内存密集型转变为计算密集型</strong>。在计算密集型状态下，GPU 的 Tensor Core 可以更高效地流水化执行，进一步提升吞吐。</p>
 <p><strong>预取优化</strong>：在分布式推理中，可以通过 CUDA Stream 的异步执行实现权重预取——在当前层计算时，提前将下一层的权重从主机内存加载到 GPU 显存。这一优化在 vLLM 的 <code>async_llm_engine.py</code> 中有实现。</p>
@@ -4910,7 +5052,8 @@ FlashAttention-3 支持在 FP8 格式下执行注意力计算，将 HBM 带宽�
   <a class="anchor" href="#%e7%ac%ac%e5%9b%9b%e9%83%a8%e5%88%86%e5%85%b8%e5%9e%8b%e4%bc%98%e5%8c%96%e6%96%b9%e6%a1%88%e5%af%b9%e6%af%94%e4%b8%8e%e5%b8%b8%e8%a7%81%e5%9d%91%e7%82%b9">#</a>
 </h1>
 <blockquote>
-<p>前两章构建了 TTFT 的理论基石：从推理流水线的 prefill/decode 两阶段分解，到 KV Cache 管理、调度策略与系统级优化的全景图。本章将所有方案置于同一评估框架下横向比较，给出可落地的场景化推荐，并以大量生产经验总结那些&quot;文档里不会写但会让你深夜 on-call 的坑&quot;。</p></blockquote>
+<p>前两章构建了 TTFT 的理论基石：从推理流水线的 prefill/decode 两阶段分解，到 KV Cache 管理、调度策略与系统级优化的全景图。本章将所有方案置于同一评估框架下横向比较，给出可落地的场景化推荐，并以大量生产经验总结那些&quot;文档里不会写但会让你深夜 on-call 的坑&quot;。</p>
+</blockquote>
 <hr>
 <h2 id="七典型优化方案对比">
   七、典型优化方案对比
@@ -4966,98 +5109,98 @@ FlashAttention-3 支持在 FP8 格式下执行注意力计算，将 HBM 带宽�
 </h3>
 <p>下表对前文（Part 1-3）讨论的核心优化方案进行系统性对比。每一项指标均来源于论文基准或公开生产报告，并标注数据来源。</p>
 <table>
-  <thead>
-      <tr>
-          <th>方案</th>
-          <th>延迟降低幅度</th>
-          <th>实现复杂度</th>
-          <th>适用场景</th>
-          <th>依赖条件</th>
-          <th>吞吐量影响</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><strong>Continuous Batching</strong></td>
-          <td>TTFT p95 降低 30-50%<br/>（消除排队阻塞）</td>
-          <td>⭐ 低<br/>（vLLM/SGLang 默认开启）</td>
-          <td>混合长度请求、高并发在线服务</td>
-          <td>GPU 内存充足；需 tuned <code>max-num-batched-tokens</code></td>
-          <td>吞吐提升 2-24×<br/>（Anyscale, 2024）</td>
-      </tr>
-      <tr>
-          <td><strong>Chunked Prefill</strong></td>
-          <td>TTFT p99 降低 60-70%<br/>（消除 decode stall）</td>
-          <td>⭐⭐ 中<br/>（需调优 chunk size）</td>
-          <td>长短请求混合，关注尾延迟</td>
-          <td>Sarathi-Serve (OSDI 2024) 或 vLLM ≥ 0.4</td>
-          <td>容量提升 2.6× (Mistral-7B)<br/>3.7× (Yi-34B)</td>
-      </tr>
-      <tr>
-          <td><strong>PagedAttention</strong></td>
-          <td>间接提升：支持 2-4× batch size<br/>→ TTFT p95 降低 40-60%</td>
-          <td>⭐ 低<br/>（vLLM 核心特性）</td>
-          <td>所有 LLM 服务场景</td>
-          <td>vLLM 引擎；GPU 内存≥模型权重 1.5×</td>
-          <td>KV 内存浪费从 60-80% → &lt;4%<br/>（SOSP 2023）</td>
-      </tr>
-      <tr>
-          <td><strong>RadixAttention</strong><br/>（前缀缓存）</td>
-          <td>TTFT 降低 70-80%<br/>（前缀命中时 skip prefill）</td>
-          <td>⭐⭐ 中<br/>（需 radix tree 管理）</td>
-          <td>多轮对话、Agent 工作流<br/>重复 system prompt</td>
-          <td>SGLang 引擎或 vLLM APC</td>
-          <td>前缀命中时吞吐提升 254%<br/>TPOT 增加 ~10%（JarvisLabs 实测）</td>
-      </tr>
-      <tr>
-          <td><strong>Prefill-Decode 分离</strong><br/>（DistServe/Mooncake）</td>
-          <td>TTFT 降低 40-60%<br/>（消除阶段干扰）</td>
-          <td>⭐⭐⭐ 高<br/>（双集群 + KV 传输）</td>
-          <td>大规模生产部署<br/>独立伸缩 prefill/decode 资源</td>
-          <td>RDMA 或 NVLink 高速互联<br/>分布式 KV Cache 传输</td>
-          <td>综合吞吐提升 1.5-3×<br/>（DistServe arXiv:2401.09670）</td>
-      </tr>
-      <tr>
-          <td><strong>FP8 量化</strong></td>
-          <td>模型加载加速 2×<br/>Prefill 加速 1.5-2×</td>
-          <td>⭐ 低<br/>（使用官方 FP8 checkpoint）</td>
-          <td>所有场景（首选优化）</td>
-          <td>H100/B200/MI300X 硬件支持<br/>或软件 fallback（降速）</td>
-          <td>Decode 吞吐 ~2×<br/>精度损失 &lt;1%（DeepSeek-V3 原生 FP8）</td>
-      </tr>
-      <tr>
-          <td><strong>INT4/GPTQ 量化</strong></td>
-          <td>预填充加速 2-3×<br/>KV Cache 缩小 4×</td>
-          <td>⭐⭐ 中<br/>（需校准 + 验证精度）</td>
-          <td>内存受限、模型 &gt; 70B</td>
-          <td>GPTQ/AWQ 校准数据集<br/>精度回归测试</td>
-          <td>吞吐提升 3-4×<br/>精度损失 1-5%<br/>（依赖模型和任务）</td>
-      </tr>
-      <tr>
-          <td><strong>投机解码</strong><br/>（Speculative Decoding）</td>
-          <td>端到端延迟降低 2-3×<br/>（不直接影响 TTFT）</td>
-          <td>⭐⭐⭐ 高<br/>（需 draft model 调优）</td>
-          <td>长输出场景（代码生成等）</td>
-          <td>小型 draft model<br/>acceptance rate &gt; 0.6</td>
-          <td>吞吐提升 2-3×<br/>TTFT 不变或略增</td>
-      </tr>
-      <tr>
-          <td><strong>Speculative Prefill</strong></td>
-          <td>TTFT 降低 30-50%<br/>（并行预填充 chunk）</td>
-          <td>⭐⭐⭐ 高<br/>（需 kernel 级修改）</td>
-          <td>超长上下文（&gt; 64K tokens）</td>
-          <td>自定义 attention kernel<br/>多 GPU 并行</td>
-          <td>取决于 chunk 并行度<br/>单请求加速，并发可能下降</td>
-      </tr>
-      <tr>
-          <td><strong>KV Cache 卸载</strong><br/>（FlexGen/CPU offload）</td>
-          <td>TTFT 可能增加 2-5×<br/>（但允许更大 batch）</td>
-          <td>⭐⭐ 中<br/>（PCIe 带宽是关键）</td>
-          <td>成本敏感、低优先级任务</td>
-          <td>大 CPU 内存；PCIe Gen4+<br/>NVMe SSD（可选）</td>
-          <td>吞吐提升（更多并发）<br/>但延迟大幅增加</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>方案</th>
+<th>延迟降低幅度</th>
+<th>实现复杂度</th>
+<th>适用场景</th>
+<th>依赖条件</th>
+<th>吞吐量影响</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Continuous Batching</strong></td>
+<td>TTFT p95 降低 30-50%<br/>（消除排队阻塞）</td>
+<td>⭐ 低<br/>（vLLM/SGLang 默认开启）</td>
+<td>混合长度请求、高并发在线服务</td>
+<td>GPU 内存充足；需 tuned <code>max-num-batched-tokens</code></td>
+<td>吞吐提升 2-24×<br/>（Anyscale, 2024）</td>
+</tr>
+<tr>
+<td><strong>Chunked Prefill</strong></td>
+<td>TTFT p99 降低 60-70%<br/>（消除 decode stall）</td>
+<td>⭐⭐ 中<br/>（需调优 chunk size）</td>
+<td>长短请求混合，关注尾延迟</td>
+<td>Sarathi-Serve (OSDI 2024) 或 vLLM ≥ 0.4</td>
+<td>容量提升 2.6× (Mistral-7B)<br/>3.7× (Yi-34B)</td>
+</tr>
+<tr>
+<td><strong>PagedAttention</strong></td>
+<td>间接提升：支持 2-4× batch size<br/>→ TTFT p95 降低 40-60%</td>
+<td>⭐ 低<br/>（vLLM 核心特性）</td>
+<td>所有 LLM 服务场景</td>
+<td>vLLM 引擎；GPU 内存≥模型权重 1.5×</td>
+<td>KV 内存浪费从 60-80% → &lt;4%<br/>（SOSP 2023）</td>
+</tr>
+<tr>
+<td><strong>RadixAttention</strong><br/>（前缀缓存）</td>
+<td>TTFT 降低 70-80%<br/>（前缀命中时 skip prefill）</td>
+<td>⭐⭐ 中<br/>（需 radix tree 管理）</td>
+<td>多轮对话、Agent 工作流<br/>重复 system prompt</td>
+<td>SGLang 引擎或 vLLM APC</td>
+<td>前缀命中时吞吐提升 254%<br/>TPOT 增加 ~10%（JarvisLabs 实测）</td>
+</tr>
+<tr>
+<td><strong>Prefill-Decode 分离</strong><br/>（DistServe/Mooncake）</td>
+<td>TTFT 降低 40-60%<br/>（消除阶段干扰）</td>
+<td>⭐⭐⭐ 高<br/>（双集群 + KV 传输）</td>
+<td>大规模生产部署<br/>独立伸缩 prefill/decode 资源</td>
+<td>RDMA 或 NVLink 高速互联<br/>分布式 KV Cache 传输</td>
+<td>综合吞吐提升 1.5-3×<br/>（DistServe arXiv:2401.09670）</td>
+</tr>
+<tr>
+<td><strong>FP8 量化</strong></td>
+<td>模型加载加速 2×<br/>Prefill 加速 1.5-2×</td>
+<td>⭐ 低<br/>（使用官方 FP8 checkpoint）</td>
+<td>所有场景（首选优化）</td>
+<td>H100/B200/MI300X 硬件支持<br/>或软件 fallback（降速）</td>
+<td>Decode 吞吐 ~2×<br/>精度损失 &lt;1%（DeepSeek-V3 原生 FP8）</td>
+</tr>
+<tr>
+<td><strong>INT4/GPTQ 量化</strong></td>
+<td>预填充加速 2-3×<br/>KV Cache 缩小 4×</td>
+<td>⭐⭐ 中<br/>（需校准 + 验证精度）</td>
+<td>内存受限、模型 &gt; 70B</td>
+<td>GPTQ/AWQ 校准数据集<br/>精度回归测试</td>
+<td>吞吐提升 3-4×<br/>精度损失 1-5%<br/>（依赖模型和任务）</td>
+</tr>
+<tr>
+<td><strong>投机解码</strong><br/>（Speculative Decoding）</td>
+<td>端到端延迟降低 2-3×<br/>（不直接影响 TTFT）</td>
+<td>⭐⭐⭐ 高<br/>（需 draft model 调优）</td>
+<td>长输出场景（代码生成等）</td>
+<td>小型 draft model<br/>acceptance rate &gt; 0.6</td>
+<td>吞吐提升 2-3×<br/>TTFT 不变或略增</td>
+</tr>
+<tr>
+<td><strong>Speculative Prefill</strong></td>
+<td>TTFT 降低 30-50%<br/>（并行预填充 chunk）</td>
+<td>⭐⭐⭐ 高<br/>（需 kernel 级修改）</td>
+<td>超长上下文（&gt; 64K tokens）</td>
+<td>自定义 attention kernel<br/>多 GPU 并行</td>
+<td>取决于 chunk 并行度<br/>单请求加速，并发可能下降</td>
+</tr>
+<tr>
+<td><strong>KV Cache 卸载</strong><br/>（FlexGen/CPU offload）</td>
+<td>TTFT 可能增加 2-5×<br/>（但允许更大 batch）</td>
+<td>⭐⭐ 中<br/>（PCIe 带宽是关键）</td>
+<td>成本敏感、低优先级任务</td>
+<td>大 CPU 内存；PCIe Gen4+<br/>NVMe SSD（可选）</td>
+<td>吞吐提升（更多并发）<br/>但延迟大幅增加</td>
+</tr>
+</tbody>
 </table>
 <h4 id="指标说明">
   指标说明
@@ -5096,49 +5239,50 @@ FlashAttention-3 支持在 FP8 格式下执行注意力计算，将 HBM 带宽�
     style F fill:#c8e6c9</pre>
 <p><strong>具体参数建议：</strong></p>
 <table>
-  <thead>
-      <tr>
-          <th>参数</th>
-          <th>推荐值</th>
-          <th>依据</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><code>gpu-memory-utilization</code></td>
-          <td>0.90-0.95</td>
-          <td>为 chunked prefill 预留弹性空间</td>
-      </tr>
-      <tr>
-          <td><code>max-num-batched-tokens</code></td>
-          <td>4096-8192</td>
-          <td>对话场景输入短，无需过大</td>
-      </tr>
-      <tr>
-          <td><code>max-num-seqs</code></td>
-          <td>256-512</td>
-          <td>匹配预期并发峰值</td>
-      </tr>
-      <tr>
-          <td><code>chunked-prefill</code></td>
-          <td>启用，chunk_size=512</td>
-          <td>防止单个长请求阻塞 decode</td>
-      </tr>
-      <tr>
-          <td><code>enable-prefix-caching</code></td>
-          <td>启用</td>
-          <td>多轮对话 system prompt 复用率通常 &gt; 60%</td>
-      </tr>
-      <tr>
-          <td>量化格式</td>
-          <td>FP8 E4M3</td>
-          <td>H100 原生支持，精度损失 &lt; 1%</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>参数</th>
+<th>推荐值</th>
+<th>依据</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>gpu-memory-utilization</code></td>
+<td>0.90-0.95</td>
+<td>为 chunked prefill 预留弹性空间</td>
+</tr>
+<tr>
+<td><code>max-num-batched-tokens</code></td>
+<td>4096-8192</td>
+<td>对话场景输入短，无需过大</td>
+</tr>
+<tr>
+<td><code>max-num-seqs</code></td>
+<td>256-512</td>
+<td>匹配预期并发峰值</td>
+</tr>
+<tr>
+<td><code>chunked-prefill</code></td>
+<td>启用，chunk_size=512</td>
+<td>防止单个长请求阻塞 decode</td>
+</tr>
+<tr>
+<td><code>enable-prefix-caching</code></td>
+<td>启用</td>
+<td>多轮对话 system prompt 复用率通常 &gt; 60%</td>
+</tr>
+<tr>
+<td>量化格式</td>
+<td>FP8 E4M3</td>
+<td>H100 原生支持，精度损失 &lt; 1%</td>
+</tr>
+</tbody>
 </table>
 <p><strong>预期效果：</strong> 在 H100 上部署 Llama-3-70B-FP8，TTFT p50 可达 150-250ms，p95 &lt; 400ms（10 并发），输出吞吐 800-1200 tokens/s。</p>
 <blockquote>
-<p><strong>参考</strong>：vLLM 官方 benchmark（2025），Stripe 生产迁移报告（73% 成本降低，50M 日 API 调用）。</p></blockquote>
+<p><strong>参考</strong>：vLLM 官方 benchmark（2025），Stripe 生产迁移报告（73% 成本降低，50M 日 API 调用）。</p>
+</blockquote>
 <h4 id="732-rag-场景长-promptttft--2s">
   7.3.2 RAG 场景（长 prompt，TTFT &lt; 2s）
   <a class="anchor" href="#732-rag-%e5%9c%ba%e6%99%af%e9%95%bf-promptttft--2s">#</a>
@@ -5176,48 +5320,49 @@ FlashAttention-3 支持在 FP8 格式下执行注意力计算，将 HBM 带宽�
 </ol>
 <p><strong>具体参数建议：</strong></p>
 <table>
-  <thead>
-      <tr>
-          <th>参数</th>
-          <th>推荐值</th>
-          <th>依据</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><code>max-model-len</code></td>
-          <td>≥ 最大上下文长度</td>
-          <td>避免截断；64K-128K 常见</td>
-      </tr>
-      <tr>
-          <td><code>max-num-batched-tokens</code></td>
-          <td>16384-32768</td>
-          <td>长 prompt 需要更大 token 预算</td>
-      </tr>
-      <tr>
-          <td><code>enable-chunked-prefill</code></td>
-          <td>启用，chunk_size=1024-2048</td>
-          <td>防止 decode stall</td>
-      </tr>
-      <tr>
-          <td><code>enable-prefix-caching</code></td>
-          <td>启用</td>
-          <td>RAG 前缀复用率通常 &gt; 60%</td>
-      </tr>
-      <tr>
-          <td>KV Cache 量化</td>
-          <td>FP8 或 NVFP4</td>
-          <td>64K 上下文的 KV Cache 可达数 GB，FP8 节省 50%</td>
-      </tr>
-      <tr>
-          <td>部署架构</td>
-          <td>&gt; 32K tokens 时考虑 P/D 分离</td>
-          <td>消除 prefill/decode 资源竞争</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>参数</th>
+<th>推荐值</th>
+<th>依据</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>max-model-len</code></td>
+<td>≥ 最大上下文长度</td>
+<td>避免截断；64K-128K 常见</td>
+</tr>
+<tr>
+<td><code>max-num-batched-tokens</code></td>
+<td>16384-32768</td>
+<td>长 prompt 需要更大 token 预算</td>
+</tr>
+<tr>
+<td><code>enable-chunked-prefill</code></td>
+<td>启用，chunk_size=1024-2048</td>
+<td>防止 decode stall</td>
+</tr>
+<tr>
+<td><code>enable-prefix-caching</code></td>
+<td>启用</td>
+<td>RAG 前缀复用率通常 &gt; 60%</td>
+</tr>
+<tr>
+<td>KV Cache 量化</td>
+<td>FP8 或 NVFP4</td>
+<td>64K 上下文的 KV Cache 可达数 GB，FP8 节省 50%</td>
+</tr>
+<tr>
+<td>部署架构</td>
+<td>&gt; 32K tokens 时考虑 P/D 分离</td>
+<td>消除 prefill/decode 资源竞争</td>
+</tr>
+</tbody>
 </table>
 <blockquote>
-<p><strong>参考</strong>：Sarathi-Serve (OSDI 2024) 证明 chunked prefill 在长上下文场景下可减少 decode stall 达 90%；LMCache 实测显示 RAG 场景前缀缓存命中率 70-90%。</p></blockquote>
+<p><strong>参考</strong>：Sarathi-Serve (OSDI 2024) 证明 chunked prefill 在长上下文场景下可减少 decode stall 达 90%；LMCache 实测显示 RAG 场景前缀缓存命中率 70-90%。</p>
+</blockquote>
 <h4 id="733-流式生成场景首字快-vs-整体吞吐权衡">
   7.3.3 流式生成场景（首字快 vs 整体吞吐权衡）
   <a class="anchor" href="#733-%e6%b5%81%e5%bc%8f%e7%94%9f%e6%88%90%e5%9c%ba%e6%99%af%e9%a6%96%e5%ad%97%e5%bf%ab-vs-%e6%95%b4%e4%bd%93%e5%90%9e%e5%90%90%e6%9d%83%e8%a1%a1">#</a>
@@ -5261,45 +5406,46 @@ FlashAttention-3 支持在 FP8 格式下执行注意力计算，将 HBM 带宽�
     y-axis &#34;吞吐量 (tokens/s)&#34; [200, 400, 600, 800, 1000, 1200, 1400, 1500]
     line [1400, 1200, 1000, 850, 750, 550, 350, 200]</pre>
 <blockquote>
-<p><em>注：上图数据基于公开基准（NVIDIA GenAI-Perf, H100, Llama-3-70B-FP8）的典型曲线形态，实际数值因配置而异。</em></p></blockquote>
+<p><em>注：上图数据基于公开基准（NVIDIA GenAI-Perf, H100, Llama-3-70B-FP8）的典型曲线形态，实际数值因配置而异。</em></p>
+</blockquote>
 <p><strong>策略选择指南：</strong></p>
 <table>
-  <thead>
-      <tr>
-          <th>策略</th>
-          <th>适用条件</th>
-          <th>典型 batch size</th>
-          <th>TTFT p95</th>
-          <th>吞吐量</th>
-          <th>风险</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><strong>低延迟模式</strong></td>
-          <td>用户交互式对话，QPS &lt; 20</td>
-          <td>4-16</td>
-          <td>100-200ms</td>
-          <td>400-700 tok/s</td>
-          <td>GPU 利用率低（40-60%），单位 token 成本高</td>
-      </tr>
-      <tr>
-          <td><strong>平衡模式</strong></td>
-          <td>混合负载，QPS 20-100</td>
-          <td>32-64</td>
-          <td>200-500ms</td>
-          <td>800-1200 tok/s</td>
-          <td>高峰期 p99 TTFT 可能飙升</td>
-      </tr>
-      <tr>
-          <td><strong>高吞吐模式</strong></td>
-          <td>离线/批量生成，QPS &gt; 100</td>
-          <td>128-256</td>
-          <td>500-2000ms</td>
-          <td>1200-1500 tok/s</td>
-          <td>TTFT 不满足交互式 SLO</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>策略</th>
+<th>适用条件</th>
+<th>典型 batch size</th>
+<th>TTFT p95</th>
+<th>吞吐量</th>
+<th>风险</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>低延迟模式</strong></td>
+<td>用户交互式对话，QPS &lt; 20</td>
+<td>4-16</td>
+<td>100-200ms</td>
+<td>400-700 tok/s</td>
+<td>GPU 利用率低（40-60%），单位 token 成本高</td>
+</tr>
+<tr>
+<td><strong>平衡模式</strong></td>
+<td>混合负载，QPS 20-100</td>
+<td>32-64</td>
+<td>200-500ms</td>
+<td>800-1200 tok/s</td>
+<td>高峰期 p99 TTFT 可能飙升</td>
+</tr>
+<tr>
+<td><strong>高吞吐模式</strong></td>
+<td>离线/批量生成，QPS &gt; 100</td>
+<td>128-256</td>
+<td>500-2000ms</td>
+<td>1200-1500 tok/s</td>
+<td>TTFT 不满足交互式 SLO</td>
+</tr>
+</tbody>
 </table>
 <p><strong>动态调度建议：</strong> 生产环境中建议实现自适应 batching——在低负载时使用小 batch size 保证 TTFT，负载升高时逐步增大 batch size 提升吞吐。vLLM 的 <code>max-num-batched-tokens</code> 可作为安全上限，防止内存溢出。</p>
 <hr>
@@ -5337,7 +5483,8 @@ FlashAttention-3 支持在 FP8 格式下执行注意力计算，将 HBM 带宽�
 </li>
 </ol>
 <blockquote>
-<p><strong>教训</strong>：不要假设 prefill 延迟与 prompt 长度成正比。在上线前，<strong>务必用生产环境的最大 prompt 长度做压测</strong>，而不是用平均长度。TTFT p99 才是用户真实体验的反映。</p></blockquote>
+<p><strong>教训</strong>：不要假设 prefill 延迟与 prompt 长度成正比。在上线前，<strong>务必用生产环境的最大 prompt 长度做压测</strong>，而不是用平均长度。TTFT p99 才是用户真实体验的反映。</p>
+</blockquote>
 <h3 id="82-kv-cache-碎片导致调度延迟">
   8.2 KV Cache 碎片导致调度延迟
   <a class="anchor" href="#82-kv-cache-%e7%a2%8e%e7%89%87%e5%af%bc%e8%87%b4%e8%b0%83%e5%ba%a6%e5%bb%b6%e8%bf%9f">#</a>
@@ -5346,34 +5493,34 @@ FlashAttention-3 支持在 FP8 格式下执行注意力计算，将 HBM 带宽�
 <p><strong>根因分析</strong>：</p>
 <p>这是一个<strong>碎片化问题</strong>，与操作系统中的内存碎片如出一辙。需要区分三种碎片类型：</p>
 <table>
-  <thead>
-      <tr>
-          <th>碎片类型</th>
-          <th>成因</th>
-          <th>量化影响</th>
-          <th>解决方案</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><strong>内部碎片</strong></td>
-          <td>预分配的输出空间未用完</td>
-          <td>每个序列浪费 30-50% 预留空间</td>
-          <td>PagedAttention（按需分配 block）</td>
-      </tr>
-      <tr>
-          <td><strong>外部碎片</strong></td>
-          <td>非连续的可用内存块无法合并</td>
-          <td>总空闲内存足够，但无法分配大块</td>
-          <td>PagedAttention（非连续 block 映射）</td>
-      </tr>
-      <tr>
-          <td><strong>保留浪费</strong></td>
-          <td>按 max_seq_len 预分配全部空间</td>
-          <td>KV Cache 利用率仅 20-40%</td>
-          <td>PagedAttention + 动态分配</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>碎片类型</th>
+<th>成因</th>
+<th>量化影响</th>
+<th>解决方案</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>内部碎片</strong></td>
+<td>预分配的输出空间未用完</td>
+<td>每个序列浪费 30-50% 预留空间</td>
+<td>PagedAttention（按需分配 block）</td>
+</tr>
+<tr>
+<td><strong>外部碎片</strong></td>
+<td>非连续的可用内存块无法合并</td>
+<td>总空闲内存足够，但无法分配大块</td>
+<td>PagedAttention（非连续 block 映射）</td>
+</tr>
+<tr>
+<td><strong>保留浪费</strong></td>
+<td>按 max_seq_len 预分配全部空间</td>
+<td>KV Cache 利用率仅 20-40%</td>
+<td>PagedAttention + 动态分配</td>
+</tr>
+</tbody>
 </table>
 <p>vLLM 的 PagedAttention 将 KV Cache 划分为固定大小的 block（默认 16 tokens/block），<strong>内部碎片被控制在 &lt; 4%</strong>（仅最后一个 block 的部分空间浪费）。这是 vLLM 相比早期方案（如 TGI、Text Generation Inference）吞吐提升 2-24× 的核心原因。</p>
 <p><strong>但 PagedAttention 也有自己的坑</strong>：</p>
@@ -5401,7 +5548,8 @@ FlashAttention-3 支持在 FP8 格式下执行注意力计算，将 HBM 带宽�
 <li>考虑增加 GPU 或升级到更大显存的 GPU</li>
 </ul>
 <blockquote>
-<p><strong>教训</strong>：KV Cache 碎片是&quot;温水煮青蛙&quot;——低并发时一切正常，随着流量增长，碎片积累导致调度延迟逐渐升高，直到某天流量突增时突然大面积超时。<strong>持续监控 <code>gpu_cache_usage</code> 并设置告警（建议阈值 85%）</strong>。</p></blockquote>
+<p><strong>教训</strong>：KV Cache 碎片是&quot;温水煮青蛙&quot;——低并发时一切正常，随着流量增长，碎片积累导致调度延迟逐渐升高，直到某天流量突增时突然大面积超时。<strong>持续监控 <code>gpu_cache_usage</code> 并设置告警（建议阈值 85%）</strong>。</p>
+</blockquote>
 <h3 id="83-量化引入的精度损失与延迟权衡">
   8.3 量化引入的精度损失与延迟权衡
   <a class="anchor" href="#83-%e9%87%8f%e5%8c%96%e5%bc%95%e5%85%a5%e7%9a%84%e7%b2%be%e5%ba%a6%e6%8d%9f%e5%a4%b1%e4%b8%8e%e5%bb%b6%e8%bf%9f%e6%9d%83%e8%a1%a1">#</a>
@@ -5410,52 +5558,52 @@ FlashAttention-3 支持在 FP8 格式下执行注意力计算，将 HBM 带宽�
 <p><strong>根因分析</strong>：</p>
 <p>量化不是免费的午餐。不同量化格式在精度和性能之间存在明确的 tradeoff：</p>
 <table>
-  <thead>
-      <tr>
-          <th>量化格式</th>
-          <th>权重大小（70B 模型）</th>
-          <th>精度损失</th>
-          <th>吞吐提升</th>
-          <th>适用场景</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>BF16（基准）</td>
-          <td>140 GB</td>
-          <td>无</td>
-          <td>1×</td>
-          <td>精度敏感任务</td>
-      </tr>
-      <tr>
-          <td>FP8 E4M3</td>
-          <td>70 GB</td>
-          <td>&lt; 1%</td>
-          <td>~2×</td>
-          <td>通用场景（推荐首选）</td>
-      </tr>
-      <tr>
-          <td>INT8 (GPTQ/AWQ)</td>
-          <td>35 GB</td>
-          <td>&lt; 2%</td>
-          <td>~3×</td>
-          <td>内存受限场景</td>
-      </tr>
-      <tr>
-          <td>INT4 (GPTQ/AWQ)</td>
-          <td>17.5 GB</td>
-          <td>2-5%</td>
-          <td>~4×</td>
-          <td>成本敏感场景</td>
-      </tr>
-      <tr>
-          <td>INT4 + SmoothQuant</td>
-          <td>17.5 GB</td>
-          <td>5-10%</td>
-          <td>~3-4×</td>
-          <td>⚠️ 不推荐用于推理任务</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>量化格式</th>
+<th>权重大小（70B 模型）</th>
+<th>精度损失</th>
+<th>吞吐提升</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BF16（基准）</td>
+<td>140 GB</td>
+<td>无</td>
+<td>1×</td>
+<td>精度敏感任务</td>
+</tr>
+<tr>
+<td>FP8 E4M3</td>
+<td>70 GB</td>
+<td>&lt; 1%</td>
+<td>~2×</td>
+<td>通用场景（推荐首选）</td>
+</tr>
+<tr>
+<td>INT8 (GPTQ/AWQ)</td>
+<td>35 GB</td>
+<td>&lt; 2%</td>
+<td>~3×</td>
+<td>内存受限场景</td>
+</tr>
+<tr>
+<td>INT4 (GPTQ/AWQ)</td>
+<td>17.5 GB</td>
+<td>2-5%</td>
+<td>~4×</td>
+<td>成本敏感场景</td>
+</tr>
+<tr>
+<td>INT4 + SmoothQuant</td>
+<td>17.5 GB</td>
+<td>5-10%</td>
+<td>~3-4×</td>
+<td>⚠️ 不推荐用于推理任务</td>
+</tr>
+</tbody>
 </table>
 <p><strong>关键发现（来源：EMNLP 2025 量化评测研究）</strong>：</p>
 <ol>
@@ -5483,7 +5631,8 @@ FlashAttention-3 支持在 FP8 格式下执行注意力计算，将 HBM 带宽�
 <li><strong>小模型量化更敏感</strong>：7B 模型量化到 INT4 的精度损失远大于 70B 模型。大模型有更强的冗余度来吸收量化噪声。</li>
 </ol>
 <blockquote>
-<p><strong>教训</strong>：量化的精度损失是<strong>非线性的</strong>——95% 的请求输出正常，但 5% 的关键请求可能完全错误。<strong>量化后必须做完整的精度回归测试</strong>，而不是只看 benchmark 分数。</p></blockquote>
+<p><strong>教训</strong>：量化的精度损失是<strong>非线性的</strong>——95% 的请求输出正常，但 5% 的关键请求可能完全错误。<strong>量化后必须做完整的精度回归测试</strong>，而不是只看 benchmark 分数。</p>
+</blockquote>
 <h3 id="84-分布式-prefill-的通信开销">
   8.4 分布式 Prefill 的通信开销
   <a class="anchor" href="#84-%e5%88%86%e5%b8%83%e5%bc%8f-prefill-%e7%9a%84%e9%80%9a%e4%bf%a1%e5%bc%80%e9%94%80">#</a>
@@ -5498,40 +5647,40 @@ FlashAttention-3 支持在 FP8 格式下执行注意力计算，将 HBM 带宽�
 ≈ 196 MB
 </code></pre><p><strong>传输方式的性能差异</strong>：</p>
 <table>
-  <thead>
-      <tr>
-          <th>传输方式</th>
-          <th>带宽</th>
-          <th>200MB 传输延迟</th>
-          <th>适用场景</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>TCP/IP socket</td>
-          <td>5-10 Gbps</td>
-          <td>160-320ms</td>
-          <td>⚠️ 不推荐用于 P/D 分离</td>
-      </tr>
-      <tr>
-          <td>RDMA (RoCE v2)</td>
-          <td>100-400 Gbps</td>
-          <td>4-16ms</td>
-          <td>推荐：跨节点 P/D 分离</td>
-      </tr>
-      <tr>
-          <td>NVLink (同节点)</td>
-          <td>600-900 GB/s</td>
-          <td>&lt; 1ms</td>
-          <td>最优：同节点 P/D 分离</td>
-      </tr>
-      <tr>
-          <td>GPUDirect RDMA</td>
-          <td>100-400 Gbps</td>
-          <td>4-16ms</td>
-          <td>推荐：GPU-to-GPU 直接传输</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>传输方式</th>
+<th>带宽</th>
+<th>200MB 传输延迟</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TCP/IP socket</td>
+<td>5-10 Gbps</td>
+<td>160-320ms</td>
+<td>⚠️ 不推荐用于 P/D 分离</td>
+</tr>
+<tr>
+<td>RDMA (RoCE v2)</td>
+<td>100-400 Gbps</td>
+<td>4-16ms</td>
+<td>推荐：跨节点 P/D 分离</td>
+</tr>
+<tr>
+<td>NVLink (同节点)</td>
+<td>600-900 GB/s</td>
+<td>&lt; 1ms</td>
+<td>最优：同节点 P/D 分离</td>
+</tr>
+<tr>
+<td>GPUDirect RDMA</td>
+<td>100-400 Gbps</td>
+<td>4-16ms</td>
+<td>推荐：GPU-to-GPU 直接传输</td>
+</tr>
+</tbody>
 </table>
 <p><strong>生产经验教训</strong>：</p>
 <ol>
@@ -5563,7 +5712,8 @@ FlashAttention-3 支持在 FP8 格式下执行注意力计算，将 HBM 带宽�
     style C fill:#c8e6c9
     style G fill:#ffcdd2</pre>
 <blockquote>
-<p><strong>教训</strong>：Prefill-Decode 分离的<strong>收益完全取决于 KV Cache 传输速度</strong>。没有 RDMA 的同构集群做 P/D 分离，很可能适得其反。上线前务必测量实际传输延迟，而不是仅看论文数据。</p></blockquote>
+<p><strong>教训</strong>：Prefill-Decode 分离的<strong>收益完全取决于 KV Cache 传输速度</strong>。没有 RDMA 的同构集群做 P/D 分离，很可能适得其反。上线前务必测量实际传输延迟，而不是仅看论文数据。</p>
+</blockquote>
 <h3 id="85-高并发下-ttft-与吞吐的权衡">
   8.5 高并发下 TTFT 与吞吐的权衡
   <a class="anchor" href="#85-%e9%ab%98%e5%b9%b6%e5%8f%91%e4%b8%8b-ttft-%e4%b8%8e%e5%90%9e%e5%90%90%e7%9a%84%e6%9d%83%e8%a1%a1">#</a>
@@ -5631,90 +5781,91 @@ FlashAttention-3 支持在 FP8 格式下执行注意力计算，将 HBM 带宽�
 </ol>
 <p><strong>监控指标清单</strong>：</p>
 <table>
-  <thead>
-      <tr>
-          <th>指标</th>
-          <th>告警阈值</th>
-          <th>含义</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>TTFT p95</td>
-          <td>&gt; SLO 目标 × 1.5</td>
-          <td>多数用户体验下降</td>
-      </tr>
-      <tr>
-          <td>TTFT p99</td>
-          <td>&gt; SLO 目标 × 3</td>
-          <td>尾部用户体验严重恶化</td>
-      </tr>
-      <tr>
-          <td>GPU 利用率</td>
-          <td>&lt; 50%（高并发时）</td>
-          <td>调度瓶颈或 KV Cache 不足</td>
-      </tr>
-      <tr>
-          <td>GPU 利用率</td>
-          <td>&gt; 95%</td>
-          <td>过载，排队延迟激增</td>
-      </tr>
-      <tr>
-          <td><code>gpu_cache_usage</code></td>
-          <td>&gt; 85%</td>
-          <td>KV Cache 即将耗尽</td>
-      </tr>
-      <tr>
-          <td>排队请求数</td>
-          <td>&gt; <code>max-num-seqs</code> × 0.5</td>
-          <td>系统接近饱和</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>指标</th>
+<th>告警阈值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TTFT p95</td>
+<td>&gt; SLO 目标 × 1.5</td>
+<td>多数用户体验下降</td>
+</tr>
+<tr>
+<td>TTFT p99</td>
+<td>&gt; SLO 目标 × 3</td>
+<td>尾部用户体验严重恶化</td>
+</tr>
+<tr>
+<td>GPU 利用率</td>
+<td>&lt; 50%（高并发时）</td>
+<td>调度瓶颈或 KV Cache 不足</td>
+</tr>
+<tr>
+<td>GPU 利用率</td>
+<td>&gt; 95%</td>
+<td>过载，排队延迟激增</td>
+</tr>
+<tr>
+<td><code>gpu_cache_usage</code></td>
+<td>&gt; 85%</td>
+<td>KV Cache 即将耗尽</td>
+</tr>
+<tr>
+<td>排队请求数</td>
+<td>&gt; <code>max-num-seqs</code> × 0.5</td>
+<td>系统接近饱和</td>
+</tr>
+</tbody>
 </table>
 <blockquote>
-<p><strong>教训</strong>：在高并发场景下，<strong>TTFT 和吞吐不是可以同时最大化的</strong>。正确的做法是：先定义 SLO，然后在 SLO 约束下最大化 Goodput。监控 p99（而非 p50）才是用户体验的真实反映——p50 再好，p99 爆炸意味着每 100 个用户中就有 1 个在痛苦等待。</p></blockquote>
+<p><strong>教训</strong>：在高并发场景下，<strong>TTFT 和吞吐不是可以同时最大化的</strong>。正确的做法是：先定义 SLO，然后在 SLO 约束下最大化 Goodput。监控 p99（而非 p50）才是用户体验的真实反映——p50 再好，p99 爆炸意味着每 100 个用户中就有 1 个在痛苦等待。</p>
+</blockquote>
 <hr>
 <h2 id="本章小结-1">
   本章小结
   <a class="anchor" href="#%e6%9c%ac%e7%ab%a0%e5%b0%8f%e7%bb%93-1">#</a>
 </h2>
 <table>
-  <thead>
-      <tr>
-          <th>章节</th>
-          <th>核心要点</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>7.1 方案矩阵</td>
-          <td>没有&quot;最优方案&quot;，只有&quot;最适合当前工作负载的方案&quot;。FP8 + Continuous Batching + PagedAttention 是通用基线；前缀缓存和 P/D 分离是进阶优化</td>
-      </tr>
-      <tr>
-          <td>7.2 场景推荐</td>
-          <td>在线对话：低延迟优先；RAG：前缀缓存 + chunked prefill；流式生成：根据优先级在 TTFT 和吞吐间取舍</td>
-      </tr>
-      <tr>
-          <td>8.1 Prefill 瓶颈</td>
-          <td>$O(n^2)$ 复杂度是硬约束，prompt 越长越需要 chunked prefill 或 prompt 压缩</td>
-      </tr>
-      <tr>
-          <td>8.2 KV Cache 碎片</td>
-          <td>持续监控 <code>gpu_cache_usage</code>，设置 85% 告警阈值；PagedAttention 是碎片问题的标准解</td>
-      </tr>
-      <tr>
-          <td>8.3 量化精度</td>
-          <td>FP8 是安全首选；INT4 需做完整回归测试，尤其关注数学推理和长上下文场景</td>
-      </tr>
-      <tr>
-          <td>8.4 分布式通信</td>
-          <td>P/D 分离依赖 RDMA；TCP 传输会抵消所有收益</td>
-      </tr>
-      <tr>
-          <td>8.5 TTFT vs 吞吐</td>
-          <td>定义 SLO，优化 Goodput 而非吞吐量；监控 p99，控制并发上限</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>章节</th>
+<th>核心要点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>7.1 方案矩阵</td>
+<td>没有&quot;最优方案&quot;，只有&quot;最适合当前工作负载的方案&quot;。FP8 + Continuous Batching + PagedAttention 是通用基线；前缀缓存和 P/D 分离是进阶优化</td>
+</tr>
+<tr>
+<td>7.2 场景推荐</td>
+<td>在线对话：低延迟优先；RAG：前缀缓存 + chunked prefill；流式生成：根据优先级在 TTFT 和吞吐间取舍</td>
+</tr>
+<tr>
+<td>8.1 Prefill 瓶颈</td>
+<td>$O(n^2)$ 复杂度是硬约束，prompt 越长越需要 chunked prefill 或 prompt 压缩</td>
+</tr>
+<tr>
+<td>8.2 KV Cache 碎片</td>
+<td>持续监控 <code>gpu_cache_usage</code>，设置 85% 告警阈值；PagedAttention 是碎片问题的标准解</td>
+</tr>
+<tr>
+<td>8.3 量化精度</td>
+<td>FP8 是安全首选；INT4 需做完整回归测试，尤其关注数学推理和长上下文场景</td>
+</tr>
+<tr>
+<td>8.4 分布式通信</td>
+<td>P/D 分离依赖 RDMA；TCP 传输会抵消所有收益</td>
+</tr>
+<tr>
+<td>8.5 TTFT vs 吞吐</td>
+<td>定义 SLO，优化 Goodput 而非吞吐量；监控 p99，控制并发上限</td>
+</tr>
+</tbody>
 </table>
 <hr>
 <blockquote>
@@ -5730,7 +5881,8 @@ FlashAttention-3 支持在 FP8 格式下执行注意力计算，将 HBM 带宽�
 <li>Stripe ML Platform Migration Report (internal case study, 2024).</li>
 <li>JarvisLabs vLLM Optimization Techniques, 2025.</li>
 <li>Artificial Analysis LLM Inference Benchmark, 2025.</li>
-</ol></blockquote>
+</ol>
+</blockquote>
 <div class="footnotes" role="doc-endnotes">
 <hr>
 <ol>

@@ -3,106 +3,12 @@
 <head>
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="
-  MaaS 平台架构设计文档（百卡集群）
-  #
-
-
-版本: v0.1 | 状态: 草稿 | 第一部分: 需求与挑战分析 → 存储架构
+<meta name="description" content="MaaS 平台架构设计文档（百卡集群） # 版本: v0.1 | 状态: 草稿 | 第一部分: 需求与挑战分析 → 存储架构
 对标: 云知声（Unisound）100×A800 智算中心实践
 风格: DDIA 式技术深度 — 每项主张均有论文/官方文档/GitHub 依据
-
-
-  一、需求与挑战分析
-  #
-
-
-  1.1 训练场景挑战
-  #
-
-
-  1.1.1 多卡通信：带宽与延迟的根本矛盾
-  #
-
-大模型训练的本质是通信密集型分布式计算。以 GPT-3（175B 参数，FP16）为例，单次 AllReduce 的通信量为 $175 \times 10^9 \times 2 = 350$ GB，即使在 200Gbps 的理想带宽下，理论下限也需要约 14 秒。现实中，通信开销通常占训练总时间的 20%–40%1。
+一、需求与挑战分析 # 1.1 训练场景挑战 # 1.1.1 多卡通信：带宽与延迟的根本矛盾 # 大模型训练的本质是通信密集型分布式计算。以 GPT-3（175B 参数，FP16）为例，单次 AllReduce 的通信量为 $175 \times 10^9 \times 2 = 350$ GB，即使在 200Gbps 的理想带宽下，理论下限也需要约 14 秒。现实中，通信开销通常占训练总时间的 20%–40%1。
 训练场景存在三种根本性的网络需求矛盾：
-
-  
-      
-          维度
-          数据并行 (DP)
-          张量并行 (TP)
-          流水线并行 (PP)
-      
-  
-  
-      
-          通信模式
-          AllReduce
-          AllReduce &#43; AllGather
-          P2P Send/Recv
-      
-      
-          带宽需求
-          高（~100Gbps/卡）
-          极高（~400Gbps/卡）
-          中（~25Gbps/卡）
-      
-      
-          延迟敏感
-          中（微秒级）
-          极高（纳秒级）
-          高（微秒级）
-      
-      
-          通信范围
-          跨节点
-          机内 NVLink
-          跨节点
-      
-      
-          瓶颈类型
-          网络吞吐
-          机内互联带宽
-          同步等待
-      
-      
-          典型框架
-          DeepSpeed DDP
-          Megatron-LM
-          GPipe / PipeDream
-      
-  
-
-
-
-
-
-  
-
-
-
-graph LR
-    subgraph &#34;数据并行 DP — 跨节点高带宽&#34;
-        A1[Node 1: 8×GPU] &lt;--&gt;|AllReduce, 200G IB| A2[Node 2: 8×GPU]
-        A2 &lt;--&gt;|AllReduce, 200G IB| A3[Node N: 8×GPU]
-    end
-
-    subgraph &#34;张量并行 TP — 机内超高带宽&#34;
-        B1[GPU0] &lt;--&gt;|NVLink 900GB/s| B2[GPU1]
-        B2 &lt;--&gt;|NVSwitch| B3[GPU2]
-        B3 &lt;--&gt;|NVLink| B4[GPU7]
-    end
-
-    subgraph &#34;流水线并行 PP — 跨节点低延迟&#34;
-        C1[Stage 0: Layers 0-12] -.-&gt;|P2P Send/Recv| C2[Stage 1: Layers 13-24]
-        C2 -.-&gt;|P2P Send/Recv| C3[Stage N: Layers 25-end]
-    end
-
-    style A1 fill:#4a90d9
-    style B1 fill:#50c878
-    style C1 fill:#ff6b6b
-图表说明: 三种并行策略对网络的差异化需求。DP 是跨节点的高带宽 AllReduce；TP 是机内的超高带宽 NVLink 通信；PP 是跨节点的低延迟 P2P。">
+维度 数据并行 (DP) 张量并行 (TP) 流水线并行 (PP) 通信模式 AllReduce AllReduce &#43; AllGather P2P Send/Recv 带宽需求 高（~100Gbps/卡） 极高（~400Gbps/卡） 中（~25Gbps/卡） 延迟敏感 中（微秒级） 极高（纳秒级） 高（微秒级） 通信范围 跨节点 机内 NVLink 跨节点 瓶颈类型 网络吞吐 机内互联带宽 同步等待 典型框架 DeepSpeed DDP Megatron-LM GPipe / PipeDream graph LR subgraph &#34;数据并行 DP — 跨节点高带宽&#34; A1[Node 1: 8×GPU] &lt;--&gt;|AllReduce, 200G IB| A2[Node 2: 8×GPU] A2 &lt;--&gt;|AllReduce, 200G IB| A3[Node N: 8×GPU] end subgraph &#34;张量并行 TP — 机内超高带宽&#34; B1[GPU0] &lt;--&gt;|NVLink 900GB/s| B2[GPU1] B2 &lt;--&gt;|NVSwitch| B3[GPU2] B3 &lt;--&gt;|NVLink| B4[GPU7] end subgraph &#34;流水线并行 PP — 跨节点低延迟&#34; C1[Stage 0: Layers 0-12] -.">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
 <meta name="color-scheme" content="light dark"><meta property="og:url" content="https://www6v.github.io/www6vMLSys/docs/MaaS/MaaS1/">
@@ -113,7 +19,7 @@ graph LR
 风格: DDIA 式技术深度 — 每项主张均有论文/官方文档/GitHub 依据
 一、需求与挑战分析 # 1.1 训练场景挑战 # 1.1.1 多卡通信：带宽与延迟的根本矛盾 # 大模型训练的本质是通信密集型分布式计算。以 GPT-3（175B 参数，FP16）为例，单次 AllReduce 的通信量为 $175 \times 10^9 \times 2 = 350$ GB，即使在 200Gbps 的理想带宽下，理论下限也需要约 14 秒。现实中，通信开销通常占训练总时间的 20%–40%1。
 训练场景存在三种根本性的网络需求矛盾：
-维度 数据并行 (DP) 张量并行 (TP) 流水线并行 (PP) 通信模式 AllReduce AllReduce &#43; AllGather P2P Send/Recv 带宽需求 高（~100Gbps/卡） 极高（~400Gbps/卡） 中（~25Gbps/卡） 延迟敏感 中（微秒级） 极高（纳秒级） 高（微秒级） 通信范围 跨节点 机内 NVLink 跨节点 瓶颈类型 网络吞吐 机内互联带宽 同步等待 典型框架 DeepSpeed DDP Megatron-LM GPipe / PipeDream graph LR subgraph &#34;数据并行 DP — 跨节点高带宽&#34; A1[Node 1: 8×GPU] &lt;--&gt;|AllReduce, 200G IB| A2[Node 2: 8×GPU] A2 &lt;--&gt;|AllReduce, 200G IB| A3[Node N: 8×GPU] end subgraph &#34;张量并行 TP — 机内超高带宽&#34; B1[GPU0] &lt;--&gt;|NVLink 900GB/s| B2[GPU1] B2 &lt;--&gt;|NVSwitch| B3[GPU2] B3 &lt;--&gt;|NVLink| B4[GPU7] end subgraph &#34;流水线并行 PP — 跨节点低延迟&#34; C1[Stage 0: Layers 0-12] -.-&gt;|P2P Send/Recv| C2[Stage 1: Layers 13-24] C2 -.-&gt;|P2P Send/Recv| C3[Stage N: Layers 25-end] end style A1 fill:#4a90d9 style B1 fill:#50c878 style C1 fill:#ff6b6b 图表说明: 三种并行策略对网络的差异化需求。DP 是跨节点的高带宽 AllReduce；TP 是机内的超高带宽 NVLink 通信；PP 是跨节点的低延迟 P2P。">
+维度 数据并行 (DP) 张量并行 (TP) 流水线并行 (PP) 通信模式 AllReduce AllReduce &#43; AllGather P2P Send/Recv 带宽需求 高（~100Gbps/卡） 极高（~400Gbps/卡） 中（~25Gbps/卡） 延迟敏感 中（微秒级） 极高（纳秒级） 高（微秒级） 通信范围 跨节点 机内 NVLink 跨节点 瓶颈类型 网络吞吐 机内互联带宽 同步等待 典型框架 DeepSpeed DDP Megatron-LM GPipe / PipeDream graph LR subgraph &#34;数据并行 DP — 跨节点高带宽&#34; A1[Node 1: 8×GPU] &lt;--&gt;|AllReduce, 200G IB| A2[Node 2: 8×GPU] A2 &lt;--&gt;|AllReduce, 200G IB| A3[Node N: 8×GPU] end subgraph &#34;张量并行 TP — 机内超高带宽&#34; B1[GPU0] &lt;--&gt;|NVLink 900GB/s| B2[GPU1] B2 &lt;--&gt;|NVSwitch| B3[GPU2] B3 &lt;--&gt;|NVLink| B4[GPU7] end subgraph &#34;流水线并行 PP — 跨节点低延迟&#34; C1[Stage 0: Layers 0-12] -.">
   <meta property="og:locale" content="en">
   <meta property="og:type" content="website">
 <title>MaaS | MLSys</title>
@@ -122,7 +28,10 @@ graph LR
 <link rel="canonical" href="https://www6v.github.io/www6vMLSys/docs/MaaS/MaaS1/">
 <link rel="stylesheet" href="/www6vMLSys/book.min.6c8b9d2a1fc95075ed7da46ca81060b39add8fff6741ac51259f768929281e2c.css" integrity="sha256-bIudKh/JUHXtfaRsqBBgs5rdj/9nQaxRJZ92iSkoHiw=" crossorigin="anonymous">
   <script defer src="/www6vMLSys/fuse.min.js"></script>
-  <script defer src="/www6vMLSys/en.search.min.db2b384d5b81b23e57c3928b924af72dfab74a96bcdb893c600ff8115b61d590.js" integrity="sha256-2ys4TVuBsj5Xw5KLkkr3Lfq3Spa824k8YA/4EVth1ZA=" crossorigin="anonymous"></script>
+  <script defer src="/www6vMLSys/en.search.min.d594248518fa2a9931066040a9448183d47749b3a47fcc00e0496d62a93dcc35.js" integrity="sha256-1ZQkhRj6KpkxBmBAqUSBg9R3SbOkf8wA4EltYqk9zDU=" crossorigin="anonymous"></script>
+
+  
+
 <link rel="alternate" type="application/rss+xml" href="https://www6v.github.io/www6vMLSys/docs/MaaS/MaaS1/index.xml" title="MLSys" />
 <!--
 Made with Book Theme
@@ -175,8 +84,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-bf23c006d2140684cc90ded82ec74653" class="toggle"  />
-    <label for="section-bf23c006d2140684cc90ded82ec74653" class="flex justify-between">
+    <input type="checkbox" id="section-46f9f019ac1cd81d3adb5dce8195fad5" class="toggle"  />
+    <label for="section-46f9f019ac1cd81d3adb5dce8195fad5" class="flex justify-between">
       <a role="button" class="">Inference</a>
     </label>
   
@@ -191,8 +100,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-e2782e122236beb02b611a4b4376c5ba" class="toggle"  />
-    <label for="section-e2782e122236beb02b611a4b4376c5ba" class="flex justify-between">
+    <input type="checkbox" id="section-0df477e9a94394863b60b08953bb3faf" class="toggle"  />
+    <label for="section-0df477e9a94394863b60b08953bb3faf" class="flex justify-between">
       <a role="button" class="">框架</a>
     </label>
   
@@ -302,8 +211,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-280e12f1588c5189fc8326fb4998fa2a" class="toggle"  />
-    <label for="section-280e12f1588c5189fc8326fb4998fa2a" class="flex justify-between">
+    <input type="checkbox" id="section-e80661aabb05786d73bb02617f11551b" class="toggle"  />
+    <label for="section-e80661aabb05786d73bb02617f11551b" class="flex justify-between">
       <a role="button" class="">框架vLLM</a>
     </label>
   
@@ -508,8 +417,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-d659e6fde8f172d5e6d65a0b2bc79031" class="toggle"  />
-    <label for="section-d659e6fde8f172d5e6d65a0b2bc79031" class="flex justify-between">
+    <input type="checkbox" id="section-206d1962a731b68760cf02563d9a81c7" class="toggle"  />
+    <label for="section-206d1962a731b68760cf02563d9a81c7" class="flex justify-between">
       <a role="button" class="">Inference 优化</a>
     </label>
   
@@ -524,8 +433,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-8cc4904ea51a1aff793d6755622ea54b" class="toggle"  />
-    <label for="section-8cc4904ea51a1aff793d6755622ea54b" class="flex justify-between">
+    <input type="checkbox" id="section-9d5a2c196d1ea980f1966f0de0e49d52" class="toggle"  />
+    <label for="section-9d5a2c196d1ea980f1966f0de0e49d52" class="flex justify-between">
       <a role="button" class="">Overview</a>
     </label>
   
@@ -599,8 +508,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-75fffd45c4e3af9b253513bcf99a1e7e" class="toggle"  />
-    <label for="section-75fffd45c4e3af9b253513bcf99a1e7e" class="flex justify-between">
+    <input type="checkbox" id="section-733ec9f169a904e7d2ec539e5c012c44" class="toggle"  />
+    <label for="section-733ec9f169a904e7d2ec539e5c012c44" class="flex justify-between">
       <a role="button" class="">系统层优化</a>
     </label>
   
@@ -615,8 +524,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-2c31e36f5b0e9f84d75738e603bcdfd3" class="toggle"  />
-    <label for="section-2c31e36f5b0e9f84d75738e603bcdfd3" class="flex justify-between">
+    <input type="checkbox" id="section-1b6eb1bafb777938ce54ed28062f31be" class="toggle"  />
+    <label for="section-1b6eb1bafb777938ce54ed28062f31be" class="flex justify-between">
       <a role="button" class="">FlashAttention</a>
     </label>
   
@@ -690,8 +599,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-903dc4762e53fc23899b8b41e24d4e3d" class="toggle"  />
-    <label for="section-903dc4762e53fc23899b8b41e24d4e3d" class="flex justify-between">
+    <input type="checkbox" id="section-90df0a4e1b32a319152ceba8d1068844" class="toggle"  />
+    <label for="section-90df0a4e1b32a319152ceba8d1068844" class="flex justify-between">
       <a role="button" class="">SpeculativeDecoding</a>
     </label>
   
@@ -801,8 +710,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-9c3aeee5bee9d8a45b6959715db1f460" class="toggle"  />
-    <label for="section-9c3aeee5bee9d8a45b6959715db1f460" class="flex justify-between">
+    <input type="checkbox" id="section-84b07ff725756ccf253ca224735e34fe" class="toggle"  />
+    <label for="section-84b07ff725756ccf253ca224735e34fe" class="flex justify-between">
       <a role="button" class="">KVCache</a>
     </label>
   
@@ -853,8 +762,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-a0d66f65a2c7b4e05694f79579d1f686" class="toggle"  />
-    <label for="section-a0d66f65a2c7b4e05694f79579d1f686" class="flex justify-between">
+    <input type="checkbox" id="section-9fd8feeeaec2f719941a1e3edb14d741" class="toggle"  />
+    <label for="section-9fd8feeeaec2f719941a1e3edb14d741" class="flex justify-between">
       <a role="button" class="">Compress</a>
     </label>
   
@@ -897,8 +806,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-cc89fec5cef17da80426c3ab29dc55f2" class="toggle"  />
-    <label for="section-cc89fec5cef17da80426c3ab29dc55f2" class="flex justify-between">
+    <input type="checkbox" id="section-58684618fdc4965e2b35a333cfc0751c" class="toggle"  />
+    <label for="section-58684618fdc4965e2b35a333cfc0751c" class="flex justify-between">
       <a role="button" class="">Batch</a>
     </label>
   
@@ -954,8 +863,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-a86001c551f91c9d6742692d85235ce9" class="toggle"  />
-    <label for="section-a86001c551f91c9d6742692d85235ce9" class="flex justify-between">
+    <input type="checkbox" id="section-2bda16ee9eb1cc424ad4bacfc46e2574" class="toggle"  />
+    <label for="section-2bda16ee9eb1cc424ad4bacfc46e2574" class="flex justify-between">
       <a role="button" class="">PD 分离</a>
     </label>
   
@@ -1070,8 +979,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-0a8aa3616751d94d876ab5a7638dfee2" class="toggle"  />
-    <label for="section-0a8aa3616751d94d876ab5a7638dfee2" class="flex justify-between">
+    <input type="checkbox" id="section-d8e4bc101aba8bbf9039eb3ecb0f14f5" class="toggle"  />
+    <label for="section-d8e4bc101aba8bbf9039eb3ecb0f14f5" class="flex justify-between">
       <a role="button" class="">模型层优化</a>
     </label>
   
@@ -1086,8 +995,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-5a6462bfaadf7adfe8b66d09bc58303b" class="toggle"  />
-    <label for="section-5a6462bfaadf7adfe8b66d09bc58303b" class="flex justify-between">
+    <input type="checkbox" id="section-d7414f59e2a23d21985181d6022ec263" class="toggle"  />
+    <label for="section-d7414f59e2a23d21985181d6022ec263" class="flex justify-between">
       <a role="button" class="">量化</a>
     </label>
   
@@ -1102,8 +1011,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-2d87a22f91be75b78e6616958283b668" class="toggle"  />
-    <label for="section-2d87a22f91be75b78e6616958283b668" class="flex justify-between">
+    <input type="checkbox" id="section-20f0402fb3cbae252a4184f400e05533" class="toggle"  />
+    <label for="section-20f0402fb3cbae252a4184f400e05533" class="flex justify-between">
       <a role="button" class="">Overview</a>
     </label>
   
@@ -1159,8 +1068,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-88d52cf49c9a5295f0c154e14ccc03a5" class="toggle"  />
-    <label for="section-88d52cf49c9a5295f0c154e14ccc03a5" class="flex justify-between">
+    <input type="checkbox" id="section-ec2eb87afcd086e2bb436dac77ebdcbc" class="toggle"  />
+    <label for="section-ec2eb87afcd086e2bb436dac77ebdcbc" class="flex justify-between">
       <a role="button" class="">PTQ</a>
     </label>
   
@@ -1193,8 +1102,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-359a9d256fc5cc0b6a903de93454a7d5" class="toggle"  />
-    <label for="section-359a9d256fc5cc0b6a903de93454a7d5" class="flex justify-between">
+    <input type="checkbox" id="section-571b73d60a6cc0ec292d9f6baa3bece7" class="toggle"  />
+    <label for="section-571b73d60a6cc0ec292d9f6baa3bece7" class="flex justify-between">
       <a role="button" class="">Weight Only</a>
     </label>
   
@@ -1250,8 +1159,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-80f1cfdbb0d11740a87708737d9705d1" class="toggle"  />
-    <label for="section-80f1cfdbb0d11740a87708737d9705d1" class="flex justify-between">
+    <input type="checkbox" id="section-c949cfd2d8034a11b389f2d023507d5e" class="toggle"  />
+    <label for="section-c949cfd2d8034a11b389f2d023507d5e" class="flex justify-between">
       <a role="button" class="">Weight&amp;Activation</a>
     </label>
   
@@ -1315,8 +1224,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-0fae359329dcf38fe41928a875455a3a" class="toggle"  />
-    <label for="section-0fae359329dcf38fe41928a875455a3a" class="flex justify-between">
+    <input type="checkbox" id="section-2cc6a020e92cde89b28dd1b9a8dde151" class="toggle"  />
+    <label for="section-2cc6a020e92cde89b28dd1b9a8dde151" class="flex justify-between">
       <a role="button" class="">Practice</a>
     </label>
   
@@ -1359,8 +1268,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-1bda5152ea8335d4cdc6a16fa79ec8a2" class="toggle"  />
-    <label for="section-1bda5152ea8335d4cdc6a16fa79ec8a2" class="flex justify-between">
+    <input type="checkbox" id="section-c621aaebb7e229715dd0809d059d2fc9" class="toggle"  />
+    <label for="section-c621aaebb7e229715dd0809d059d2fc9" class="flex justify-between">
       <a role="button" class="">Sparse Attention</a>
     </label>
   
@@ -1403,8 +1312,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-0e872e900c80202bf8d3f77fb2b652dd" class="toggle"  />
-    <label for="section-0e872e900c80202bf8d3f77fb2b652dd" class="flex justify-between">
+    <input type="checkbox" id="section-d41c5815cabb16367a7704d1b8979f2c" class="toggle"  />
+    <label for="section-d41c5815cabb16367a7704d1b8979f2c" class="flex justify-between">
       <a role="button" class="">TTFT</a>
     </label>
   
@@ -1465,8 +1374,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-f4030e06a7cd0b4d4f01c69f804511e3" class="toggle"  />
-    <label for="section-f4030e06a7cd0b4d4f01c69f804511e3" class="flex justify-between">
+    <input type="checkbox" id="section-0510211b4577a4de8bc6d0c3b60e33ff" class="toggle"  />
+    <label for="section-0510211b4577a4de8bc6d0c3b60e33ff" class="flex justify-between">
       <a role="button" class="">Training</a>
     </label>
   
@@ -1481,8 +1390,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-a3302ad31d47b6b33edaefb16b9595c8" class="toggle"  />
-    <label for="section-a3302ad31d47b6b33edaefb16b9595c8" class="flex justify-between">
+    <input type="checkbox" id="section-9fc08442b7ae0ae2d037ffc5cac491be" class="toggle"  />
+    <label for="section-9fc08442b7ae0ae2d037ffc5cac491be" class="flex justify-between">
       <a role="button" class="">分布式</a>
     </label>
   
@@ -1497,8 +1406,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-ca35777dc3dc1df2cd1c182701911ffb" class="toggle"  />
-    <label for="section-ca35777dc3dc1df2cd1c182701911ffb" class="flex justify-between">
+    <input type="checkbox" id="section-57a5e3e5fe9ab455f342e1e697db1803" class="toggle"  />
+    <label for="section-57a5e3e5fe9ab455f342e1e697db1803" class="flex justify-between">
       <a role="button" class="">Overview</a>
     </label>
   
@@ -1536,8 +1445,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-ae4385c3230d5a72d0fd739cfe337330" class="toggle"  />
-    <label for="section-ae4385c3230d5a72d0fd739cfe337330" class="flex justify-between">
+    <input type="checkbox" id="section-8b31b6b471f5762e9d2da631bee73022" class="toggle"  />
+    <label for="section-8b31b6b471f5762e9d2da631bee73022" class="flex justify-between">
       <a role="button" class="">DP</a>
     </label>
   
@@ -1629,8 +1538,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-0cfa5a342351431197e06859d2a0b5dd" class="toggle"  />
-    <label for="section-0cfa5a342351431197e06859d2a0b5dd" class="flex justify-between">
+    <input type="checkbox" id="section-3dc64482add8914f3b5f9110dbb829fa" class="toggle"  />
+    <label for="section-3dc64482add8914f3b5f9110dbb829fa" class="flex justify-between">
       <a role="button" class="">TP</a>
     </label>
   
@@ -1668,8 +1577,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-bf4278f3920999fc3bb13908e22d34bb" class="toggle"  />
-    <label for="section-bf4278f3920999fc3bb13908e22d34bb" class="flex justify-between">
+    <input type="checkbox" id="section-8ff0d8df45f2751ebc315ae9eab02b9f" class="toggle"  />
+    <label for="section-8ff0d8df45f2751ebc315ae9eab02b9f" class="flex justify-between">
       <a role="button" class="">PP</a>
     </label>
   
@@ -1707,8 +1616,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-30fd02881b0903fc1d9b6c52304de566" class="toggle"  />
-    <label for="section-30fd02881b0903fc1d9b6c52304de566" class="flex justify-between">
+    <input type="checkbox" id="section-fbf3e2ed6e8d99c8615a31980d156c0b" class="toggle"  />
+    <label for="section-fbf3e2ed6e8d99c8615a31980d156c0b" class="flex justify-between">
       <a role="button" class="">混合并行</a>
     </label>
   
@@ -1769,8 +1678,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-25028652b0e6469d4e603a946ea402c4" class="toggle"  />
-    <label for="section-25028652b0e6469d4e603a946ea402c4" class="flex justify-between">
+    <input type="checkbox" id="section-19cde628a5e79f95519e1f1e2cf1e6a6" class="toggle"  />
+    <label for="section-19cde628a5e79f95519e1f1e2cf1e6a6" class="flex justify-between">
       <a role="button" class="">低精度</a>
     </label>
   
@@ -1821,8 +1730,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-644e6fa45ba6f6c0dcdfc190025a39fb" class="toggle"  />
-    <label for="section-644e6fa45ba6f6c0dcdfc190025a39fb" class="flex justify-between">
+    <input type="checkbox" id="section-5d6602fbd107263f71b49720e8a5770b" class="toggle"  />
+    <label for="section-5d6602fbd107263f71b49720e8a5770b" class="flex justify-between">
       <a role="button" class="">AI平台</a>
     </label>
   
@@ -1873,8 +1782,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-f61cbb1f2645b362442da027a971ba18" class="toggle"  />
-    <label for="section-f61cbb1f2645b362442da027a971ba18" class="flex justify-between">
+    <input type="checkbox" id="section-17c42b222b84095c605f66bfd3a5d5af" class="toggle"  />
+    <label for="section-17c42b222b84095c605f66bfd3a5d5af" class="flex justify-between">
       <a role="button" class="">AI网关</a>
     </label>
   
@@ -1948,6 +1857,177 @@ https://github.com/alex-shpak/hugo-book
   
 
   
+    <input type="checkbox" id="section-9aa1a1e7091b07da4599c138f61024b2" class="toggle"  />
+    <label for="section-9aa1a1e7091b07da4599c138f61024b2" class="flex justify-between">
+      <a role="button" class="">对话混合架构</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E5%AF%B9%E8%AF%9D%E6%B7%B7%E5%90%88%E6%9E%B6%E6%9E%84/claw/" class="">Claw</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E5%AF%B9%E8%AF%9D%E6%B7%B7%E5%90%88%E6%9E%B6%E6%9E%84/hermes/" class="">Hermes</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-9b09c4b066b1e1cccae213b0b98306e9" class="toggle"  />
+    <label for="section-9b09c4b066b1e1cccae213b0b98306e9" class="flex justify-between">
+      <a role="button" class="">开放平台</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E5%BC%80%E6%94%BE%E5%B9%B3%E5%8F%B0/claw/" class="">Claw</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E5%BC%80%E6%94%BE%E5%B9%B3%E5%8F%B0/hermes/" class="">Hermes</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-27989a5e3be10a7f5e8020a8a410d4e6" class="toggle"  />
+    <label for="section-27989a5e3be10a7f5e8020a8a410d4e6" class="flex justify-between">
+      <a role="button" class="">端云混合架构</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E7%AB%AF%E4%BA%91%E6%B7%B7%E5%90%88%E6%9E%B6%E6%9E%84/claw&#43;/" class="">Claw[ ]</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/%E7%AB%AF%E4%BA%91%E6%B7%B7%E5%90%88%E6%9E%B6%E6%9E%84/hermes/" class="">Hermes</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
     <a href="/www6vMLSys/docs/AI%E5%B9%B3%E5%8F%B0/LLMOps/" class="">LLMOps</a>
   
 
@@ -1971,8 +2051,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-327fb05179acab9fa2e8db471e2465cd" class="toggle" checked />
-    <label for="section-327fb05179acab9fa2e8db471e2465cd" class="flex justify-between">
+    <input type="checkbox" id="section-d80e9a068046a412cee1ba7f653b5c86" class="toggle" checked />
+    <label for="section-d80e9a068046a412cee1ba7f653b5c86" class="flex justify-between">
       <a role="button" class="">MaaS</a>
     </label>
   
@@ -2100,8 +2180,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-e5df6522c4b2ff6188291204672608c8" class="toggle"  />
-    <label for="section-e5df6522c4b2ff6188291204672608c8" class="flex justify-between">
+    <input type="checkbox" id="section-62de713685ff13478495b8520fd59705" class="toggle"  />
+    <label for="section-62de713685ff13478495b8520fd59705" class="flex justify-between">
       <a role="button" class="">Infra</a>
     </label>
   
@@ -2134,8 +2214,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-79fcd731bc33432daba619103c18a87a" class="toggle"  />
-    <label for="section-79fcd731bc33432daba619103c18a87a" class="flex justify-between">
+    <input type="checkbox" id="section-120653a01c96b9ed76377f47423942f0" class="toggle"  />
+    <label for="section-120653a01c96b9ed76377f47423942f0" class="flex justify-between">
       <a role="button" class="">GPU</a>
     </label>
   
@@ -2227,8 +2307,8 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <input type="checkbox" id="section-1048340579f6168f3a532057403baf28" class="toggle"  />
-    <label for="section-1048340579f6168f3a532057403baf28" class="flex justify-between">
+    <input type="checkbox" id="section-b4210e18b73dee1304d22035008e50e8" class="toggle"  />
+    <label for="section-b4210e18b73dee1304d22035008e50e8" class="flex justify-between">
       <a role="button" class="">显存估算</a>
     </label>
   
@@ -2572,7 +2652,8 @@ https://github.com/alex-shpak/hugo-book
 <blockquote>
 <p><strong>版本</strong>: v0.1 | <strong>状态</strong>: 草稿 | <strong>第一部分</strong>: 需求与挑战分析 → 存储架构<br>
 <strong>对标</strong>: 云知声（Unisound）100×A800 智算中心实践<br>
-<strong>风格</strong>: DDIA 式技术深度 — 每项主张均有论文/官方文档/GitHub 依据</p></blockquote>
+<strong>风格</strong>: DDIA 式技术深度 — 每项主张均有论文/官方文档/GitHub 依据</p>
+</blockquote>
 <hr>
 <h1 id="一需求与挑战分析">
   一、需求与挑战分析
@@ -2589,52 +2670,52 @@ https://github.com/alex-shpak/hugo-book
 <p>大模型训练的本质是<strong>通信密集型分布式计算</strong>。以 GPT-3（175B 参数，FP16）为例，单次 AllReduce 的通信量为 $175 \times 10^9 \times 2 = 350$ GB，即使在 200Gbps 的理想带宽下，理论下限也需要约 14 秒。现实中，通信开销通常占训练总时间的 20%–40%<sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup>。</p>
 <p>训练场景存在三种根本性的网络需求矛盾：</p>
 <table>
-  <thead>
-      <tr>
-          <th>维度</th>
-          <th>数据并行 (DP)</th>
-          <th>张量并行 (TP)</th>
-          <th>流水线并行 (PP)</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><strong>通信模式</strong></td>
-          <td>AllReduce</td>
-          <td>AllReduce + AllGather</td>
-          <td>P2P Send/Recv</td>
-      </tr>
-      <tr>
-          <td><strong>带宽需求</strong></td>
-          <td>高（~100Gbps/卡）</td>
-          <td>极高（~400Gbps/卡）</td>
-          <td>中（~25Gbps/卡）</td>
-      </tr>
-      <tr>
-          <td><strong>延迟敏感</strong></td>
-          <td>中（微秒级）</td>
-          <td>极高（纳秒级）</td>
-          <td>高（微秒级）</td>
-      </tr>
-      <tr>
-          <td><strong>通信范围</strong></td>
-          <td>跨节点</td>
-          <td>机内 NVLink</td>
-          <td>跨节点</td>
-      </tr>
-      <tr>
-          <td><strong>瓶颈类型</strong></td>
-          <td>网络吞吐</td>
-          <td>机内互联带宽</td>
-          <td>同步等待</td>
-      </tr>
-      <tr>
-          <td><strong>典型框架</strong></td>
-          <td>DeepSpeed DDP</td>
-          <td>Megatron-LM</td>
-          <td>GPipe / PipeDream</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>维度</th>
+<th>数据并行 (DP)</th>
+<th>张量并行 (TP)</th>
+<th>流水线并行 (PP)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>通信模式</strong></td>
+<td>AllReduce</td>
+<td>AllReduce + AllGather</td>
+<td>P2P Send/Recv</td>
+</tr>
+<tr>
+<td><strong>带宽需求</strong></td>
+<td>高（~100Gbps/卡）</td>
+<td>极高（~400Gbps/卡）</td>
+<td>中（~25Gbps/卡）</td>
+</tr>
+<tr>
+<td><strong>延迟敏感</strong></td>
+<td>中（微秒级）</td>
+<td>极高（纳秒级）</td>
+<td>高（微秒级）</td>
+</tr>
+<tr>
+<td><strong>通信范围</strong></td>
+<td>跨节点</td>
+<td>机内 NVLink</td>
+<td>跨节点</td>
+</tr>
+<tr>
+<td><strong>瓶颈类型</strong></td>
+<td>网络吞吐</td>
+<td>机内互联带宽</td>
+<td>同步等待</td>
+</tr>
+<tr>
+<td><strong>典型框架</strong></td>
+<td>DeepSpeed DDP</td>
+<td>Megatron-LM</td>
+<td>GPipe / PipeDream</td>
+</tr>
+</tbody>
 </table>
 
 
@@ -2715,46 +2796,46 @@ https://github.com/alex-shpak/hugo-book
 </h3>
 <p>推理不是单一技术栈。不同场景需要不同的推理引擎：</p>
 <table>
-  <thead>
-      <tr>
-          <th>推理框架</th>
-          <th>适用场景</th>
-          <th>关键特性</th>
-          <th>GitHub Stars</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><strong>vLLM</strong><sup id="fnref:5"><a href="#fn:5" class="footnote-ref" role="doc-noteref">5</a></sup></td>
-          <td>高吞吐 LLM 推理</td>
-          <td>PagedAttention, 连续批处理</td>
-          <td>30k+</td>
-      </tr>
-      <tr>
-          <td><strong>TGI</strong><sup id="fnref:6"><a href="#fn:6" class="footnote-ref" role="doc-noteref">6</a></sup></td>
-          <td>生产级 LLM 服务</td>
-          <td>动态批处理, 量化</td>
-          <td>10k+</td>
-      </tr>
-      <tr>
-          <td><strong>TensorRT-LLM</strong><sup id="fnref:7"><a href="#fn:7" class="footnote-ref" role="doc-noteref">7</a></sup></td>
-          <td>NVIDIA GPU 极致性能</td>
-          <td>CUDA Graph, FP8</td>
-          <td>12k+</td>
-      </tr>
-      <tr>
-          <td><strong>Ollama</strong><sup id="fnref:8"><a href="#fn:8" class="footnote-ref" role="doc-noteref">8</a></sup></td>
-          <td>本地/边缘部署</td>
-          <td>GGUF 量化, 极简 API</td>
-          <td>120k+</td>
-      </tr>
-      <tr>
-          <td><strong>Xinference</strong><sup id="fnref:9"><a href="#fn:9" class="footnote-ref" role="doc-noteref">9</a></sup></td>
-          <td>多框架统一调度</td>
-          <td>多后端, 自动路由</td>
-          <td>5k+</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>推理框架</th>
+<th>适用场景</th>
+<th>关键特性</th>
+<th>GitHub Stars</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>vLLM</strong><sup id="fnref:5"><a href="#fn:5" class="footnote-ref" role="doc-noteref">5</a></sup></td>
+<td>高吞吐 LLM 推理</td>
+<td>PagedAttention, 连续批处理</td>
+<td>30k+</td>
+</tr>
+<tr>
+<td><strong>TGI</strong><sup id="fnref:6"><a href="#fn:6" class="footnote-ref" role="doc-noteref">6</a></sup></td>
+<td>生产级 LLM 服务</td>
+<td>动态批处理, 量化</td>
+<td>10k+</td>
+</tr>
+<tr>
+<td><strong>TensorRT-LLM</strong><sup id="fnref:7"><a href="#fn:7" class="footnote-ref" role="doc-noteref">7</a></sup></td>
+<td>NVIDIA GPU 极致性能</td>
+<td>CUDA Graph, FP8</td>
+<td>12k+</td>
+</tr>
+<tr>
+<td><strong>Ollama</strong><sup id="fnref:8"><a href="#fn:8" class="footnote-ref" role="doc-noteref">8</a></sup></td>
+<td>本地/边缘部署</td>
+<td>GGUF 量化, 极简 API</td>
+<td>120k+</td>
+</tr>
+<tr>
+<td><strong>Xinference</strong><sup id="fnref:9"><a href="#fn:9" class="footnote-ref" role="doc-noteref">9</a></sup></td>
+<td>多框架统一调度</td>
+<td>多后端, 自动路由</td>
+<td>5k+</td>
+</tr>
+</tbody>
 </table>
 <h3 id="122-分布式推理">
   1.2.2 分布式推理
@@ -2821,40 +2902,40 @@ https://github.com/alex-shpak/hugo-book
 </h3>
 <p>国产化替代趋势下，昇腾 910B 的适配是必选项。关键差异：</p>
 <table>
-  <thead>
-      <tr>
-          <th>维度</th>
-          <th>NVIDIA (A100/H100)</th>
-          <th>昇腾 Ascend 910B</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><strong>互联</strong></td>
-          <td>NVLink 900GB/s</td>
-          <td>HCCS 392GB/s</td>
-      </tr>
-      <tr>
-          <td><strong>编程模型</strong></td>
-          <td>CUDA + cuDNN</td>
-          <td>CANN + AscendCL</td>
-      </tr>
-      <tr>
-          <td><strong>通信库</strong></td>
-          <td>NCCL</td>
-          <td>HCCL</td>
-      </tr>
-      <tr>
-          <td><strong>容器支持</strong></td>
-          <td>nvidia-docker2</td>
-          <td>Ascend Docker Runtime</td>
-      </tr>
-      <tr>
-          <td><strong>框架适配</strong></td>
-          <td>原生 PyTorch</td>
-          <td>torch_npu 插件</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>维度</th>
+<th>NVIDIA (A100/H100)</th>
+<th>昇腾 Ascend 910B</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>互联</strong></td>
+<td>NVLink 900GB/s</td>
+<td>HCCS 392GB/s</td>
+</tr>
+<tr>
+<td><strong>编程模型</strong></td>
+<td>CUDA + cuDNN</td>
+<td>CANN + AscendCL</td>
+</tr>
+<tr>
+<td><strong>通信库</strong></td>
+<td>NCCL</td>
+<td>HCCL</td>
+</tr>
+<tr>
+<td><strong>容器支持</strong></td>
+<td>nvidia-docker2</td>
+<td>Ascend Docker Runtime</td>
+</tr>
+<tr>
+<td><strong>框架适配</strong></td>
+<td>原生 PyTorch</td>
+<td>torch_npu 插件</td>
+</tr>
+</tbody>
 </table>
 <p><strong>适配策略</strong>: 通过 K8s Device Plugin 抽象层，上层训练框架无需修改代码即可切换底层硬件。具体实现见 2.3 节。</p>
 <h3 id="142-弹性容错">
@@ -2883,45 +2964,45 @@ https://github.com/alex-shpak/hugo-book
 </h3>
 <p>基于云知声的经验<sup id="fnref3:3"><a href="#fn:3" class="footnote-ref" role="doc-noteref">3</a></sup>和业界实践，100 节点集群的算力配比建议：</p>
 <table>
-  <thead>
-      <tr>
-          <th>算力池</th>
-          <th>GPU 类型</th>
-          <th>节点数</th>
-          <th>占比</th>
-          <th>用途</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>训练池</td>
-          <td>A800/A100 80G</td>
-          <td>50</td>
-          <td>50%</td>
-          <td>SFT、预训练</td>
-      </tr>
-      <tr>
-          <td>推理+微调池</td>
-          <td>A10 24G / A6000 48G</td>
-          <td>25</td>
-          <td>25%</td>
-          <td>在线推理、LoRA</td>
-      </tr>
-      <tr>
-          <td>CPU 集群</td>
-          <td>无 GPU</td>
-          <td>15</td>
-          <td>15%</td>
-          <td>数据处理</td>
-      </tr>
-      <tr>
-          <td>存储集群</td>
-          <td>—</td>
-          <td>10</td>
-          <td>10%</td>
-          <td>分布式存储</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>算力池</th>
+<th>GPU 类型</th>
+<th>节点数</th>
+<th>占比</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>训练池</td>
+<td>A800/A100 80G</td>
+<td>50</td>
+<td>50%</td>
+<td>SFT、预训练</td>
+</tr>
+<tr>
+<td>推理+微调池</td>
+<td>A10 24G / A6000 48G</td>
+<td>25</td>
+<td>25%</td>
+<td>在线推理、LoRA</td>
+</tr>
+<tr>
+<td>CPU 集群</td>
+<td>无 GPU</td>
+<td>15</td>
+<td>15%</td>
+<td>数据处理</td>
+</tr>
+<tr>
+<td>存储集群</td>
+<td>—</td>
+<td>10</td>
+<td>10%</td>
+<td>分布式存储</td>
+</tr>
+</tbody>
 </table>
 <h2 id="15-规模假设">
   1.5 规模假设
@@ -2929,55 +3010,55 @@ https://github.com/alex-shpak/hugo-book
 </h2>
 <p><strong>基准假设</strong>: 100 节点 GPU 集群，对标云知声 100×A800 智算中心<sup id="fnref4:3"><a href="#fn:3" class="footnote-ref" role="doc-noteref">3</a></sup>。</p>
 <table>
-  <thead>
-      <tr>
-          <th>参数</th>
-          <th>值</th>
-          <th>依据</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>GPU 类型</td>
-          <td>A800 80G / A100 80G / H100 80G</td>
-          <td>云知声实际部署</td>
-      </tr>
-      <tr>
-          <td>单卡显存</td>
-          <td>80 GB</td>
-          <td>A800/A100 规格</td>
-      </tr>
-      <tr>
-          <td>单节点</td>
-          <td>8×GPU</td>
-          <td>HGX A800 标准</td>
-      </tr>
-      <tr>
-          <td>总 GPU 数</td>
-          <td>400 卡 (50 训练节点)</td>
-          <td>50 × 8</td>
-      </tr>
-      <tr>
-          <td>机内互联</td>
-          <td>NVSwitch + NVLink</td>
-          <td>HGX 标准拓扑</td>
-      </tr>
-      <tr>
-          <td>机间网络</td>
-          <td>200G HDR InfiniBand</td>
-          <td>NVIDIA SuperPOD 参考架构</td>
-      </tr>
-      <tr>
-          <td>存储容量</td>
-          <td>2 PB NVMe SSD</td>
-          <td>估算值</td>
-      </tr>
-      <tr>
-          <td>存储带宽</td>
-          <td>400 GB/s</td>
-          <td>100G 存储网 × 4 链路</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>参数</th>
+<th>值</th>
+<th>依据</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GPU 类型</td>
+<td>A800 80G / A100 80G / H100 80G</td>
+<td>云知声实际部署</td>
+</tr>
+<tr>
+<td>单卡显存</td>
+<td>80 GB</td>
+<td>A800/A100 规格</td>
+</tr>
+<tr>
+<td>单节点</td>
+<td>8×GPU</td>
+<td>HGX A800 标准</td>
+</tr>
+<tr>
+<td>总 GPU 数</td>
+<td>400 卡 (50 训练节点)</td>
+<td>50 × 8</td>
+</tr>
+<tr>
+<td>机内互联</td>
+<td>NVSwitch + NVLink</td>
+<td>HGX 标准拓扑</td>
+</tr>
+<tr>
+<td>机间网络</td>
+<td>200G HDR InfiniBand</td>
+<td>NVIDIA SuperPOD 参考架构</td>
+</tr>
+<tr>
+<td>存储容量</td>
+<td>2 PB NVMe SSD</td>
+<td>估算值</td>
+</tr>
+<tr>
+<td>存储带宽</td>
+<td>400 GB/s</td>
+<td>100G 存储网 × 4 链路</td>
+</tr>
+</tbody>
 </table>
 <hr>
 <h1 id="二整体架构设计四层架构">
@@ -3036,40 +3117,40 @@ https://github.com/alex-shpak/hugo-book
     style R3 fill:#ff6b6b,color:#fff</pre>
 <p><strong>架构层次说明</strong>:</p>
 <table>
-  <thead>
-      <tr>
-          <th>层级</th>
-          <th>职责</th>
-          <th>核心技术</th>
-          <th>对标云知声</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><strong>L1 资源层</strong></td>
-          <td>物理资源抽象</td>
-          <td>GPU/CPU/存储/网络硬件</td>
-          <td>百卡集群硬件基础设施</td>
-      </tr>
-      <tr>
-          <td><strong>L2 容器化层</strong></td>
-          <td>资源编排与隔离</td>
-          <td>K8s + GPU Device Plugin + NVIDIA Operator</td>
-          <td>容器化 GPU 资源管理</td>
-      </tr>
-      <tr>
-          <td><strong>L3 框架层</strong></td>
-          <td>AI 工作负载执行</td>
-          <td>DeepSpeed + Ray + vLLM</td>
-          <td>训练/推理框架栈</td>
-      </tr>
-      <tr>
-          <td><strong>L4 MaaS 服务层</strong></td>
-          <td>面向用户的服务暴露</td>
-          <td>API 网关 + 多租户 + 模型集市</td>
-          <td>MaaS 服务门户</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>层级</th>
+<th>职责</th>
+<th>核心技术</th>
+<th>对标云知声</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>L1 资源层</strong></td>
+<td>物理资源抽象</td>
+<td>GPU/CPU/存储/网络硬件</td>
+<td>百卡集群硬件基础设施</td>
+</tr>
+<tr>
+<td><strong>L2 容器化层</strong></td>
+<td>资源编排与隔离</td>
+<td>K8s + GPU Device Plugin + NVIDIA Operator</td>
+<td>容器化 GPU 资源管理</td>
+</tr>
+<tr>
+<td><strong>L3 框架层</strong></td>
+<td>AI 工作负载执行</td>
+<td>DeepSpeed + Ray + vLLM</td>
+<td>训练/推理框架栈</td>
+</tr>
+<tr>
+<td><strong>L4 MaaS 服务层</strong></td>
+<td>面向用户的服务暴露</td>
+<td>API 网关 + 多租户 + 模型集市</td>
+<td>MaaS 服务门户</td>
+</tr>
+</tbody>
 </table>
 <p><strong>设计原则</strong>: 每层通过明确的 API 与上下层交互。L3 不感知 L1 的物理拓扑，L4 不感知 L3 的框架细节。</p>
 <h2 id="22-技术选型">
@@ -3115,40 +3196,40 @@ https://github.com/alex-shpak/hugo-book
 </h3>
 <p><strong>Kubernetes</strong><sup id="fnref:15"><a href="#fn:15" class="footnote-ref" role="doc-noteref">15</a></sup> 作为容器编排平台的核心组件：</p>
 <table>
-  <thead>
-      <tr>
-          <th>组件</th>
-          <th>作用</th>
-          <th>版本建议</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><strong>GPU Device Plugin</strong><sup id="fnref:16"><a href="#fn:16" class="footnote-ref" role="doc-noteref">16</a></sup></td>
-          <td>向 K8s 报告 GPU 资源</td>
-          <td>v0.14+</td>
-      </tr>
-      <tr>
-          <td><strong>NVIDIA GPU Operator</strong><sup id="fnref:17"><a href="#fn:17" class="footnote-ref" role="doc-noteref">17</a></sup></td>
-          <td>自动部署驱动、Container Toolkit、DCGM</td>
-          <td>v23.9+</td>
-      </tr>
-      <tr>
-          <td><strong>Container Toolkit</strong><sup id="fnref:18"><a href="#fn:18" class="footnote-ref" role="doc-noteref">18</a></sup></td>
-          <td>容器内 GPU 访问</td>
-          <td>v1.14+</td>
-      </tr>
-      <tr>
-          <td><strong>DCGM Exporter</strong><sup id="fnref:19"><a href="#fn:19" class="footnote-ref" role="doc-noteref">19</a></sup></td>
-          <td>GPU 监控指标采集</td>
-          <td>v3.2+</td>
-      </tr>
-      <tr>
-          <td><strong>MIG Manager</strong><sup id="fnref:20"><a href="#fn:20" class="footnote-ref" role="doc-noteref">20</a></sup></td>
-          <td>A100/H100 MIG 切片管理</td>
-          <td>—</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>组件</th>
+<th>作用</th>
+<th>版本建议</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>GPU Device Plugin</strong><sup id="fnref:16"><a href="#fn:16" class="footnote-ref" role="doc-noteref">16</a></sup></td>
+<td>向 K8s 报告 GPU 资源</td>
+<td>v0.14+</td>
+</tr>
+<tr>
+<td><strong>NVIDIA GPU Operator</strong><sup id="fnref:17"><a href="#fn:17" class="footnote-ref" role="doc-noteref">17</a></sup></td>
+<td>自动部署驱动、Container Toolkit、DCGM</td>
+<td>v23.9+</td>
+</tr>
+<tr>
+<td><strong>Container Toolkit</strong><sup id="fnref:18"><a href="#fn:18" class="footnote-ref" role="doc-noteref">18</a></sup></td>
+<td>容器内 GPU 访问</td>
+<td>v1.14+</td>
+</tr>
+<tr>
+<td><strong>DCGM Exporter</strong><sup id="fnref:19"><a href="#fn:19" class="footnote-ref" role="doc-noteref">19</a></sup></td>
+<td>GPU 监控指标采集</td>
+<td>v3.2+</td>
+</tr>
+<tr>
+<td><strong>MIG Manager</strong><sup id="fnref:20"><a href="#fn:20" class="footnote-ref" role="doc-noteref">20</a></sup></td>
+<td>A100/H100 MIG 切片管理</td>
+<td>—</td>
+</tr>
+</tbody>
 </table>
 <h2 id="23-异构算力纳管">
   2.3 异构算力纳管
@@ -3286,7 +3367,8 @@ https://github.com/alex-shpak/hugo-book
   <a class="anchor" href="#%e4%b8%89%e7%bd%91%e7%bb%9c%e9%9a%94%e7%a6%bb%e6%96%b9%e6%a1%88%e6%a0%b8%e5%bf%83%e7%ab%a0%e8%8a%82">#</a>
 </h1>
 <blockquote>
-<p><strong>网络是百卡 MaaS 平台的第一瓶颈。</strong> 一个设计不当的网络架构，将使 GPU 利用率从 90% 跌至 40% 以下。本章详细阐述网络隔离的完整方案。</p></blockquote>
+<p><strong>网络是百卡 MaaS 平台的第一瓶颈。</strong> 一个设计不当的网络架构，将使 GPU 利用率从 90% 跌至 40% 以下。本章详细阐述网络隔离的完整方案。</p>
+</blockquote>
 <h2 id="31-四网物理分离">
   3.1 四网物理分离
   <a class="anchor" href="#31-%e5%9b%9b%e7%bd%91%e7%89%a9%e7%90%86%e5%88%86%e7%a6%bb">#</a>
@@ -3334,52 +3416,52 @@ https://github.com/alex-shpak/hugo-book
     style NIC_S2 fill:#ff6b6b,color:#fff
     style NIC_M fill:#4a90d9,color:#fff</pre>
 <table>
-  <thead>
-      <tr>
-          <th>网络</th>
-          <th>带宽</th>
-          <th>技术</th>
-          <th>承载流量</th>
-          <th>VLAN/子网</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><strong>管理网</strong></td>
-          <td>10 GbE</td>
-          <td>TCP/IP</td>
-          <td>K8s API、SSH、Prometheus 采集、日志</td>
-          <td>VLAN 100</td>
-      </tr>
-      <tr>
-          <td><strong>计算网 (主)</strong></td>
-          <td>200G IB</td>
-          <td>RDMA/RoCE</td>
-          <td>NCCL AllReduce/AllGather</td>
-          <td>—</td>
-      </tr>
-      <tr>
-          <td><strong>计算网 (备)</strong></td>
-          <td>200G IB</td>
-          <td>RDMA/RoCE</td>
-          <td>NCCL 冗余链路</td>
-          <td>—</td>
-      </tr>
-      <tr>
-          <td><strong>存储网 (主)</strong></td>
-          <td>100G RoCE</td>
-          <td>RDMA/NVMe-oF</td>
-          <td>训练数据读取、Checkpoint 写入</td>
-          <td>VLAN 200</td>
-      </tr>
-      <tr>
-          <td><strong>存储网 (备)</strong></td>
-          <td>100G RoCE</td>
-          <td>RDMA/NVMe-oF</td>
-          <td>存储冗余链路</td>
-          <td>VLAN 201</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>网络</th>
+<th>带宽</th>
+<th>技术</th>
+<th>承载流量</th>
+<th>VLAN/子网</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>管理网</strong></td>
+<td>10 GbE</td>
+<td>TCP/IP</td>
+<td>K8s API、SSH、Prometheus 采集、日志</td>
+<td>VLAN 100</td>
+</tr>
+<tr>
+<td><strong>计算网 (主)</strong></td>
+<td>200G IB</td>
+<td>RDMA/RoCE</td>
+<td>NCCL AllReduce/AllGather</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>计算网 (备)</strong></td>
+<td>200G IB</td>
+<td>RDMA/RoCE</td>
+<td>NCCL 冗余链路</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>存储网 (主)</strong></td>
+<td>100G RoCE</td>
+<td>RDMA/NVMe-oF</td>
+<td>训练数据读取、Checkpoint 写入</td>
+<td>VLAN 200</td>
+</tr>
+<tr>
+<td><strong>存储网 (备)</strong></td>
+<td>100G RoCE</td>
+<td>RDMA/NVMe-oF</td>
+<td>存储冗余链路</td>
+<td>VLAN 201</td>
+</tr>
+</tbody>
 </table>
 <h2 id="32-机内互联pcie-vs-nvlink-vs-nvswitch">
   3.2 机内互联：PCIe vs NVLink vs NVSwitch
@@ -3482,60 +3564,60 @@ HCCS (Ascend)      392            100          全互联
   <a class="anchor" href="#331-ib-vs-roce-%e6%b7%b1%e5%ba%a6%e5%af%b9%e6%af%94">#</a>
 </h3>
 <table>
-  <thead>
-      <tr>
-          <th>维度</th>
-          <th>InfiniBand (IB)</th>
-          <th>RoCE v2</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><strong>协议</strong></td>
-          <td>独立网络协议</td>
-          <td>UDP/IP 上的 RDMA</td>
-      </tr>
-      <tr>
-          <td><strong>交换机</strong></td>
-          <td>NVIDIA Quantum 专用交换机</td>
-          <td>标准以太网交换机（需 PFC/ECN）</td>
-      </tr>
-      <tr>
-          <td><strong>延迟</strong></td>
-          <td>~1.3 μs</td>
-          <td>~2-4 μs（含 PFC 开销）</td>
-      </tr>
-      <tr>
-          <td><strong>带宽</strong></td>
-          <td>200G/400G HDR/NDR</td>
-          <td>100G/200G/400G</td>
-      </tr>
-      <tr>
-          <td><strong>拥塞控制</strong></td>
-          <td>基于信用的原生机制</td>
-          <td>PFC (Priority Flow Control) + ECN</td>
-      </tr>
-      <tr>
-          <td><strong>部署复杂度</strong></td>
-          <td>高（需要专用 IB 交换机）</td>
-          <td>中（需配置 DCB/PFC）</td>
-      </tr>
-      <tr>
-          <td><strong>成本</strong></td>
-          <td>高（IB 交换机单价 ~$10k+）</td>
-          <td>低（标准以太网交换机）</td>
-      </tr>
-      <tr>
-          <td><strong>NVIDIA 官方推荐</strong></td>
-          <td>✅ SuperPOD 标准方案</td>
-          <td>⚠️ 仅用于推理/边缘</td>
-      </tr>
-      <tr>
-          <td><strong>适用场景</strong></td>
-          <td>训练 AllReduce</td>
-          <td>推理 + 中小规模训练</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>维度</th>
+<th>InfiniBand (IB)</th>
+<th>RoCE v2</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>协议</strong></td>
+<td>独立网络协议</td>
+<td>UDP/IP 上的 RDMA</td>
+</tr>
+<tr>
+<td><strong>交换机</strong></td>
+<td>NVIDIA Quantum 专用交换机</td>
+<td>标准以太网交换机（需 PFC/ECN）</td>
+</tr>
+<tr>
+<td><strong>延迟</strong></td>
+<td>~1.3 μs</td>
+<td>~2-4 μs（含 PFC 开销）</td>
+</tr>
+<tr>
+<td><strong>带宽</strong></td>
+<td>200G/400G HDR/NDR</td>
+<td>100G/200G/400G</td>
+</tr>
+<tr>
+<td><strong>拥塞控制</strong></td>
+<td>基于信用的原生机制</td>
+<td>PFC (Priority Flow Control) + ECN</td>
+</tr>
+<tr>
+<td><strong>部署复杂度</strong></td>
+<td>高（需要专用 IB 交换机）</td>
+<td>中（需配置 DCB/PFC）</td>
+</tr>
+<tr>
+<td><strong>成本</strong></td>
+<td>高（IB 交换机单价 ~$10k+）</td>
+<td>低（标准以太网交换机）</td>
+</tr>
+<tr>
+<td><strong>NVIDIA 官方推荐</strong></td>
+<td>✅ SuperPOD 标准方案</td>
+<td>⚠️ 仅用于推理/边缘</td>
+</tr>
+<tr>
+<td><strong>适用场景</strong></td>
+<td>训练 AllReduce</td>
+<td>推理 + 中小规模训练</td>
+</tr>
+</tbody>
 </table>
 <h3 id="332-gpudirect-rdma">
   3.3.2 GPUDirect RDMA
@@ -3660,50 +3742,50 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
   <a class="anchor" href="#%e9%9b%86%e7%be%a4%e8%af%a6%e7%bb%86%e8%a7%84%e6%a0%bc">#</a>
 </h3>
 <table>
-  <thead>
-      <tr>
-          <th>集群</th>
-          <th>节点数</th>
-          <th>GPU 规格</th>
-          <th>网络</th>
-          <th>存储</th>
-          <th>典型工作负载</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><strong>A 训练</strong></td>
-          <td>50</td>
-          <td>A800 80G ×8 / 节点</td>
-          <td>200G IB HDR</td>
-          <td>本地 NVMe + Ceph</td>
-          <td>DeepSpeed 训练</td>
-      </tr>
-      <tr>
-          <td><strong>B 推理+微调</strong></td>
-          <td>25</td>
-          <td>A10 24G / A6000 48G</td>
-          <td>25G-100G RoCE</td>
-          <td>Ceph + 对象存储</td>
-          <td>vLLM 推理</td>
-      </tr>
-      <tr>
-          <td><strong>C CPU 数据</strong></td>
-          <td>15</td>
-          <td>无 GPU, 128C/节点</td>
-          <td>25G RoCE</td>
-          <td>Ceph 挂载</td>
-          <td>Spark ETL</td>
-      </tr>
-      <tr>
-          <td><strong>D 存储</strong></td>
-          <td>10</td>
-          <td>—</td>
-          <td>100G RoCE ×2</td>
-          <td>2PB NVMe</td>
-          <td>Ceph OSD</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>集群</th>
+<th>节点数</th>
+<th>GPU 规格</th>
+<th>网络</th>
+<th>存储</th>
+<th>典型工作负载</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>A 训练</strong></td>
+<td>50</td>
+<td>A800 80G ×8 / 节点</td>
+<td>200G IB HDR</td>
+<td>本地 NVMe + Ceph</td>
+<td>DeepSpeed 训练</td>
+</tr>
+<tr>
+<td><strong>B 推理+微调</strong></td>
+<td>25</td>
+<td>A10 24G / A6000 48G</td>
+<td>25G-100G RoCE</td>
+<td>Ceph + 对象存储</td>
+<td>vLLM 推理</td>
+</tr>
+<tr>
+<td><strong>C CPU 数据</strong></td>
+<td>15</td>
+<td>无 GPU, 128C/节点</td>
+<td>25G RoCE</td>
+<td>Ceph 挂载</td>
+<td>Spark ETL</td>
+</tr>
+<tr>
+<td><strong>D 存储</strong></td>
+<td>10</td>
+<td>—</td>
+<td>100G RoCE ×2</td>
+<td>2PB NVMe</td>
+<td>Ceph OSD</td>
+</tr>
+</tbody>
 </table>
 <h3 id="k8s-集群组织">
   K8s 集群组织
@@ -3743,52 +3825,52 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
 </h3>
 <p>每台训练节点配置 5 张网卡：</p>
 <table>
-  <thead>
-      <tr>
-          <th>网卡</th>
-          <th>接口名</th>
-          <th>带宽</th>
-          <th>用途</th>
-          <th>绑定策略</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>eth0</td>
-          <td>管理网</td>
-          <td>10G</td>
-          <td>K8s 流量、SSH、监控</td>
-          <td>bond0 (active-backup)</td>
-      </tr>
-      <tr>
-          <td>NW1</td>
-          <td>计算网</td>
-          <td>200G IB</td>
-          <td>NCCL 通信 (主)</td>
-          <td>—</td>
-      </tr>
-      <tr>
-          <td>NW2</td>
-          <td>计算网</td>
-          <td>200G IB</td>
-          <td>NCCL 通信 (备)</td>
-          <td>—</td>
-      </tr>
-      <tr>
-          <td>NW3</td>
-          <td>存储网</td>
-          <td>100G</td>
-          <td>数据读取 (主)</td>
-          <td>bond1 (LACP)</td>
-      </tr>
-      <tr>
-          <td>NW4</td>
-          <td>存储网</td>
-          <td>100G</td>
-          <td>数据读取 (备)</td>
-          <td>bond1 (LACP)</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>网卡</th>
+<th>接口名</th>
+<th>带宽</th>
+<th>用途</th>
+<th>绑定策略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>eth0</td>
+<td>管理网</td>
+<td>10G</td>
+<td>K8s 流量、SSH、监控</td>
+<td>bond0 (active-backup)</td>
+</tr>
+<tr>
+<td>NW1</td>
+<td>计算网</td>
+<td>200G IB</td>
+<td>NCCL 通信 (主)</td>
+<td>—</td>
+</tr>
+<tr>
+<td>NW2</td>
+<td>计算网</td>
+<td>200G IB</td>
+<td>NCCL 通信 (备)</td>
+<td>—</td>
+</tr>
+<tr>
+<td>NW3</td>
+<td>存储网</td>
+<td>100G</td>
+<td>数据读取 (主)</td>
+<td>bond1 (LACP)</td>
+</tr>
+<tr>
+<td>NW4</td>
+<td>存储网</td>
+<td>100G</td>
+<td>数据读取 (备)</td>
+<td>bond1 (LACP)</td>
+</tr>
+</tbody>
 </table>
 <h3 id="352-nccl-多网卡配置">
   3.5.2 NCCL 多网卡配置
@@ -3826,66 +3908,66 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
   <a class="anchor" href="#36-%e4%b8%8d%e5%90%8c%e5%b9%b6%e8%a1%8c%e7%ad%96%e7%95%a5%e5%af%b9%e7%bd%91%e7%bb%9c%e8%a6%81%e6%b1%82">#</a>
 </h2>
 <table>
-  <thead>
-      <tr>
-          <th>并行策略</th>
-          <th>通信原语</th>
-          <th>带宽需求</th>
-          <th>延迟需求</th>
-          <th>推荐网络</th>
-          <th>通信占比</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><strong>数据并行 (DP)</strong></td>
-          <td>AllReduce</td>
-          <td>高 (≥100G)</td>
-          <td>中 (≤10μs)</td>
-          <td>200G IB</td>
-          <td>20%-30%</td>
-      </tr>
-      <tr>
-          <td><strong>ZeRO-DP</strong></td>
-          <td>AllReduce (优化器)</td>
-          <td>中 (≥50G)</td>
-          <td>中</td>
-          <td>200G IB</td>
-          <td>15%-25%</td>
-      </tr>
-      <tr>
-          <td><strong>张量并行 (TP)</strong></td>
-          <td>AllReduce + AllGather</td>
-          <td>极高 (≥400G)</td>
-          <td>极高 (≤1μs)</td>
-          <td>NVLink (机内)</td>
-          <td>30%-40%</td>
-      </tr>
-      <tr>
-          <td><strong>流水线并行 (PP)</strong></td>
-          <td>P2P Send/Recv</td>
-          <td>低 (≥25G)</td>
-          <td>高 (≤5μs)</td>
-          <td>200G IB</td>
-          <td>5%-15%</td>
-      </tr>
-      <tr>
-          <td><strong>序列并行 (SP)</strong></td>
-          <td>AllGather + ReduceScatter</td>
-          <td>中 (≥50G)</td>
-          <td>中</td>
-          <td>200G IB</td>
-          <td>10%-20%</td>
-      </tr>
-      <tr>
-          <td><strong>专家并行 (MoE)</strong></td>
-          <td>All-to-All</td>
-          <td>高 (≥200G)</td>
-          <td>高</td>
-          <td>200G IB</td>
-          <td>30%-50%</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>并行策略</th>
+<th>通信原语</th>
+<th>带宽需求</th>
+<th>延迟需求</th>
+<th>推荐网络</th>
+<th>通信占比</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>数据并行 (DP)</strong></td>
+<td>AllReduce</td>
+<td>高 (≥100G)</td>
+<td>中 (≤10μs)</td>
+<td>200G IB</td>
+<td>20%-30%</td>
+</tr>
+<tr>
+<td><strong>ZeRO-DP</strong></td>
+<td>AllReduce (优化器)</td>
+<td>中 (≥50G)</td>
+<td>中</td>
+<td>200G IB</td>
+<td>15%-25%</td>
+</tr>
+<tr>
+<td><strong>张量并行 (TP)</strong></td>
+<td>AllReduce + AllGather</td>
+<td>极高 (≥400G)</td>
+<td>极高 (≤1μs)</td>
+<td>NVLink (机内)</td>
+<td>30%-40%</td>
+</tr>
+<tr>
+<td><strong>流水线并行 (PP)</strong></td>
+<td>P2P Send/Recv</td>
+<td>低 (≥25G)</td>
+<td>高 (≤5μs)</td>
+<td>200G IB</td>
+<td>5%-15%</td>
+</tr>
+<tr>
+<td><strong>序列并行 (SP)</strong></td>
+<td>AllGather + ReduceScatter</td>
+<td>中 (≥50G)</td>
+<td>中</td>
+<td>200G IB</td>
+<td>10%-20%</td>
+</tr>
+<tr>
+<td><strong>专家并行 (MoE)</strong></td>
+<td>All-to-All</td>
+<td>高 (≥200G)</td>
+<td>高</td>
+<td>200G IB</td>
+<td>30%-50%</td>
+</tr>
+</tbody>
 </table>
 <p><strong>关键公式</strong><sup id="fnref1:2"><a href="#fn:2" class="footnote-ref" role="doc-noteref">2</a></sup>: 对于 $T$ 卡 TP，单次前向传播的通信时间为：</p>
 <p>$$T_{tp} = \frac{2 \cdot (T-1) \cdot B \cdot H \cdot S}{T \cdot B_{nw}} + 2L$$</p>
@@ -4023,35 +4105,35 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
   <a class="anchor" href="#391-mtu-%e9%85%8d%e7%bd%ae">#</a>
 </h3>
 <table>
-  <thead>
-      <tr>
-          <th>网络</th>
-          <th>MTU</th>
-          <th>说明</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>管理网 (eth0)</td>
-          <td>1500</td>
-          <td>标准以太网 MTU</td>
-      </tr>
-      <tr>
-          <td>计算网 (IB)</td>
-          <td>4092</td>
-          <td>IB 默认 MTU，NCCL 优化</td>
-      </tr>
-      <tr>
-          <td>存储网 (RoCE)</td>
-          <td>9000</td>
-          <td>Jumbo Frame，减少包开销</td>
-      </tr>
-      <tr>
-          <td>容器网络 (CNI)</td>
-          <td>1450</td>
-          <td>VXLAN overlay 开销 (50 bytes)</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>网络</th>
+<th>MTU</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>管理网 (eth0)</td>
+<td>1500</td>
+<td>标准以太网 MTU</td>
+</tr>
+<tr>
+<td>计算网 (IB)</td>
+<td>4092</td>
+<td>IB 默认 MTU，NCCL 优化</td>
+</tr>
+<tr>
+<td>存储网 (RoCE)</td>
+<td>9000</td>
+<td>Jumbo Frame，减少包开销</td>
+</tr>
+<tr>
+<td>容器网络 (CNI)</td>
+<td>1450</td>
+<td>VXLAN overlay 开销 (50 bytes)</td>
+</tr>
+</tbody>
 </table>
 <p><strong>MTU 一致性检查脚本</strong>:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#e6db74">&#34;&#34;&#34;
@@ -4110,55 +4192,55 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
   <a class="anchor" href="#392-%e7%bd%91%e7%bb%9c%e6%8e%92%e9%9a%9c%e5%b7%a5%e5%85%b7%e9%93%be">#</a>
 </h3>
 <table>
-  <thead>
-      <tr>
-          <th>工具</th>
-          <th>用途</th>
-          <th>命令示例</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><code>ibstat</code></td>
-          <td>IB 设备状态</td>
-          <td>`ibstat | grep -E &lsquo;State</td>
-      </tr>
-      <tr>
-          <td><code>ibv_devinfo</code></td>
-          <td>RDMA 设备信息</td>
-          <td><code>ibv_devinfo</code></td>
-      </tr>
-      <tr>
-          <td><code>perftest</code></td>
-          <td>RDMA 带宽/延迟测试</td>
-          <td><code>ib_write_bw -d mlx5_0</code></td>
-      </tr>
-      <tr>
-          <td><code>nccl-tests</code></td>
-          <td>NCCL 通信性能</td>
-          <td><code>build/all_reduce_perf -b 8 -e 128M -f 2 -g 8</code></td>
-      </tr>
-      <tr>
-          <td><code>ibdiagnet</code></td>
-          <td>IB 网络诊断</td>
-          <td><code>ibdiagnet -c</code></td>
-      </tr>
-      <tr>
-          <td><code>ethtool</code></td>
-          <td>网卡诊断</td>
-          <td><code>ethtool -S eth0</code></td>
-      </tr>
-      <tr>
-          <td><code>tc</code></td>
-          <td>流量控制/PFC</td>
-          <td><code>tc qdisc show dev bond1</code></td>
-      </tr>
-      <tr>
-          <td><code>ping</code> + <code>mtr</code></td>
-          <td>基础连通性</td>
-          <td><code>mtr -n &lt;target&gt;</code></td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>工具</th>
+<th>用途</th>
+<th>命令示例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ibstat</code></td>
+<td>IB 设备状态</td>
+<td>`ibstat | grep -E &lsquo;State</td>
+</tr>
+<tr>
+<td><code>ibv_devinfo</code></td>
+<td>RDMA 设备信息</td>
+<td><code>ibv_devinfo</code></td>
+</tr>
+<tr>
+<td><code>perftest</code></td>
+<td>RDMA 带宽/延迟测试</td>
+<td><code>ib_write_bw -d mlx5_0</code></td>
+</tr>
+<tr>
+<td><code>nccl-tests</code></td>
+<td>NCCL 通信性能</td>
+<td><code>build/all_reduce_perf -b 8 -e 128M -f 2 -g 8</code></td>
+</tr>
+<tr>
+<td><code>ibdiagnet</code></td>
+<td>IB 网络诊断</td>
+<td><code>ibdiagnet -c</code></td>
+</tr>
+<tr>
+<td><code>ethtool</code></td>
+<td>网卡诊断</td>
+<td><code>ethtool -S eth0</code></td>
+</tr>
+<tr>
+<td><code>tc</code></td>
+<td>流量控制/PFC</td>
+<td><code>tc qdisc show dev bond1</code></td>
+</tr>
+<tr>
+<td><code>ping</code> + <code>mtr</code></td>
+<td>基础连通性</td>
+<td><code>mtr -n &lt;target&gt;</code></td>
+</tr>
+</tbody>
 </table>
 <p><strong>NCCL 性能基准测试</strong>:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># 安装 nccl-tests</span>
@@ -4221,42 +4303,42 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
   <a class="anchor" href="#%e5%90%84%e7%ba%a7%e7%bc%93%e5%ad%98%e8%af%a6%e7%bb%86%e8%a7%84%e6%a0%bc">#</a>
 </h3>
 <table>
-  <thead>
-      <tr>
-          <th>层级</th>
-          <th>技术</th>
-          <th>容量</th>
-          <th>吞吐</th>
-          <th>延迟</th>
-          <th>用途</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><strong>L1</strong></td>
-          <td>NVMe SSD (本地)</td>
-          <td>3.84TB/节点</td>
-          <td>3-7 GB/s</td>
-          <td>&lt; 100 μs</td>
-          <td>DataLoader 热数据、临时 Checkpoint</td>
-      </tr>
-      <tr>
-          <td><strong>L2</strong></td>
-          <td>CephFS / Lustre</td>
-          <td>1-2 PB</td>
-          <td>400 GB/s 聚合</td>
-          <td>1-10 ms</td>
-          <td>训练数据集、模型权重、Checkpoint 持久化</td>
-      </tr>
-      <tr>
-          <td><strong>L3</strong></td>
-          <td>MinIO (S3 兼容)</td>
-          <td>弹性扩展</td>
-          <td>10-50 GB/s</td>
-          <td>10-100 ms</td>
-          <td>原始数据归档、模型版本库</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>层级</th>
+<th>技术</th>
+<th>容量</th>
+<th>吞吐</th>
+<th>延迟</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>L1</strong></td>
+<td>NVMe SSD (本地)</td>
+<td>3.84TB/节点</td>
+<td>3-7 GB/s</td>
+<td>&lt; 100 μs</td>
+<td>DataLoader 热数据、临时 Checkpoint</td>
+</tr>
+<tr>
+<td><strong>L2</strong></td>
+<td>CephFS / Lustre</td>
+<td>1-2 PB</td>
+<td>400 GB/s 聚合</td>
+<td>1-10 ms</td>
+<td>训练数据集、模型权重、Checkpoint 持久化</td>
+</tr>
+<tr>
+<td><strong>L3</strong></td>
+<td>MinIO (S3 兼容)</td>
+<td>弹性扩展</td>
+<td>10-50 GB/s</td>
+<td>10-100 ms</td>
+<td>原始数据归档、模型版本库</td>
+</tr>
+</tbody>
 </table>
 <h3 id="l1-本地缓存预热脚本">
   L1 本地缓存预热脚本
@@ -4481,59 +4563,59 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
 </h3>
 <p>训练和数据处理的生命周期不同步：</p>
 <table>
-  <thead>
-      <tr>
-          <th>阶段</th>
-          <th>GPU 需求</th>
-          <th>CPU 需求</th>
-          <th>存储需求</th>
-          <th>持续时间</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>数据采集</td>
-          <td>0</td>
-          <td>中</td>
-          <td>高</td>
-          <td>持续</td>
-      </tr>
-      <tr>
-          <td>数据清洗</td>
-          <td>0</td>
-          <td>高</td>
-          <td>中</td>
-          <td>1-2 周</td>
-      </tr>
-      <tr>
-          <td>训练准备</td>
-          <td>低</td>
-          <td>中</td>
-          <td>高</td>
-          <td>1-2 天</td>
-      </tr>
-      <tr>
-          <td>模型训练</td>
-          <td>高</td>
-          <td>低</td>
-          <td>中</td>
-          <td>1-4 周</td>
-      </tr>
-      <tr>
-          <td>评估</td>
-          <td>中</td>
-          <td>低</td>
-          <td>低</td>
-          <td>1-3 天</td>
-      </tr>
-      <tr>
-          <td>部署推理</td>
-          <td>中</td>
-          <td>低</td>
-          <td>低</td>
-          <td>持续</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>阶段</th>
+<th>GPU 需求</th>
+<th>CPU 需求</th>
+<th>存储需求</th>
+<th>持续时间</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>数据采集</td>
+<td>0</td>
+<td>中</td>
+<td>高</td>
+<td>持续</td>
+</tr>
+<tr>
+<td>数据清洗</td>
+<td>0</td>
+<td>高</td>
+<td>中</td>
+<td>1-2 周</td>
+</tr>
+<tr>
+<td>训练准备</td>
+<td>低</td>
+<td>中</td>
+<td>高</td>
+<td>1-2 天</td>
+</tr>
+<tr>
+<td>模型训练</td>
+<td>高</td>
+<td>低</td>
+<td>中</td>
+<td>1-4 周</td>
+</tr>
+<tr>
+<td>评估</td>
+<td>中</td>
+<td>低</td>
+<td>低</td>
+<td>1-3 天</td>
+</tr>
+<tr>
+<td>部署推理</td>
+<td>中</td>
+<td>低</td>
+<td>低</td>
+<td>持续</td>
+</tr>
+</tbody>
 </table>
 <p>如果计算和存储耦合：</p>
 <ul>
@@ -4626,46 +4708,46 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
 </h3>
 <p>基于独立扩容 vs 耦合架构的对比（100 节点集群，1 年运营周期）：</p>
 <table>
-  <thead>
-      <tr>
-          <th>指标</th>
-          <th>耦合架构</th>
-          <th>独立扩容</th>
-          <th>节省</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>GPU 节点数</td>
-          <td>70</td>
-          <td>50</td>
-          <td>-29%</td>
-      </tr>
-      <tr>
-          <td>CPU 节点数</td>
-          <td>15</td>
-          <td>15 (+15 弹性)</td>
-          <td>按需使用</td>
-      </tr>
-      <tr>
-          <td>存储节点数</td>
-          <td>15</td>
-          <td>10 (+5 弹性)</td>
-          <td>-33%</td>
-      </tr>
-      <tr>
-          <td>空闲资源浪费</td>
-          <td>~35%</td>
-          <td>~8%</td>
-          <td>-77%</td>
-      </tr>
-      <tr>
-          <td>年度运营成本</td>
-          <td>¥850 万</td>
-          <td>¥520 万</td>
-          <td><strong>-39%</strong></td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>指标</th>
+<th>耦合架构</th>
+<th>独立扩容</th>
+<th>节省</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GPU 节点数</td>
+<td>70</td>
+<td>50</td>
+<td>-29%</td>
+</tr>
+<tr>
+<td>CPU 节点数</td>
+<td>15</td>
+<td>15 (+15 弹性)</td>
+<td>按需使用</td>
+</tr>
+<tr>
+<td>存储节点数</td>
+<td>15</td>
+<td>10 (+5 弹性)</td>
+<td>-33%</td>
+</tr>
+<tr>
+<td>空闲资源浪费</td>
+<td>~35%</td>
+<td>~8%</td>
+<td>-77%</td>
+</tr>
+<tr>
+<td>年度运营成本</td>
+<td>¥850 万</td>
+<td>¥520 万</td>
+<td><strong>-39%</strong></td>
+</tr>
+</tbody>
 </table>
 <hr>
 <h2 id="参考资料">
@@ -4678,7 +4760,8 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
   <a class="anchor" href="#%e7%ac%ac%e4%ba%8c%e9%83%a8%e5%88%86%e8%ae%a1%e7%ae%97%e8%ae%ad%e7%bb%83%e6%8e%a8%e7%90%86%e4%b8%8e%e6%95%b0%e6%8d%ae">#</a>
 </h1>
 <blockquote>
-<p>当 100 块 GPU 同时运转时，资源不再是&quot;算力&quot;，而是需要被编排、调度、容错和度量的分布式系统。DDIA 的视角提醒我们：<strong>数据与计算必须就近放置</strong>，而 GPU 集群的核心矛盾正是——<strong>昂贵的加速器与不确定的故障共存</strong>。云知声的百卡实践，本质上是在 Kubernetes 之上重建一套&quot;GPU 时代的操作系统&quot;。</p></blockquote>
+<p>当 100 块 GPU 同时运转时，资源不再是&quot;算力&quot;，而是需要被编排、调度、容错和度量的分布式系统。DDIA 的视角提醒我们：<strong>数据与计算必须就近放置</strong>，而 GPU 集群的核心矛盾正是——<strong>昂贵的加速器与不确定的故障共存</strong>。云知声的百卡实践，本质上是在 Kubernetes 之上重建一套&quot;GPU 时代的操作系统&quot;。</p>
+</blockquote>
 <hr>
 <h2 id="五计算资源管理">
   五、计算资源管理
@@ -4696,34 +4779,34 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
 </h3>
 <p>在云知声的百卡集群中，GPU 资源按用途分为两个独立池：</p>
 <table>
-  <thead>
-      <tr>
-          <th>池类型</th>
-          <th>典型卡型</th>
-          <th>显存</th>
-          <th>互联</th>
-          <th>适用场景</th>
-          <th>调度策略</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><strong>训练卡池</strong></td>
-          <td>A800 80GB / A100 80GB / H100 80GB</td>
-          <td>80GB</td>
-          <td>NVLink 900 GB/s + NVSwitch</td>
-          <td>预训练、SFT</td>
-          <td>拓扑感知 + Gang Scheduling</td>
-      </tr>
-      <tr>
-          <td><strong>推理卡池</strong></td>
-          <td>A10 24GB / L40S 48GB / A6000 48GB</td>
-          <td>24–48GB</td>
-          <td>PCIe Gen4 ×16</td>
-          <td>在线推理、批量推理</td>
-          <td>Binpack + 弹性伸缩</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>池类型</th>
+<th>典型卡型</th>
+<th>显存</th>
+<th>互联</th>
+<th>适用场景</th>
+<th>调度策略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>训练卡池</strong></td>
+<td>A800 80GB / A100 80GB / H100 80GB</td>
+<td>80GB</td>
+<td>NVLink 900 GB/s + NVSwitch</td>
+<td>预训练、SFT</td>
+<td>拓扑感知 + Gang Scheduling</td>
+</tr>
+<tr>
+<td><strong>推理卡池</strong></td>
+<td>A10 24GB / L40S 48GB / A6000 48GB</td>
+<td>24–48GB</td>
+<td>PCIe Gen4 ×16</td>
+<td>在线推理、批量推理</td>
+<td>Binpack + 弹性伸缩</td>
+</tr>
+</tbody>
 </table>
 <p>池化的核心原则是<strong>物理隔离 + 逻辑统一调度</strong>：</p>
 <pre tabindex="0"><code>┌───────────────────────────────────────────────────────┐
@@ -4811,45 +4894,45 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
     end</pre>
 <p><strong>GPU Operator 的核心组件</strong>：</p>
 <table>
-  <thead>
-      <tr>
-          <th>组件</th>
-          <th>作用</th>
-          <th>部署方式</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><strong>Node Feature Discovery</strong></td>
-          <td>检测节点 GPU 型号、驱动版本、拓扑</td>
-          <td>DaemonSet</td>
-      </tr>
-      <tr>
-          <td><strong>Driver Container</strong></td>
-          <td>在容器中运行 NVIDIA 驱动，无需宿主机安装</td>
-          <td>DaemonSet（特权）</td>
-      </tr>
-      <tr>
-          <td><strong>Container Toolkit</strong></td>
-          <td>配置 containerd/docker 使用 nvidia 运行时</td>
-          <td>DaemonSet</td>
-      </tr>
-      <tr>
-          <td><strong>GPU Device Plugin</strong></td>
-          <td>向 Kubelet 注册 GPU 资源</td>
-          <td>DaemonSet</td>
-      </tr>
-      <tr>
-          <td><strong>DCGM Exporter</strong></td>
-          <td>GPU 指标采集（温度、功耗、利用率、ECC）</td>
-          <td>DaemonSet + ServiceMonitor</td>
-      </tr>
-      <tr>
-          <td><strong>MIG Manager</strong></td>
-          <td>A100 的 MIG（多实例 GPU）切分管理</td>
-          <td>DaemonSet</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>组件</th>
+<th>作用</th>
+<th>部署方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Node Feature Discovery</strong></td>
+<td>检测节点 GPU 型号、驱动版本、拓扑</td>
+<td>DaemonSet</td>
+</tr>
+<tr>
+<td><strong>Driver Container</strong></td>
+<td>在容器中运行 NVIDIA 驱动，无需宿主机安装</td>
+<td>DaemonSet（特权）</td>
+</tr>
+<tr>
+<td><strong>Container Toolkit</strong></td>
+<td>配置 containerd/docker 使用 nvidia 运行时</td>
+<td>DaemonSet</td>
+</tr>
+<tr>
+<td><strong>GPU Device Plugin</strong></td>
+<td>向 Kubelet 注册 GPU 资源</td>
+<td>DaemonSet</td>
+</tr>
+<tr>
+<td><strong>DCGM Exporter</strong></td>
+<td>GPU 指标采集（温度、功耗、利用率、ECC）</td>
+<td>DaemonSet + ServiceMonitor</td>
+</tr>
+<tr>
+<td><strong>MIG Manager</strong></td>
+<td>A100 的 MIG（多实例 GPU）切分管理</td>
+<td>DaemonSet</td>
+</tr>
+</tbody>
 </table>
 <p><strong>安装后的验证链路</strong>：</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># 1. 验证节点 GPU 资源已注册</span>
@@ -4925,38 +5008,38 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
   <a class="anchor" href="#%e4%b8%89%e5%a4%a7%e8%b0%83%e5%ba%a6%e7%ad%96%e7%95%a5%e5%af%b9%e6%af%94">#</a>
 </h4>
 <table>
-  <thead>
-      <tr>
-          <th>策略</th>
-          <th>适用场景</th>
-          <th>资源利用率影响</th>
-          <th>调度延迟影响</th>
-          <th>风险</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><strong>Gang Scheduling</strong></td>
-          <td>分布式训练（多 Pod 协同）</td>
-          <td>可能短期降低利用率（等待齐套）</td>
-          <td>增加调度延迟（模拟调度开销）</td>
-          <td>超时后资源释放，任务需重试</td>
-      </tr>
-      <tr>
-          <td><strong>Binpack</strong></td>
-          <td>推理服务（单卡/少卡）</td>
-          <td>提高碎片利用率，减少&quot;碎片节点&quot;</td>
-          <td>无额外延迟</td>
-          <td>可能导致单节点过载</td>
-      </tr>
-      <tr>
-          <td><strong>弹性 + 抢占</strong></td>
-          <td>混合负载（高优 + 低优共存）</td>
-          <td>最大化集群整体利用率</td>
-          <td>抢占造成低优任务中断</td>
-          <td>低优任务需支持断点续训</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>策略</th>
+<th>适用场景</th>
+<th>资源利用率影响</th>
+<th>调度延迟影响</th>
+<th>风险</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Gang Scheduling</strong></td>
+<td>分布式训练（多 Pod 协同）</td>
+<td>可能短期降低利用率（等待齐套）</td>
+<td>增加调度延迟（模拟调度开销）</td>
+<td>超时后资源释放，任务需重试</td>
+</tr>
+<tr>
+<td><strong>Binpack</strong></td>
+<td>推理服务（单卡/少卡）</td>
+<td>提高碎片利用率，减少&quot;碎片节点&quot;</td>
+<td>无额外延迟</td>
+<td>可能导致单节点过载</td>
+</tr>
+<tr>
+<td><strong>弹性 + 抢占</strong></td>
+<td>混合负载（高优 + 低优共存）</td>
+<td>最大化集群整体利用率</td>
+<td>抢占造成低优任务中断</td>
+<td>低优任务需支持断点续训</td>
+</tr>
+</tbody>
 </table>
 <h4 id="策略三弹性--抢占式调度">
   策略三：弹性 + 抢占式调度
@@ -4986,7 +5069,8 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">nvidia.com/gpu</span>: <span style="color:#ae81ff">36</span>
 </span></span></code></pre></div><p><strong>抢占流程</strong>：当 production-queue 提交训练任务时，若资源不足，Volcano 会从 experimental-queue 中驱逐低优先级 Pod，释放 GPU 资源。被驱逐的 Pod 进入 Pending 状态，等待资源可用时重新调度。</p>
 <blockquote>
-<p><strong>关键要求</strong>：被抢占的训练任务必须支持 Checkpoint 恢复，否则抢占将导致训练进度丢失。云知声要求所有进入 experimental-queue 的任务必须配置 <code>--resume</code> 参数。</p></blockquote>
+<p><strong>关键要求</strong>：被抢占的训练任务必须支持 Checkpoint 恢复，否则抢占将导致训练进度丢失。云知声要求所有进入 experimental-queue 的任务必须配置 <code>--resume</code> 参数。</p>
+</blockquote>
 <h4 id="策略四高性能区调度nvlink--gpudirect-优先">
   策略四：高性能区调度（NVLink + GPUDirect 优先）
   <a class="anchor" href="#%e7%ad%96%e7%95%a5%e5%9b%9b%e9%ab%98%e6%80%a7%e8%83%bd%e5%8c%ba%e8%b0%83%e5%ba%a6nvlink--gpudirect-%e4%bc%98%e5%85%88">#</a>
@@ -5062,46 +5146,46 @@ GDR 路径: GPU显存 → PCIe → NIC → 网络
     style KP fill:#45b7d1</pre>
 <p><strong>伸缩策略的关键参数</strong>：</p>
 <table>
-  <thead>
-      <tr>
-          <th>参数</th>
-          <th>训练队列</th>
-          <th>推理队列</th>
-          <th>说明</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><code>minReplicas</code></td>
-          <td>16</td>
-          <td>4</td>
-          <td>最低保有 GPU 数</td>
-      </tr>
-      <tr>
-          <td><code>maxReplicas</code></td>
-          <td>64</td>
-          <td>36</td>
-          <td>最大弹性上限</td>
-      </tr>
-      <tr>
-          <td><code>scaleUpDelay</code></td>
-          <td>300s</td>
-          <td>60s</td>
-          <td>训练任务等待节点启动</td>
-      </tr>
-      <tr>
-          <td><code>scaleDownDelay</code></td>
-          <td>1800s</td>
-          <td>300s</td>
-          <td>训练节点保留更久</td>
-      </tr>
-      <tr>
-          <td><code>provisioner</code></td>
-          <td>p4d.24xlarge (A100)</td>
-          <td>g5.xlarge (A10)</td>
-          <td>云厂商 GPU 实例规格</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>参数</th>
+<th>训练队列</th>
+<th>推理队列</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>minReplicas</code></td>
+<td>16</td>
+<td>4</td>
+<td>最低保有 GPU 数</td>
+</tr>
+<tr>
+<td><code>maxReplicas</code></td>
+<td>64</td>
+<td>36</td>
+<td>最大弹性上限</td>
+</tr>
+<tr>
+<td><code>scaleUpDelay</code></td>
+<td>300s</td>
+<td>60s</td>
+<td>训练任务等待节点启动</td>
+</tr>
+<tr>
+<td><code>scaleDownDelay</code></td>
+<td>1800s</td>
+<td>300s</td>
+<td>训练节点保留更久</td>
+</tr>
+<tr>
+<td><code>provisioner</code></td>
+<td>p4d.24xlarge (A100)</td>
+<td>g5.xlarge (A10)</td>
+<td>云厂商 GPU 实例规格</td>
+</tr>
+</tbody>
 </table>
 <hr>
 <h2 id="六训练体系">
@@ -5215,70 +5299,70 @@ Stage 3:  ... B0  B0
   <a class="anchor" href="#%e8%ae%ad%e7%bb%83%e6%a1%86%e6%9e%b6%e5%af%b9%e6%af%94">#</a>
 </h4>
 <table>
-  <thead>
-      <tr>
-          <th>框架</th>
-          <th>DP 支持</th>
-          <th>TP 支持</th>
-          <th>PP 支持</th>
-          <th>ZeRO</th>
-          <th>多机多卡</th>
-          <th>容错</th>
-          <th>适用模型规模</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><strong>PyTorch DDP</strong></td>
-          <td>✅</td>
-          <td>❌</td>
-          <td>❌</td>
-          <td>❌</td>
-          <td>✅</td>
-          <td>❌</td>
-          <td>&lt; 10B</td>
-      </tr>
-      <tr>
-          <td><strong>PyTorch FSDP</strong></td>
-          <td>✅</td>
-          <td>✅</td>
-          <td>❌</td>
-          <td>✅(ZeRO-3)</td>
-          <td>✅</td>
-          <td>有限</td>
-          <td>10B–70B</td>
-      </tr>
-      <tr>
-          <td><strong>DeepSpeed</strong></td>
-          <td>✅</td>
-          <td>✅</td>
-          <td>✅</td>
-          <td>✅(ZeRO-1/2/3)</td>
-          <td>✅</td>
-          <td>✅(Elastic)</td>
-          <td>全规模</td>
-      </tr>
-      <tr>
-          <td><strong>Megatron-LM</strong></td>
-          <td>✅</td>
-          <td>✅</td>
-          <td>✅</td>
-          <td>❌(自有实现)</td>
-          <td>✅</td>
-          <td>❌</td>
-          <td>全规模</td>
-      </tr>
-      <tr>
-          <td><strong>Colossal-AI</strong></td>
-          <td>✅</td>
-          <td>✅</td>
-          <td>✅</td>
-          <td>✅(ZeRO)</td>
-          <td>✅</td>
-          <td>有限</td>
-          <td>10B–100B+</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>框架</th>
+<th>DP 支持</th>
+<th>TP 支持</th>
+<th>PP 支持</th>
+<th>ZeRO</th>
+<th>多机多卡</th>
+<th>容错</th>
+<th>适用模型规模</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>PyTorch DDP</strong></td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>&lt; 10B</td>
+</tr>
+<tr>
+<td><strong>PyTorch FSDP</strong></td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>✅(ZeRO-3)</td>
+<td>✅</td>
+<td>有限</td>
+<td>10B–70B</td>
+</tr>
+<tr>
+<td><strong>DeepSpeed</strong></td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅(ZeRO-1/2/3)</td>
+<td>✅</td>
+<td>✅(Elastic)</td>
+<td>全规模</td>
+</tr>
+<tr>
+<td><strong>Megatron-LM</strong></td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌(自有实现)</td>
+<td>✅</td>
+<td>❌</td>
+<td>全规模</td>
+</tr>
+<tr>
+<td><strong>Colossal-AI</strong></td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅(ZeRO)</td>
+<td>✅</td>
+<td>有限</td>
+<td>10B–100B+</td>
+</tr>
+</tbody>
 </table>
 <p>云知声的选择：<strong>DeepSpeed + Megatron-LM 混合方案</strong>。DeepSpeed 负责 ZeRO 优化和弹性训练，Megatron-LM 负责 TP/PP 的高效实现。</p>
 <h4 id="flashattention-加速">
@@ -5423,35 +5507,35 @@ Stage 3:  ... B0  B0
     style F fill:#96ceb3</pre>
 <p><strong>小规模验证检查清单</strong>：</p>
 <table>
-  <thead>
-      <tr>
-          <th>检查项</th>
-          <th>通过标准</th>
-          <th>失败处理</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>Loss 下降</td>
-          <td>前 100 step loss 单调下降</td>
-          <td>检查学习率 warmup、数据采样、梯度裁剪</td>
-      </tr>
-      <tr>
-          <td>OOM</td>
-          <td>2 卡运行不爆显存</td>
-          <td>减小 batch size、启用 ZeRO-3、检查显存泄漏</td>
-      </tr>
-      <tr>
-          <td>通信正确</td>
-          <td>NCCL AllReduce 延迟 &lt; 1ms (NVLink 域内)</td>
-          <td>检查 NVLink 拓扑、GPU 隔离、NCCL 环境变量</td>
-      </tr>
-      <tr>
-          <td>数据一致性</td>
-          <td>2 卡 DDP loss 与 1 卡完全一致</td>
-          <td>检查 random seed、数据 shuffle、分布式采样器</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>检查项</th>
+<th>通过标准</th>
+<th>失败处理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Loss 下降</td>
+<td>前 100 step loss 单调下降</td>
+<td>检查学习率 warmup、数据采样、梯度裁剪</td>
+</tr>
+<tr>
+<td>OOM</td>
+<td>2 卡运行不爆显存</td>
+<td>减小 batch size、启用 ZeRO-3、检查显存泄漏</td>
+</tr>
+<tr>
+<td>通信正确</td>
+<td>NCCL AllReduce 延迟 &lt; 1ms (NVLink 域内)</td>
+<td>检查 NVLink 拓扑、GPU 隔离、NCCL 环境变量</td>
+</tr>
+<tr>
+<td>数据一致性</td>
+<td>2 卡 DDP loss 与 1 卡完全一致</td>
+<td>检查 random seed、数据 shuffle、分布式采样器</td>
+</tr>
+</tbody>
 </table>
 <h4 id="模型-checkpoint-保存间隔">
   模型 Checkpoint 保存间隔
@@ -5460,45 +5544,45 @@ Stage 3:  ... B0  B0
 <p><strong>核心矛盾</strong>：Checkpoint 越频繁，故障恢复时损失越小，但 I/O 开销越大；Checkpoint 越稀疏，I/O 开销越小，但故障后可能丢失数小时的训练进度。</p>
 <p>云知声的策略（基于 100 卡 A800 实践）：</p>
 <table>
-  <thead>
-      <tr>
-          <th>训练阶段</th>
-          <th>Checkpoint 间隔</th>
-          <th>单个 Checkpoint 大小</th>
-          <th>I/O 耗时</th>
-          <th>恢复时间</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>预训练初期</td>
-          <td>每 500 steps</td>
-          <td>~140 GB (175B 模型)</td>
-          <td>~3 min (CPFS)</td>
-          <td>~5 min</td>
-      </tr>
-      <tr>
-          <td>预训练中期</td>
-          <td>每 1000 steps</td>
-          <td>~140 GB</td>
-          <td>~3 min</td>
-          <td>~5 min</td>
-      </tr>
-      <tr>
-          <td>SFT 微调</td>
-          <td>每 200 steps</td>
-          <td>~140 GB</td>
-          <td>~3 min</td>
-          <td>~5 min</td>
-      </tr>
-      <tr>
-          <td>收敛阶段</td>
-          <td>每 100 steps + 每个 epoch 结束</td>
-          <td>~140 GB</td>
-          <td>~3 min</td>
-          <td>~5 min</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>训练阶段</th>
+<th>Checkpoint 间隔</th>
+<th>单个 Checkpoint 大小</th>
+<th>I/O 耗时</th>
+<th>恢复时间</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>预训练初期</td>
+<td>每 500 steps</td>
+<td>~140 GB (175B 模型)</td>
+<td>~3 min (CPFS)</td>
+<td>~5 min</td>
+</tr>
+<tr>
+<td>预训练中期</td>
+<td>每 1000 steps</td>
+<td>~140 GB</td>
+<td>~3 min</td>
+<td>~5 min</td>
+</tr>
+<tr>
+<td>SFT 微调</td>
+<td>每 200 steps</td>
+<td>~140 GB</td>
+<td>~3 min</td>
+<td>~5 min</td>
+</tr>
+<tr>
+<td>收敛阶段</td>
+<td>每 100 steps + 每个 epoch 结束</td>
+<td>~140 GB</td>
+<td>~3 min</td>
+<td>~5 min</td>
+</tr>
+</tbody>
 </table>
 <p><strong>I/O 优化</strong>：</p>
 <ul>
@@ -5608,46 +5692,46 @@ Stage 3:  ... B0  B0
     LB-xBlue: 停止转发（保留 30 min 可回滚）</pre>
 <p><strong>蓝绿部署的关键细节</strong>：</p>
 <table>
-  <thead>
-      <tr>
-          <th>阶段</th>
-          <th>操作</th>
-          <th>耗时</th>
-          <th>注意事项</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><strong>绿环境启动</strong></td>
-          <td>加载模型权重到 GPU 显存</td>
-          <td>30s–5min（取决于模型大小）</td>
-          <td>预热 KV Cache，否则首批请求延迟极高</td>
-      </tr>
-      <tr>
-          <td><strong>健康检查</strong></td>
-          <td>发送探测请求，验证 P50/P99 延迟</td>
-          <td>1–3 min</td>
-          <td>使用真实请求 pattern，而非简单 HTTP ping</td>
-      </tr>
-      <tr>
-          <td><strong>金丝雀验证</strong></td>
-          <td>切 5% 流量到绿环境</td>
-          <td>5–15 min</td>
-          <td>监控延迟分布、错误率、GPU 利用率</td>
-      </tr>
-      <tr>
-          <td><strong>全量切换</strong></td>
-          <td>修改负载均衡规则</td>
-          <td>&lt; 1s</td>
-          <td>保留蓝环境 30 min，支持快速回滚</td>
-      </tr>
-      <tr>
-          <td><strong>蓝环境回收</strong></td>
-          <td>释放 GPU 资源</td>
-          <td>立即</td>
-          <td>延迟 30 min 确保无需回滚</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>阶段</th>
+<th>操作</th>
+<th>耗时</th>
+<th>注意事项</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>绿环境启动</strong></td>
+<td>加载模型权重到 GPU 显存</td>
+<td>30s–5min（取决于模型大小）</td>
+<td>预热 KV Cache，否则首批请求延迟极高</td>
+</tr>
+<tr>
+<td><strong>健康检查</strong></td>
+<td>发送探测请求，验证 P50/P99 延迟</td>
+<td>1–3 min</td>
+<td>使用真实请求 pattern，而非简单 HTTP ping</td>
+</tr>
+<tr>
+<td><strong>金丝雀验证</strong></td>
+<td>切 5% 流量到绿环境</td>
+<td>5–15 min</td>
+<td>监控延迟分布、错误率、GPU 利用率</td>
+</tr>
+<tr>
+<td><strong>全量切换</strong></td>
+<td>修改负载均衡规则</td>
+<td>&lt; 1s</td>
+<td>保留蓝环境 30 min，支持快速回滚</td>
+</tr>
+<tr>
+<td><strong>蓝环境回收</strong></td>
+<td>释放 GPU 资源</td>
+<td>立即</td>
+<td>延迟 30 min 确保无需回滚</td>
+</tr>
+</tbody>
 </table>
 <h4 id="高可用负载均衡--熔断">
   高可用：负载均衡 + 熔断
@@ -5709,58 +5793,58 @@ Stage 3:  ... B0  B0
 </h4>
 <p>量化的本质是在精度和性能之间做 trade-off。不同的量化策略对模型质量的影响不同。</p>
 <table>
-  <thead>
-      <tr>
-          <th>量化策略</th>
-          <th>精度</th>
-          <th>显存占用 (7B 模型)</th>
-          <th>推理速度提升</th>
-          <th>质量损失</th>
-          <th>适用场景</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><strong>FP16</strong></td>
-          <td>16-bit float</td>
-          <td>14 GB</td>
-          <td>基准 (1×)</td>
-          <td>无</td>
-          <td>生产推理基准</td>
-      </tr>
-      <tr>
-          <td><strong>INT8</strong></td>
-          <td>8-bit integer</td>
-          <td>7 GB</td>
-          <td>1.5–2×</td>
-          <td>&lt; 1% PPL</td>
-          <td>大多数生产场景</td>
-      </tr>
-      <tr>
-          <td><strong>FP8</strong></td>
-          <td>8-bit float (E4M3/E5M2)</td>
-          <td>7 GB</td>
-          <td>2–3× (H100)</td>
-          <td>&lt; 0.5% PPL</td>
-          <td>H100 集群首选</td>
-      </tr>
-      <tr>
-          <td><strong>INT4 (GPTQ)</strong></td>
-          <td>4-bit integer</td>
-          <td>3.5 GB</td>
-          <td>2–4×</td>
-          <td>1–3% PPL</td>
-          <td>显存受限场景</td>
-      </tr>
-      <tr>
-          <td><strong>AWQ</strong></td>
-          <td>4-bit (activation-aware)</td>
-          <td>3.5 GB</td>
-          <td>3–5×</td>
-          <td>1–2% PPL</td>
-          <td>显存受限 + 高质量</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>量化策略</th>
+<th>精度</th>
+<th>显存占用 (7B 模型)</th>
+<th>推理速度提升</th>
+<th>质量损失</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>FP16</strong></td>
+<td>16-bit float</td>
+<td>14 GB</td>
+<td>基准 (1×)</td>
+<td>无</td>
+<td>生产推理基准</td>
+</tr>
+<tr>
+<td><strong>INT8</strong></td>
+<td>8-bit integer</td>
+<td>7 GB</td>
+<td>1.5–2×</td>
+<td>&lt; 1% PPL</td>
+<td>大多数生产场景</td>
+</tr>
+<tr>
+<td><strong>FP8</strong></td>
+<td>8-bit float (E4M3/E5M2)</td>
+<td>7 GB</td>
+<td>2–3× (H100)</td>
+<td>&lt; 0.5% PPL</td>
+<td>H100 集群首选</td>
+</tr>
+<tr>
+<td><strong>INT4 (GPTQ)</strong></td>
+<td>4-bit integer</td>
+<td>3.5 GB</td>
+<td>2–4×</td>
+<td>1–3% PPL</td>
+<td>显存受限场景</td>
+</tr>
+<tr>
+<td><strong>AWQ</strong></td>
+<td>4-bit (activation-aware)</td>
+<td>3.5 GB</td>
+<td>3–5×</td>
+<td>1–2% PPL</td>
+<td>显存受限 + 高质量</td>
+</tr>
+</tbody>
 </table>
 <p><strong>云知声的量化策略选择</strong>：</p>
 <pre tabindex="0"><code>H100 集群 → FP8（原生硬件支持，几乎无损）
@@ -5772,46 +5856,46 @@ A10/L4   → INT4 (GPTQ/AWQ)（显存受限，必须量化）
 </h4>
 <p><strong>核心加速技术</strong>：</p>
 <table>
-  <thead>
-      <tr>
-          <th>技术</th>
-          <th>原理</th>
-          <th>加速效果</th>
-          <th>支持框架</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><strong>FlashAttention</strong></td>
-          <td>IO 感知的 attention 计算</td>
-          <td>2–4× (推理 decode 阶段)</td>
-          <td>vLLM, TGI, TensorRT-LLM</td>
-      </tr>
-      <tr>
-          <td><strong>PagedAttention</strong></td>
-          <td>将 KV Cache 分页管理，类似 OS 虚拟内存</td>
-          <td>减少显存碎片 80%+</td>
-          <td>vLLM</td>
-      </tr>
-      <tr>
-          <td><strong>Continuous Batching</strong></td>
-          <td>动态 batch 管理，不等所有请求凑满</td>
-          <td>吞吐量提升 3–5×</td>
-          <td>vLLM, TGI</td>
-      </tr>
-      <tr>
-          <td><strong>Tensor Parallel</strong></td>
-          <td>模型切分到多 GPU</td>
-          <td>单请求延迟降低 N× (N=GPU 数)</td>
-          <td>所有框架</td>
-      </tr>
-      <tr>
-          <td><strong>Speculative Decoding</strong></td>
-          <td>用小模型预测 token，大模型验证</td>
-          <td>2–3× (对重复性高的内容)</td>
-          <td>vLLM, TGI</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>技术</th>
+<th>原理</th>
+<th>加速效果</th>
+<th>支持框架</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>FlashAttention</strong></td>
+<td>IO 感知的 attention 计算</td>
+<td>2–4× (推理 decode 阶段)</td>
+<td>vLLM, TGI, TensorRT-LLM</td>
+</tr>
+<tr>
+<td><strong>PagedAttention</strong></td>
+<td>将 KV Cache 分页管理，类似 OS 虚拟内存</td>
+<td>减少显存碎片 80%+</td>
+<td>vLLM</td>
+</tr>
+<tr>
+<td><strong>Continuous Batching</strong></td>
+<td>动态 batch 管理，不等所有请求凑满</td>
+<td>吞吐量提升 3–5×</td>
+<td>vLLM, TGI</td>
+</tr>
+<tr>
+<td><strong>Tensor Parallel</strong></td>
+<td>模型切分到多 GPU</td>
+<td>单请求延迟降低 N× (N=GPU 数)</td>
+<td>所有框架</td>
+</tr>
+<tr>
+<td><strong>Speculative Decoding</strong></td>
+<td>用小模型预测 token，大模型验证</td>
+<td>2–3× (对重复性高的内容)</td>
+<td>vLLM, TGI</td>
+</tr>
+</tbody>
 </table>
 <p><strong>PagedAttention 的核心洞察</strong>：</p>
 <p>传统推理框架为每个请求预分配固定大小的 KV Cache 显存，导致严重的显存浪费（类似操作系统的内存碎片）。PagedAttention 将 KV Cache 切分为固定大小的 Block（如 16 tokens/block），按需分配。这使得同时服务的并发请求数提升 2–4×。</p>
@@ -5862,52 +5946,52 @@ A10/L4   → INT4 (GPTQ/AWQ)（显存受限，必须量化）
   <a class="anchor" href="#%e6%8e%a8%e7%90%86%e6%a1%86%e6%9e%b6%e5%af%b9%e6%af%94">#</a>
 </h4>
 <table>
-  <thead>
-      <tr>
-          <th>框架</th>
-          <th>核心优势</th>
-          <th>核心劣势</th>
-          <th>最佳适用场景</th>
-          <th>分布式推理</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><strong>vLLM</strong></td>
-          <td>PagedAttention、吞吐量最高、Continuous Batching</td>
-          <td>对冷门模型支持较慢</td>
-          <td>高吞吐生产推理</td>
-          <td>Tensor Parallel + Pipeline Parallel</td>
-      </tr>
-      <tr>
-          <td><strong>TGI</strong></td>
-          <td>HuggingFace 生态集成最好、部署最简单</td>
-          <td>显存管理不如 vLLM 高效</td>
-          <td>快速原型验证、中小模型</td>
-          <td>Tensor Parallel</td>
-      </tr>
-      <tr>
-          <td><strong>TensorRT-LLM</strong></td>
-          <td>NVIDIA 原生优化、FP8 硬件加速</td>
-          <td>仅支持 NVIDIA GPU、模型转换复杂</td>
-          <td>H100 集群高性能推理</td>
-          <td>Tensor Parallel + Pipeline Parallel</td>
-      </tr>
-      <tr>
-          <td><strong>DeepSpeed-MII</strong></td>
-          <td>与 DeepSpeed 生态统一</td>
-          <td>社区活跃度较低</td>
-          <td>DeepSpeed 训练 → 推理一体化</td>
-          <td>ZeRO-Inference</td>
-      </tr>
-      <tr>
-          <td><strong>SGLang</strong></td>
-          <td>结构化输出、RadixAttention KV Cache 复用</td>
-          <td>相对较新</td>
-          <td>工具调用、Function Calling</td>
-          <td>Tensor Parallel</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>框架</th>
+<th>核心优势</th>
+<th>核心劣势</th>
+<th>最佳适用场景</th>
+<th>分布式推理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>vLLM</strong></td>
+<td>PagedAttention、吞吐量最高、Continuous Batching</td>
+<td>对冷门模型支持较慢</td>
+<td>高吞吐生产推理</td>
+<td>Tensor Parallel + Pipeline Parallel</td>
+</tr>
+<tr>
+<td><strong>TGI</strong></td>
+<td>HuggingFace 生态集成最好、部署最简单</td>
+<td>显存管理不如 vLLM 高效</td>
+<td>快速原型验证、中小模型</td>
+<td>Tensor Parallel</td>
+</tr>
+<tr>
+<td><strong>TensorRT-LLM</strong></td>
+<td>NVIDIA 原生优化、FP8 硬件加速</td>
+<td>仅支持 NVIDIA GPU、模型转换复杂</td>
+<td>H100 集群高性能推理</td>
+<td>Tensor Parallel + Pipeline Parallel</td>
+</tr>
+<tr>
+<td><strong>DeepSpeed-MII</strong></td>
+<td>与 DeepSpeed 生态统一</td>
+<td>社区活跃度较低</td>
+<td>DeepSpeed 训练 → 推理一体化</td>
+<td>ZeRO-Inference</td>
+</tr>
+<tr>
+<td><strong>SGLang</strong></td>
+<td>结构化输出、RadixAttention KV Cache 复用</td>
+<td>相对较新</td>
+<td>工具调用、Function Calling</td>
+<td>Tensor Parallel</td>
+</tr>
+</tbody>
 </table>
 <h4 id="分布式推理">
   分布式推理
@@ -5935,35 +6019,35 @@ A10/L4   → INT4 (GPTQ/AWQ)（显存受限，必须量化）
 生成延迟 (TPOT)    = Decode 时间 per token
 总延迟            = TTFT + TPOT × 生成 token 数
 </code></pre><table>
-  <thead>
-      <tr>
-          <th>延迟阶段</th>
-          <th>典型耗时 (7B 模型, A100)</th>
-          <th>优化手段</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><strong>模型加载</strong></td>
-          <td>10–30s</td>
-          <td>预加载到显存，服务启动后保持常驻</td>
-      </tr>
-      <tr>
-          <td><strong>Prefill</strong></td>
-          <td>20–100ms (1K tokens)</td>
-          <td>FlashAttention, 批量 Prefill</td>
-      </tr>
-      <tr>
-          <td><strong>Decode (per token)</strong></td>
-          <td>5–20ms</td>
-          <td>PagedAttention, Continuous Batching</td>
-      </tr>
-      <tr>
-          <td><strong>排队等待</strong></td>
-          <td>0–500ms (取决于队列长度)</td>
-          <td>增加副本，限制最大并发</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>延迟阶段</th>
+<th>典型耗时 (7B 模型, A100)</th>
+<th>优化手段</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>模型加载</strong></td>
+<td>10–30s</td>
+<td>预加载到显存，服务启动后保持常驻</td>
+</tr>
+<tr>
+<td><strong>Prefill</strong></td>
+<td>20–100ms (1K tokens)</td>
+<td>FlashAttention, 批量 Prefill</td>
+</tr>
+<tr>
+<td><strong>Decode (per token)</strong></td>
+<td>5–20ms</td>
+<td>PagedAttention, Continuous Batching</td>
+</tr>
+<tr>
+<td><strong>排队等待</strong></td>
+<td>0–500ms (取决于队列长度)</td>
+<td>增加副本，限制最大并发</td>
+</tr>
+</tbody>
 </table>
 <h4 id="并发控制策略">
   并发控制策略
@@ -6084,40 +6168,40 @@ A10/L4   → INT4 (GPTQ/AWQ)（显存受限，必须量化）
 </span></span><span style="display:flex;"><span>conf<span style="color:#f92672">.</span>set(<span style="color:#e6db74">&#34;spark.serializer&#34;</span>, <span style="color:#e6db74">&#34;org.apache.spark.serializer.KryoSerializer&#34;</span>)
 </span></span></code></pre></div><p><strong>数据质量过滤标准</strong>：</p>
 <table>
-  <thead>
-      <tr>
-          <th>过滤规则</th>
-          <th>阈值</th>
-          <th>去除比例</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>文本长度</td>
-          <td>&lt; 200 字符</td>
-          <td>~25%</td>
-      </tr>
-      <tr>
-          <td>语言检测 (非目标语言)</td>
-          <td>confidence &lt; 0.9</td>
-          <td>~30%</td>
-      </tr>
-      <tr>
-          <td>Perplexity (gpt2-xl)</td>
-          <td>&gt; 5000</td>
-          <td>~15%</td>
-      </tr>
-      <tr>
-          <td>重复段落比例</td>
-          <td>&gt; 40%</td>
-          <td>~10%</td>
-      </tr>
-      <tr>
-          <td>PII 检测到</td>
-          <td>any match</td>
-          <td>~2%</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>过滤规则</th>
+<th>阈值</th>
+<th>去除比例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>文本长度</td>
+<td>&lt; 200 字符</td>
+<td>~25%</td>
+</tr>
+<tr>
+<td>语言检测 (非目标语言)</td>
+<td>confidence &lt; 0.9</td>
+<td>~30%</td>
+</tr>
+<tr>
+<td>Perplexity (gpt2-xl)</td>
+<td>&gt; 5000</td>
+<td>~15%</td>
+</tr>
+<tr>
+<td>重复段落比例</td>
+<td>&gt; 40%</td>
+<td>~10%</td>
+</tr>
+<tr>
+<td>PII 检测到</td>
+<td>any match</td>
+<td>~2%</td>
+</tr>
+</tbody>
 </table>
 <h3 id="82-数据湖底座">
   8.2 数据湖底座
@@ -6130,38 +6214,38 @@ A10/L4   → INT4 (GPTQ/AWQ)（显存受限，必须量化）
          质量报告 ────────────────────── 数据版本索引
 </code></pre><p><strong>存储层级设计</strong>：</p>
 <table>
-  <thead>
-      <tr>
-          <th>层级</th>
-          <th>存储类型</th>
-          <th>用途</th>
-          <th>成本</th>
-          <th>访问延迟</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><strong>Hot</strong></td>
-          <td>NVMe SSD 本地盘</td>
-          <td>当前训练任务的活跃数据</td>
-          <td>高</td>
-          <td>&lt; 1ms</td>
-      </tr>
-      <tr>
-          <td><strong>Warm</strong></td>
-          <td>并行文件系统 (CPFS)</td>
-          <td>最近 30 天的预处理数据</td>
-          <td>中</td>
-          <td>5–20ms</td>
-      </tr>
-      <tr>
-          <td><strong>Cold</strong></td>
-          <td>对象存储 (S3/OSS)</td>
-          <td>历史数据、归档版本</td>
-          <td>低</td>
-          <td>100ms–s 级</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>层级</th>
+<th>存储类型</th>
+<th>用途</th>
+<th>成本</th>
+<th>访问延迟</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Hot</strong></td>
+<td>NVMe SSD 本地盘</td>
+<td>当前训练任务的活跃数据</td>
+<td>高</td>
+<td>&lt; 1ms</td>
+</tr>
+<tr>
+<td><strong>Warm</strong></td>
+<td>并行文件系统 (CPFS)</td>
+<td>最近 30 天的预处理数据</td>
+<td>中</td>
+<td>5–20ms</td>
+</tr>
+<tr>
+<td><strong>Cold</strong></td>
+<td>对象存储 (S3/OSS)</td>
+<td>历史数据、归档版本</td>
+<td>低</td>
+<td>100ms–s 级</td>
+</tr>
+</tbody>
 </table>
 <p><strong>为什么选择 Parquet</strong>：</p>
 <ol>
@@ -6212,40 +6296,40 @@ A10/L4   → INT4 (GPTQ/AWQ)（显存受限，必须量化）
     style Cache fill:#ff6b6b</pre>
 <p><strong>版本管理核心设计</strong>：</p>
 <table>
-  <thead>
-      <tr>
-          <th>设计要素</th>
-          <th>实现方式</th>
-          <th>解决什么问题</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><strong>不可变性</strong></td>
-          <td>数据集一旦创建，内容不可修改</td>
-          <td>训练可复现性</td>
-      </tr>
-      <tr>
-          <td><strong>内容寻址</strong></td>
-          <td>SHA-256 哈希标识数据集</td>
-          <td>避免同名不同内容的混淆</td>
-      </tr>
-      <tr>
-          <td><strong>增量版本</strong></td>
-          <td>diff + merge 机制</td>
-          <td>减少全量重建成本</td>
-      </tr>
-      <tr>
-          <td><strong>元数据注册</strong></td>
-          <td>数据大小、行数、分词器版本、预处理 pipeline 版本</td>
-          <td>训练任务自动验证数据兼容性</td>
-      </tr>
-      <tr>
-          <td><strong>缓存层</strong></td>
-          <td>NVMe SSD 缓存热数据，LRU 淘汰</td>
-          <td>减少重复训练时的数据读取开销</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>设计要素</th>
+<th>实现方式</th>
+<th>解决什么问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>不可变性</strong></td>
+<td>数据集一旦创建，内容不可修改</td>
+<td>训练可复现性</td>
+</tr>
+<tr>
+<td><strong>内容寻址</strong></td>
+<td>SHA-256 哈希标识数据集</td>
+<td>避免同名不同内容的混淆</td>
+</tr>
+<tr>
+<td><strong>增量版本</strong></td>
+<td>diff + merge 机制</td>
+<td>减少全量重建成本</td>
+</tr>
+<tr>
+<td><strong>元数据注册</strong></td>
+<td>数据大小、行数、分词器版本、预处理 pipeline 版本</td>
+<td>训练任务自动验证数据兼容性</td>
+</tr>
+<tr>
+<td><strong>缓存层</strong></td>
+<td>NVMe SSD 缓存热数据，LRU 淘汰</td>
+<td>减少重复训练时的数据读取开销</td>
+</tr>
+</tbody>
 </table>
 <p><strong>缓存策略</strong>：</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#75715e"># 数据缓存配置</span>
@@ -6288,14 +6372,16 @@ A10/L4   → INT4 (GPTQ/AWQ)（显存受限，必须量化）
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><hr>
 <blockquote>
-<p><strong>Part 2 小结</strong>：计算资源管理、训练体系、推理服务与数据工程构成了 MaaS 平台的核心支柱。云知声的百卡实践表明：<strong>GPU 集群的本质不是硬件堆叠，而是在不确定性（故障、碎片、通信瓶颈）中寻找确定性的系统工程</strong>。下一部分将深入模型管理、评测体系、安全治理与运维保障。</p></blockquote>
+<p><strong>Part 2 小结</strong>：计算资源管理、训练体系、推理服务与数据工程构成了 MaaS 平台的核心支柱。云知声的百卡实践表明：<strong>GPU 集群的本质不是硬件堆叠，而是在不确定性（故障、碎片、通信瓶颈）中寻找确定性的系统工程</strong>。下一部分将深入模型管理、评测体系、安全治理与运维保障。</p>
+</blockquote>
 <hr>
 <h1 id="第三部分稳定性可观测性与安全">
   第三部分：稳定性、可观测性与安全
   <a class="anchor" href="#%e7%ac%ac%e4%b8%89%e9%83%a8%e5%88%86%e7%a8%b3%e5%ae%9a%e6%80%a7%e5%8f%af%e8%a7%82%e6%b5%8b%e6%80%a7%e4%b8%8e%e5%ae%89%e5%85%a8">#</a>
 </h1>
 <blockquote>
-<p><em>&ldquo;构建一个 100 节点 GPU 集群的难度不在于把节点连起来，而在于让它们持续可靠地运行。&rdquo; —— 分布式系统工程师的共识</em></p></blockquote>
+<p><em>&ldquo;构建一个 100 节点 GPU 集群的难度不在于把节点连起来，而在于让它们持续可靠地运行。&rdquo; —— 分布式系统工程师的共识</em></p>
+</blockquote>
 <p>在万卡集群成为行业焦点的今天，一个由 100 节点（约 800-1600 张 GPU）构成的 MaaS 平台仍然有其独特的挑战：它不够大到拥有无限冗余预算，又不够小到可以容忍任何节点掉线。这个规模下的稳定性工程，本质上是在 <strong>成本约束</strong> 和 <strong>可用性要求</strong> 之间做最优决策。</p>
 <p>本章覆盖三个维度：稳定性与高可用架构、可观测性体系、安全体系。这三者构成平台运维的铁三角——没有可观测性的稳定性是盲目的，没有安全性的稳定性是脆弱的。</p>
 <hr>
@@ -6314,38 +6400,38 @@ A10/L4   → INT4 (GPTQ/AWQ)（显存受限，必须量化）
 </h4>
 <p>GPU 集群的网络拓扑决定了稳定性的基线。100 节点规模推荐采用 <strong>三网分离</strong> 架构：</p>
 <table>
-  <thead>
-      <tr>
-          <th>网络平面</th>
-          <th>用途</th>
-          <th>带宽</th>
-          <th>冗余策略</th>
-          <th>协议</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>管理网</td>
-          <td>K8s API/SSH/监控</td>
-          <td>10GbE × 2 (LACP)</td>
-          <td>双网卡绑定 + 双交换机</td>
-          <td>TCP/IP</td>
-      </tr>
-      <tr>
-          <td>计算网</td>
-          <td>NCCL/RDMA 通信</td>
-          <td>400GbE (InfiniBand 或 RoCE)</td>
-          <td>双 Rail + 冗余链路</td>
-          <td>NCCL over IB/RoCEv2</td>
-      </tr>
-      <tr>
-          <td>存储网</td>
-          <td>数据读写</td>
-          <td>100GbE</td>
-          <td>多路径 IO + 冗余交换机</td>
-          <td>NFS/RDMA/NVMe-oF</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>网络平面</th>
+<th>用途</th>
+<th>带宽</th>
+<th>冗余策略</th>
+<th>协议</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>管理网</td>
+<td>K8s API/SSH/监控</td>
+<td>10GbE × 2 (LACP)</td>
+<td>双网卡绑定 + 双交换机</td>
+<td>TCP/IP</td>
+</tr>
+<tr>
+<td>计算网</td>
+<td>NCCL/RDMA 通信</td>
+<td>400GbE (InfiniBand 或 RoCE)</td>
+<td>双 Rail + 冗余链路</td>
+<td>NCCL over IB/RoCEv2</td>
+</tr>
+<tr>
+<td>存储网</td>
+<td>数据读写</td>
+<td>100GbE</td>
+<td>多路径 IO + 冗余交换机</td>
+<td>NFS/RDMA/NVMe-oF</td>
+</tr>
+</tbody>
 </table>
 <p>管理网采用 LACP (802.3ad) 双网卡绑定，提供链路级冗余：当单条链路中断时，MAC 层在 100ms 级别完成切换，对上层协议透明。计算网采用 NVIDIA 推荐的 Rail-Optimized 拓扑，每个 GPU 的 RDMA 通道连接到不同的交换机（Rail），单链路故障不影响全局 AllReduce 通信——这是 NCCL 2.17+ 内置的拓扑感知能力。</p>
 
@@ -6440,45 +6526,45 @@ A10/L4   → INT4 (GPTQ/AWQ)（显存受限，必须量化）
 </h4>
 <p>云知声建立了一套 <strong>分层健康检查</strong> 体系，在调度层面阻断&quot;带病上岗&quot;的节点：</p>
 <table>
-  <thead>
-      <tr>
-          <th>检查层级</th>
-          <th>检查项</th>
-          <th>频率</th>
-          <th>工具</th>
-          <th>失败处理</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>启动检查</td>
-          <td>GPU 显存/温度/PCIe 链路</td>
-          <td>每次开机</td>
-          <td><code>nvidia-smi</code> + <code>pcie-check</code></td>
-          <td>节点 NotReady</td>
-      </tr>
-      <tr>
-          <td>每日检查</td>
-          <td>GPU 压力测试/内存测试</td>
-          <td>每日 04:00</td>
-          <td><code>dcgm</code> + <code>memtester</code></td>
-          <td>标记维护中</td>
-      </tr>
-      <tr>
-          <td>周检查</td>
-          <td>全量硬件扫描</td>
-          <td>每周日</td>
-          <td><code>ipmitool</code> + <code>smartctl</code></td>
-          <td>生成维修工单</td>
-      </tr>
-      <tr>
-          <td>实时检查</td>
-          <td>GPU Xid/网络丢包/存储 IO 延迟</td>
-          <td>每 30 秒</td>
-          <td>DCGM Exporter + 自定义脚本</td>
-          <td>实时告警</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>检查层级</th>
+<th>检查项</th>
+<th>频率</th>
+<th>工具</th>
+<th>失败处理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>启动检查</td>
+<td>GPU 显存/温度/PCIe 链路</td>
+<td>每次开机</td>
+<td><code>nvidia-smi</code> + <code>pcie-check</code></td>
+<td>节点 NotReady</td>
+</tr>
+<tr>
+<td>每日检查</td>
+<td>GPU 压力测试/内存测试</td>
+<td>每日 04:00</td>
+<td><code>dcgm</code> + <code>memtester</code></td>
+<td>标记维护中</td>
+</tr>
+<tr>
+<td>周检查</td>
+<td>全量硬件扫描</td>
+<td>每周日</td>
+<td><code>ipmitool</code> + <code>smartctl</code></td>
+<td>生成维修工单</td>
+</tr>
+<tr>
+<td>实时检查</td>
+<td>GPU Xid/网络丢包/存储 IO 延迟</td>
+<td>每 30 秒</td>
+<td>DCGM Exporter + 自定义脚本</td>
+<td>实时告警</td>
+</tr>
+</tbody>
 </table>
 <p>DCGM（NVIDIA Data Center GPU Manager）是 NVIDIA 官方推荐的数据中心 GPU 监控方案。DCGM Exporter 以 DaemonSet 形式部署在每个节点，通过 <code>libdcgm</code> 库直接采集 GPU 硬件指标（绕开 <code>nvidia-smi</code> 的进程间通信开销），提供 Prometheus 格式的指标输出。关键指标包括：</p>
 <pre tabindex="0"><code># DCGM 关键指标
@@ -6548,40 +6634,40 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 </h4>
 <p>K8s 层告警采用 <strong>Prometheus Rule + AlertManager</strong> 架构，分为三个优先级：</p>
 <table>
-  <thead>
-      <tr>
-          <th>优先级</th>
-          <th>告警条件</th>
-          <th>响应时间</th>
-          <th>通知方式</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>P0 - 紧急</td>
-          <td>Node NotReady &gt; 5min, etcd 不可用</td>
-          <td>&lt; 5 分钟</td>
-          <td>电话 + 短信 + 钉钉</td>
-      </tr>
-      <tr>
-          <td>P1 - 重要</td>
-          <td>GPU Pod 反复重启 (CrashLoopBackOff)</td>
-          <td>&lt; 15 分钟</td>
-          <td>钉钉 + 邮件</td>
-      </tr>
-      <tr>
-          <td>P2 - 警告</td>
-          <td>节点磁盘使用率 &gt; 80%</td>
-          <td>&lt; 1 小时</td>
-          <td>钉钉</td>
-      </tr>
-      <tr>
-          <td>P3 - 信息</td>
-          <td>节点负载异常但仍在服务</td>
-          <td>工作时间处理</td>
-          <td>工单系统</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>优先级</th>
+<th>告警条件</th>
+<th>响应时间</th>
+<th>通知方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>P0 - 紧急</td>
+<td>Node NotReady &gt; 5min, etcd 不可用</td>
+<td>&lt; 5 分钟</td>
+<td>电话 + 短信 + 钉钉</td>
+</tr>
+<tr>
+<td>P1 - 重要</td>
+<td>GPU Pod 反复重启 (CrashLoopBackOff)</td>
+<td>&lt; 15 分钟</td>
+<td>钉钉 + 邮件</td>
+</tr>
+<tr>
+<td>P2 - 警告</td>
+<td>节点磁盘使用率 &gt; 80%</td>
+<td>&lt; 1 小时</td>
+<td>钉钉</td>
+</tr>
+<tr>
+<td>P3 - 信息</td>
+<td>节点负载异常但仍在服务</td>
+<td>工作时间处理</td>
+<td>工单系统</td>
+</tr>
+</tbody>
 </table>
 <p>Prometheus 告警规则示例：</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">groups</span>:
@@ -6691,38 +6777,38 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 </h4>
 <p>训练 Job 的 <strong>Checkpoint 间隔</strong> 是影响恢复时间（RTO）的关键参数。更短的间隔意味着更快的恢复，但也带来存储 IO 开销。云知声的经验是：</p>
 <table>
-  <thead>
-      <tr>
-          <th>训练规模</th>
-          <th>推荐间隔</th>
-          <th>Checkpoint 大小 (7B 模型)</th>
-          <th>存储开销/小时</th>
-          <th>恢复时间估算</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>单节点 (8 GPU)</td>
-          <td>每 500 steps</td>
-          <td>~14 GB</td>
-          <td>~30 GB</td>
-          <td>&lt; 2 分钟</td>
-      </tr>
-      <tr>
-          <td>8 节点 (64 GPU)</td>
-          <td>每 1000 steps</td>
-          <td>~14 GB</td>
-          <td>~8 GB</td>
-          <td>&lt; 5 分钟</td>
-      </tr>
-      <tr>
-          <td>100 节点 (800 GPU)</td>
-          <td>每 500 steps</td>
-          <td>~14 GB (共享权重)</td>
-          <td>~3 GB</td>
-          <td>&lt; 3 分钟</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>训练规模</th>
+<th>推荐间隔</th>
+<th>Checkpoint 大小 (7B 模型)</th>
+<th>存储开销/小时</th>
+<th>恢复时间估算</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>单节点 (8 GPU)</td>
+<td>每 500 steps</td>
+<td>~14 GB</td>
+<td>~30 GB</td>
+<td>&lt; 2 分钟</td>
+</tr>
+<tr>
+<td>8 节点 (64 GPU)</td>
+<td>每 1000 steps</td>
+<td>~14 GB</td>
+<td>~8 GB</td>
+<td>&lt; 5 分钟</td>
+</tr>
+<tr>
+<td>100 节点 (800 GPU)</td>
+<td>每 500 steps</td>
+<td>~14 GB (共享权重)</td>
+<td>~3 GB</td>
+<td>&lt; 3 分钟</td>
+</tr>
+</tbody>
 </table>
 <p>对于 FSDP 训练，Checkpoint 采用 <strong>Sharded Checkpoint</strong>（分片存储），每个 Rank 只保存自己负责的参数分片，恢复时自动聚合。对于 DeepSpeed ZeRO-3，采用 ZeRO Checkpoint，将优化器状态和参数分片存储。</p>
 <p>缩短 Checkpoint 间隔的代价是存储 IO 压力。云知声的优化方案：</p>
@@ -6809,45 +6895,45 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
     style T3 fill:#ffcdd2</pre>
 <p>云知声的故障切换 SLA 目标：</p>
 <table>
-  <thead>
-      <tr>
-          <th>故障类型</th>
-          <th>检测时间</th>
-          <th>切换时间</th>
-          <th>恢复时间 (RTO)</th>
-          <th>数据丢失 (RPO)</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>单 GPU 故障</td>
-          <td>&lt; 30 秒</td>
-          <td>&lt; 2 分钟</td>
-          <td>&lt; 10 分钟 (从 Checkpoint)</td>
-          <td>≤ 1 个 Checkpoint 间隔</td>
-      </tr>
-      <tr>
-          <td>单节点故障</td>
-          <td>&lt; 1 分钟</td>
-          <td>&lt; 5 分钟</td>
-          <td>&lt; 15 分钟</td>
-          <td>≤ 1 个 Checkpoint 间隔</td>
-      </tr>
-      <tr>
-          <td>网络分区</td>
-          <td>&lt; 30 秒</td>
-          <td>&lt; 3 分钟</td>
-          <td>&lt; 5 分钟 (网络恢复后)</td>
-          <td>0</td>
-      </tr>
-      <tr>
-          <td>存储故障</td>
-          <td>&lt; 1 分钟</td>
-          <td>&lt; 10 分钟</td>
-          <td>&lt; 30 分钟 (多副本切换)</td>
-          <td>0 (三副本)</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>故障类型</th>
+<th>检测时间</th>
+<th>切换时间</th>
+<th>恢复时间 (RTO)</th>
+<th>数据丢失 (RPO)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>单 GPU 故障</td>
+<td>&lt; 30 秒</td>
+<td>&lt; 2 分钟</td>
+<td>&lt; 10 分钟 (从 Checkpoint)</td>
+<td>≤ 1 个 Checkpoint 间隔</td>
+</tr>
+<tr>
+<td>单节点故障</td>
+<td>&lt; 1 分钟</td>
+<td>&lt; 5 分钟</td>
+<td>&lt; 15 分钟</td>
+<td>≤ 1 个 Checkpoint 间隔</td>
+</tr>
+<tr>
+<td>网络分区</td>
+<td>&lt; 30 秒</td>
+<td>&lt; 3 分钟</td>
+<td>&lt; 5 分钟 (网络恢复后)</td>
+<td>0</td>
+</tr>
+<tr>
+<td>存储故障</td>
+<td>&lt; 1 分钟</td>
+<td>&lt; 10 分钟</td>
+<td>&lt; 30 分钟 (多副本切换)</td>
+<td>0 (三副本)</td>
+</tr>
+</tbody>
 </table>
 <hr>
 <h2 id="十可观测性--监控体系">
@@ -6855,7 +6941,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
   <a class="anchor" href="#%e5%8d%81%e5%8f%af%e8%a7%82%e6%b5%8b%e6%80%a7--%e7%9b%91%e6%8e%a7%e4%bd%93%e7%b3%bb">#</a>
 </h2>
 <blockquote>
-<p><em>&ldquo;你无法管理你不能测量的东西。&rdquo; —— Peter Drucker</em></p></blockquote>
+<p><em>&ldquo;你无法管理你不能测量的东西。&rdquo; —— Peter Drucker</em></p>
+</blockquote>
 <p>在 100 节点 GPU 集群中，可观测性不是&quot;锦上添花&quot;，而是运维的<strong>基础设施</strong>。一个没有完善监控的 GPU 集群，就像一个没有仪表盘的高速列车——你可以在正常运行时跑得很快，但一旦出现问题，你甚至不知道问题出在哪里。</p>
 <p>可观测性的三个支柱（Logs、Metrics、Traces）在 GPU 集群中各有侧重：<strong>Metrics 用于异常检测，Logs 用于根因分析，Traces 用于性能优化</strong>。</p>
 <h3 id="101-多维度监控架构">
@@ -6912,90 +6999,90 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 </h4>
 <p>硬件层监控的核心是 <strong>GPU 健康状态</strong>。GPU 的异常往往是渐进式的——从温度异常升高，到 ECC 错误增加，最终到 GPU 挂起。如果只监控最终状态，会错过早期预警窗口。</p>
 <table>
-  <thead>
-      <tr>
-          <th>指标类别</th>
-          <th>具体指标</th>
-          <th>正常范围</th>
-          <th>告警阈值</th>
-          <th>监控间隔</th>
-          <th>来源</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>GPU 温度</td>
-          <td><code>DCGM_FI_DEV_GPU_TEMP</code></td>
-          <td>&lt; 75°C</td>
-          <td>&gt; 83°C (P1) / &gt; 87°C (P0)</td>
-          <td>10s</td>
-          <td>DCGM</td>
-      </tr>
-      <tr>
-          <td>GPU 功耗</td>
-          <td><code>DCGM_FI_DEV_POWER_USAGE</code></td>
-          <td>&lt; 额定 85%</td>
-          <td>&gt; 额定 95% 持续 5min</td>
-          <td>10s</td>
-          <td>DCGM</td>
-      </tr>
-      <tr>
-          <td>显存使用</td>
-          <td><code>DCGM_FI_DEV_FB_USED</code></td>
-          <td>&lt; 可用显存 95%</td>
-          <td>&gt; 98%</td>
-          <td>10s</td>
-          <td>DCGM</td>
-      </tr>
-      <tr>
-          <td>ECC 错误</td>
-          <td><code>DCGM_FI_DEV_ECC_DBE_VOL</code></td>
-          <td>0</td>
-          <td>&gt; 0 (P2) / &gt; 10 (P0)</td>
-          <td>10s</td>
-          <td>DCGM</td>
-      </tr>
-      <tr>
-          <td>GPU Xid</td>
-          <td><code>DCGM_FI_DEV_XID_ERRORS</code></td>
-          <td>0</td>
-          <td>任何非 0 Xid (P1)</td>
-          <td>10s</td>
-          <td>DCGM</td>
-      </tr>
-      <tr>
-          <td>NVLink 带宽</td>
-          <td><code>DCGM_FI_PROF_NVLINK_*</code></td>
-          <td>&gt; 理论 80%</td>
-          <td>&lt; 理论 50%</td>
-          <td>30s</td>
-          <td>DCGM</td>
-      </tr>
-      <tr>
-          <td>网络流量</td>
-          <td>交换机端口计数器</td>
-          <td>无丢包</td>
-          <td>丢包率 &gt; 0.01%</td>
-          <td>10s</td>
-          <td>SNMP</td>
-      </tr>
-      <tr>
-          <td>磁盘 IO</td>
-          <td><code>node_disk_io_time_seconds_total</code></td>
-          <td>&lt; 80% 利用率</td>
-          <td>&gt; 90% 持续 5min</td>
-          <td>10s</td>
-          <td>Node Exporter</td>
-      </tr>
-      <tr>
-          <td>CPU 温度</td>
-          <td><code>node_hwmon_temp_celsius</code></td>
-          <td>&lt; 75°C</td>
-          <td>&gt; 85°C</td>
-          <td>30s</td>
-          <td>IPMI</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>指标类别</th>
+<th>具体指标</th>
+<th>正常范围</th>
+<th>告警阈值</th>
+<th>监控间隔</th>
+<th>来源</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GPU 温度</td>
+<td><code>DCGM_FI_DEV_GPU_TEMP</code></td>
+<td>&lt; 75°C</td>
+<td>&gt; 83°C (P1) / &gt; 87°C (P0)</td>
+<td>10s</td>
+<td>DCGM</td>
+</tr>
+<tr>
+<td>GPU 功耗</td>
+<td><code>DCGM_FI_DEV_POWER_USAGE</code></td>
+<td>&lt; 额定 85%</td>
+<td>&gt; 额定 95% 持续 5min</td>
+<td>10s</td>
+<td>DCGM</td>
+</tr>
+<tr>
+<td>显存使用</td>
+<td><code>DCGM_FI_DEV_FB_USED</code></td>
+<td>&lt; 可用显存 95%</td>
+<td>&gt; 98%</td>
+<td>10s</td>
+<td>DCGM</td>
+</tr>
+<tr>
+<td>ECC 错误</td>
+<td><code>DCGM_FI_DEV_ECC_DBE_VOL</code></td>
+<td>0</td>
+<td>&gt; 0 (P2) / &gt; 10 (P0)</td>
+<td>10s</td>
+<td>DCGM</td>
+</tr>
+<tr>
+<td>GPU Xid</td>
+<td><code>DCGM_FI_DEV_XID_ERRORS</code></td>
+<td>0</td>
+<td>任何非 0 Xid (P1)</td>
+<td>10s</td>
+<td>DCGM</td>
+</tr>
+<tr>
+<td>NVLink 带宽</td>
+<td><code>DCGM_FI_PROF_NVLINK_*</code></td>
+<td>&gt; 理论 80%</td>
+<td>&lt; 理论 50%</td>
+<td>30s</td>
+<td>DCGM</td>
+</tr>
+<tr>
+<td>网络流量</td>
+<td>交换机端口计数器</td>
+<td>无丢包</td>
+<td>丢包率 &gt; 0.01%</td>
+<td>10s</td>
+<td>SNMP</td>
+</tr>
+<tr>
+<td>磁盘 IO</td>
+<td><code>node_disk_io_time_seconds_total</code></td>
+<td>&lt; 80% 利用率</td>
+<td>&gt; 90% 持续 5min</td>
+<td>10s</td>
+<td>Node Exporter</td>
+</tr>
+<tr>
+<td>CPU 温度</td>
+<td><code>node_hwmon_temp_celsius</code></td>
+<td>&lt; 75°C</td>
+<td>&gt; 85°C</td>
+<td>30s</td>
+<td>IPMI</td>
+</tr>
+</tbody>
 </table>
 <p><strong>GPU 温度的特殊考虑</strong>：GPU 温度不是静态阈值，而是与功耗、负载、环境温度相关。在数据中心环境下，GPU 满载温度通常在 70-80°C 之间。超过 83°C 时 NVIDIA GPU 会开始 Throttling（降频），超过 87°C 会触发保护性关机。</p>
 <p><strong>ECC 错误的解读</strong>：单比特错误（SBE）会自动纠正，不影响计算正确性，但高频率的 SBE 预示着 GPU 显存正在退化。双比特错误（DBE）无法纠正，GPU 会进入保护状态并停止计算。NVIDIA 建议当 DBE 累计数 &gt; 0 时就安排硬件更换——因为这表明 GPU 显存已经出现物理损坏。</p>
@@ -7005,64 +7092,64 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 </h4>
 <p>K8s 层监控的关键是 <strong>调度效率</strong> 和 <strong>系统稳定性</strong>：</p>
 <table>
-  <thead>
-      <tr>
-          <th>指标</th>
-          <th>含义</th>
-          <th>告警条件</th>
-          <th>来源</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><code>kube_node_status_condition</code></td>
-          <td>Node 状态</td>
-          <td>NotReady &gt; 5min</td>
-          <td>kube-state-metrics</td>
-      </tr>
-      <tr>
-          <td><code>kube_pod_status_phase</code></td>
-          <td>Pod 阶段</td>
-          <td>Pending &gt; 10min</td>
-          <td>kube-state-metrics</td>
-      </tr>
-      <tr>
-          <td><code>kube_pod_container_status_restarts_total</code></td>
-          <td>容器重启</td>
-          <td>重启率 &gt; 3/h</td>
-          <td>kube-state-metrics</td>
-      </tr>
-      <tr>
-          <td><code>etcd_server_has_leader</code></td>
-          <td>etcd Leader</td>
-          <td>== 0 (P0)</td>
-          <td>etcd</td>
-      </tr>
-      <tr>
-          <td><code>etcd_disk_wal_fsync_duration_seconds</code></td>
-          <td>etcd WAL fsync</td>
-          <td>p99 &gt; 50ms</td>
-          <td>etcd</td>
-      </tr>
-      <tr>
-          <td><code>calico_bgp_peers</code></td>
-          <td>BGP 对等体</td>
-          <td>状态 != up</td>
-          <td>Calico</td>
-      </tr>
-      <tr>
-          <td><code>kubelet_running_pods</code></td>
-          <td>运行中 Pod 数</td>
-          <td>&gt; 节点容量 90%</td>
-          <td>Kubelet</td>
-      </tr>
-      <tr>
-          <td><code>apiserver_request_duration_seconds</code></td>
-          <td>API 请求延迟</td>
-          <td>p99 &gt; 1s</td>
-          <td>API Server</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>指标</th>
+<th>含义</th>
+<th>告警条件</th>
+<th>来源</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>kube_node_status_condition</code></td>
+<td>Node 状态</td>
+<td>NotReady &gt; 5min</td>
+<td>kube-state-metrics</td>
+</tr>
+<tr>
+<td><code>kube_pod_status_phase</code></td>
+<td>Pod 阶段</td>
+<td>Pending &gt; 10min</td>
+<td>kube-state-metrics</td>
+</tr>
+<tr>
+<td><code>kube_pod_container_status_restarts_total</code></td>
+<td>容器重启</td>
+<td>重启率 &gt; 3/h</td>
+<td>kube-state-metrics</td>
+</tr>
+<tr>
+<td><code>etcd_server_has_leader</code></td>
+<td>etcd Leader</td>
+<td>== 0 (P0)</td>
+<td>etcd</td>
+</tr>
+<tr>
+<td><code>etcd_disk_wal_fsync_duration_seconds</code></td>
+<td>etcd WAL fsync</td>
+<td>p99 &gt; 50ms</td>
+<td>etcd</td>
+</tr>
+<tr>
+<td><code>calico_bgp_peers</code></td>
+<td>BGP 对等体</td>
+<td>状态 != up</td>
+<td>Calico</td>
+</tr>
+<tr>
+<td><code>kubelet_running_pods</code></td>
+<td>运行中 Pod 数</td>
+<td>&gt; 节点容量 90%</td>
+<td>Kubelet</td>
+</tr>
+<tr>
+<td><code>apiserver_request_duration_seconds</code></td>
+<td>API 请求延迟</td>
+<td>p99 &gt; 1s</td>
+<td>API Server</td>
+</tr>
+</tbody>
 </table>
 <h4 id="1013-业务层指标">
   10.1.3 业务层指标
@@ -7070,64 +7157,64 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 </h4>
 <p>业务层监控将技术指标与用户体验关联起来：</p>
 <table>
-  <thead>
-      <tr>
-          <th>指标类别</th>
-          <th>指标</th>
-          <th>含义</th>
-          <th>告警阈值</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>训练</td>
-          <td>Loss 变化率</td>
-          <td>检测 Loss 爆炸</td>
-          <td>&gt; 3σ 偏离 (P1)</td>
-      </tr>
-      <tr>
-          <td>训练</td>
-          <td>GPU 利用率</td>
-          <td>硬件使用效率</td>
-          <td>&lt; 70% 持续 10min (P2)</td>
-      </tr>
-      <tr>
-          <td>训练</td>
-          <td>Step 时间</td>
-          <td>训练速度</td>
-          <td>&gt; 基线 20% (P2)</td>
-      </tr>
-      <tr>
-          <td>训练</td>
-          <td>Checkpoint 时间</td>
-          <td>存储性能</td>
-          <td>&gt; 预期 2 倍 (P2)</td>
-      </tr>
-      <tr>
-          <td>推理</td>
-          <td>QPS</td>
-          <td>吞吐量</td>
-          <td>&lt; SLA 90% (P1)</td>
-      </tr>
-      <tr>
-          <td>推理</td>
-          <td>TTFT (首 Token 延迟)</td>
-          <td>响应速度</td>
-          <td>p95 &gt; 500ms (P2)</td>
-      </tr>
-      <tr>
-          <td>推理</td>
-          <td>Token 生成速率</td>
-          <td>生成速度</td>
-          <td>&lt; 预期 50% (P1)</td>
-      </tr>
-      <tr>
-          <td>推理</td>
-          <td>错误率</td>
-          <td>服务质量</td>
-          <td>&gt; 1% (P1) / &gt; 5% (P0)</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>指标类别</th>
+<th>指标</th>
+<th>含义</th>
+<th>告警阈值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>训练</td>
+<td>Loss 变化率</td>
+<td>检测 Loss 爆炸</td>
+<td>&gt; 3σ 偏离 (P1)</td>
+</tr>
+<tr>
+<td>训练</td>
+<td>GPU 利用率</td>
+<td>硬件使用效率</td>
+<td>&lt; 70% 持续 10min (P2)</td>
+</tr>
+<tr>
+<td>训练</td>
+<td>Step 时间</td>
+<td>训练速度</td>
+<td>&gt; 基线 20% (P2)</td>
+</tr>
+<tr>
+<td>训练</td>
+<td>Checkpoint 时间</td>
+<td>存储性能</td>
+<td>&gt; 预期 2 倍 (P2)</td>
+</tr>
+<tr>
+<td>推理</td>
+<td>QPS</td>
+<td>吞吐量</td>
+<td>&lt; SLA 90% (P1)</td>
+</tr>
+<tr>
+<td>推理</td>
+<td>TTFT (首 Token 延迟)</td>
+<td>响应速度</td>
+<td>p95 &gt; 500ms (P2)</td>
+</tr>
+<tr>
+<td>推理</td>
+<td>Token 生成速率</td>
+<td>生成速度</td>
+<td>&lt; 预期 50% (P1)</td>
+</tr>
+<tr>
+<td>推理</td>
+<td>错误率</td>
+<td>服务质量</td>
+<td>&gt; 1% (P1) / &gt; 5% (P0)</td>
+</tr>
+</tbody>
 </table>
 <h3 id="102-prometheus--alertmanager">
   10.2 Prometheus + AlertManager
@@ -7200,50 +7287,50 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 </h4>
 <p>云知声的告警分级体系遵循 <strong>ITIL 事件管理</strong> 规范：</p>
 <table>
-  <thead>
-      <tr>
-          <th>级别</th>
-          <th>名称</th>
-          <th>定义</th>
-          <th>响应 SLA</th>
-          <th>通知方式</th>
-          <th>升级策略</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>P0</td>
-          <td>紧急 (Emergency)</td>
-          <td>服务中断，影响所有用户</td>
-          <td>&lt; 5 分钟</td>
-          <td>电话 + 短信 + 钉钉群</td>
-          <td>15min 未响应 → 技术总监</td>
-      </tr>
-      <tr>
-          <td>P1</td>
-          <td>重要 (High)</td>
-          <td>核心功能降级，部分用户受影响</td>
-          <td>&lt; 15 分钟</td>
-          <td>钉钉群 + 邮件</td>
-          <td>30min 未响应 → 值班经理</td>
-      </tr>
-      <tr>
-          <td>P2</td>
-          <td>警告 (Warning)</td>
-          <td>潜在风险，尚未影响服务</td>
-          <td>&lt; 1 小时</td>
-          <td>钉钉群</td>
-          <td>2h 未处理 → 值班经理</td>
-      </tr>
-      <tr>
-          <td>P3</td>
-          <td>信息 (Info)</td>
-          <td>信息性通知</td>
-          <td>工作时间</td>
-          <td>工单系统</td>
-          <td>无需升级</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>级别</th>
+<th>名称</th>
+<th>定义</th>
+<th>响应 SLA</th>
+<th>通知方式</th>
+<th>升级策略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>P0</td>
+<td>紧急 (Emergency)</td>
+<td>服务中断，影响所有用户</td>
+<td>&lt; 5 分钟</td>
+<td>电话 + 短信 + 钉钉群</td>
+<td>15min 未响应 → 技术总监</td>
+</tr>
+<tr>
+<td>P1</td>
+<td>重要 (High)</td>
+<td>核心功能降级，部分用户受影响</td>
+<td>&lt; 15 分钟</td>
+<td>钉钉群 + 邮件</td>
+<td>30min 未响应 → 值班经理</td>
+</tr>
+<tr>
+<td>P2</td>
+<td>警告 (Warning)</td>
+<td>潜在风险，尚未影响服务</td>
+<td>&lt; 1 小时</td>
+<td>钉钉群</td>
+<td>2h 未处理 → 值班经理</td>
+</tr>
+<tr>
+<td>P3</td>
+<td>信息 (Info)</td>
+<td>信息性通知</td>
+<td>工作时间</td>
+<td>工单系统</td>
+<td>无需升级</td>
+</tr>
+</tbody>
 </table>
 <p>AlertManager 的路由配置示例：</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">route</span>:
@@ -7354,52 +7441,52 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 </ul>
 <p>关键日志源及其排查价值：</p>
 <table>
-  <thead>
-      <tr>
-          <th>日志源</th>
-          <th>路径/位置</th>
-          <th>典型排查场景</th>
-          <th>保留策略</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>Kubelet</td>
-          <td><code>/var/log/kubelet.log</code></td>
-          <td>Pod 启动失败/节点注册问题</td>
-          <td>7 天热 + 30 天冷</td>
-      </tr>
-      <tr>
-          <td>容器 stdout</td>
-          <td><code>/var/log/containers/*.log</code></td>
-          <td>应用崩溃/错误信息</td>
-          <td>7 天热 + 30 天冷</td>
-      </tr>
-      <tr>
-          <td>DCGM</td>
-          <td><code>/var/log/nvidia-dcgm.log</code></td>
-          <td>GPU 硬件故障/驱动问题</td>
-          <td>30 天热 + 90 天冷</td>
-      </tr>
-      <tr>
-          <td>NCCL</td>
-          <td><code>NCCL_DEBUG=INFO</code> 环境变量</td>
-          <td>NCCL 通信超时/死锁</td>
-          <td>仅按需开启</td>
-      </tr>
-      <tr>
-          <td>Xorg</td>
-          <td><code>/var/log/Xorg.0.log</code></td>
-          <td>GPU 驱动/X11 问题</td>
-          <td>7 天热</td>
-      </tr>
-      <tr>
-          <td>Journal</td>
-          <td><code>journalctl -u kubelet</code></td>
-          <td>系统服务异常</td>
-          <td>7 天热 + 30 天冷</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>日志源</th>
+<th>路径/位置</th>
+<th>典型排查场景</th>
+<th>保留策略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kubelet</td>
+<td><code>/var/log/kubelet.log</code></td>
+<td>Pod 启动失败/节点注册问题</td>
+<td>7 天热 + 30 天冷</td>
+</tr>
+<tr>
+<td>容器 stdout</td>
+<td><code>/var/log/containers/*.log</code></td>
+<td>应用崩溃/错误信息</td>
+<td>7 天热 + 30 天冷</td>
+</tr>
+<tr>
+<td>DCGM</td>
+<td><code>/var/log/nvidia-dcgm.log</code></td>
+<td>GPU 硬件故障/驱动问题</td>
+<td>30 天热 + 90 天冷</td>
+</tr>
+<tr>
+<td>NCCL</td>
+<td><code>NCCL_DEBUG=INFO</code> 环境变量</td>
+<td>NCCL 通信超时/死锁</td>
+<td>仅按需开启</td>
+</tr>
+<tr>
+<td>Xorg</td>
+<td><code>/var/log/Xorg.0.log</code></td>
+<td>GPU 驱动/X11 问题</td>
+<td>7 天热</td>
+</tr>
+<tr>
+<td>Journal</td>
+<td><code>journalctl -u kubelet</code></td>
+<td>系统服务异常</td>
+<td>7 天热 + 30 天冷</td>
+</tr>
+</tbody>
 </table>
 <h4 id="1032-训练日志规范">
   10.3.2 训练日志规范
@@ -7427,70 +7514,70 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 </h3>
 <p>云知声的监控技术栈选择基于以下原则：<strong>CNCF 生态优先、运维成本低、社区活跃度高</strong>。</p>
 <table>
-  <thead>
-      <tr>
-          <th>组件类别</th>
-          <th>推荐方案</th>
-          <th>备选方案</th>
-          <th>选型理由</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>指标采集</td>
-          <td>Prometheus 2.x</td>
-          <td>VictoriaMetrics</td>
-          <td>CNCF 毕业项目，生态最完善，K8s 原生支持</td>
-      </tr>
-      <tr>
-          <td>指标存储</td>
-          <td>Prometheus TSDB + Thanos</td>
-          <td>VictoriaMetrics</td>
-          <td>Thanos 提供长期存储和跨集群联邦</td>
-      </tr>
-      <tr>
-          <td>指标可视化</td>
-          <td>Grafana 10.x</td>
-          <td>自研 Dashboard</td>
-          <td>丰富的 Panel 类型，Prometheus 原生集成</td>
-      </tr>
-      <tr>
-          <td>告警管理</td>
-          <td>AlertManager</td>
-          <td>PagerDuty</td>
-          <td>开源免费，灵活的路由和抑制规则</td>
-      </tr>
-      <tr>
-          <td>GPU 监控</td>
-          <td>DCGM Exporter</td>
-          <td>nvtop (CLI)</td>
-          <td>NVIDIA 官方支持，指标全面</td>
-      </tr>
-      <tr>
-          <td>日志采集</td>
-          <td>Promtail + Fluent Bit</td>
-          <td>Filebeat</td>
-          <td>Promtail 与 Loki 天然集成</td>
-      </tr>
-      <tr>
-          <td>日志存储</td>
-          <td>Loki 2.x</td>
-          <td>Elasticsearch</td>
-          <td>存储效率高（仅索引 label，不索引全文）</td>
-      </tr>
-      <tr>
-          <td>分布式追踪</td>
-          <td>Jaeger</td>
-          <td>Tempo</td>
-          <td>Jaeger 社区更活跃，与 Grafana 集成好</td>
-      </tr>
-      <tr>
-          <td>K8s 监控</td>
-          <td>kube-prometheus-stack</td>
-          <td>手动部署</td>
-          <td>Helm Chart，一键部署全套监控</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>组件类别</th>
+<th>推荐方案</th>
+<th>备选方案</th>
+<th>选型理由</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>指标采集</td>
+<td>Prometheus 2.x</td>
+<td>VictoriaMetrics</td>
+<td>CNCF 毕业项目，生态最完善，K8s 原生支持</td>
+</tr>
+<tr>
+<td>指标存储</td>
+<td>Prometheus TSDB + Thanos</td>
+<td>VictoriaMetrics</td>
+<td>Thanos 提供长期存储和跨集群联邦</td>
+</tr>
+<tr>
+<td>指标可视化</td>
+<td>Grafana 10.x</td>
+<td>自研 Dashboard</td>
+<td>丰富的 Panel 类型，Prometheus 原生集成</td>
+</tr>
+<tr>
+<td>告警管理</td>
+<td>AlertManager</td>
+<td>PagerDuty</td>
+<td>开源免费，灵活的路由和抑制规则</td>
+</tr>
+<tr>
+<td>GPU 监控</td>
+<td>DCGM Exporter</td>
+<td>nvtop (CLI)</td>
+<td>NVIDIA 官方支持，指标全面</td>
+</tr>
+<tr>
+<td>日志采集</td>
+<td>Promtail + Fluent Bit</td>
+<td>Filebeat</td>
+<td>Promtail 与 Loki 天然集成</td>
+</tr>
+<tr>
+<td>日志存储</td>
+<td>Loki 2.x</td>
+<td>Elasticsearch</td>
+<td>存储效率高（仅索引 label，不索引全文）</td>
+</tr>
+<tr>
+<td>分布式追踪</td>
+<td>Jaeger</td>
+<td>Tempo</td>
+<td>Jaeger 社区更活跃，与 Grafana 集成好</td>
+</tr>
+<tr>
+<td>K8s 监控</td>
+<td>kube-prometheus-stack</td>
+<td>手动部署</td>
+<td>Helm Chart，一键部署全套监控</td>
+</tr>
+</tbody>
 </table>
 <p><strong>Prometheus vs VictoriaMetrics 的取舍</strong>：</p>
 <ul>
@@ -7510,7 +7597,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
   <a class="anchor" href="#%e5%8d%81%e4%b8%80%e5%ae%89%e5%85%a8%e4%bd%93%e7%b3%bb">#</a>
 </h2>
 <blockquote>
-<p><em>&ldquo;安全不是一堵墙，而是一套规则。&rdquo; —— 云知声安全团队</em></p></blockquote>
+<p><em>&ldquo;安全不是一堵墙，而是一套规则。&rdquo; —— 云知声安全团队</em></p>
+</blockquote>
 <p>GPU 集群的安全与传统 IT 基础设施安全有显著差异。在 GPU 集群中，<strong>GPU 本身就是攻击面</strong>——恶意的训练代码可以读取其他进程的显存数据，NCCL 通信可以泄露训练数据，甚至 GPU 的 side-channel 攻击已经成为学术研究的热点话题。</p>
 <p>云知声的安全体系遵循 <strong>&ldquo;纵深防御&rdquo;（Defense in Depth）</strong> 原则，在身份认证、网络隔离、镜像安全、数据加密四个层面建立防线。</p>
 <h3 id="111-身份认证与鉴权">
@@ -7542,45 +7630,45 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
     G --&gt;|viewer| K[只读权限]</pre>
 <p><strong>认证方案对比</strong>：</p>
 <table>
-  <thead>
-      <tr>
-          <th>认证方式</th>
-          <th>适用场景</th>
-          <th>安全性</th>
-          <th>管理成本</th>
-          <th>推荐度</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>X.509 证书</td>
-          <td>管理员访问</td>
-          <td>高 (PKI 体系)</td>
-          <td>高 (证书轮换)</td>
-          <td>仅管理员</td>
-      </tr>
-      <tr>
-          <td>OIDC (Dex/Keycloak)</td>
-          <td>开发人员日常使用</td>
-          <td>高 (SSO + MFA)</td>
-          <td>中 (需要 IdP)</td>
-          <td>★★★★★</td>
-      </tr>
-      <tr>
-          <td>ServiceAccount Token</td>
-          <td>CI/CD 流水线</td>
-          <td>中 (Token 泄露风险)</td>
-          <td>低</td>
-          <td>★★★★</td>
-      </tr>
-      <tr>
-          <td>Bootstrap Token</td>
-          <td>节点加入集群</td>
-          <td>低 (一次性使用)</td>
-          <td>低</td>
-          <td>★★★</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>认证方式</th>
+<th>适用场景</th>
+<th>安全性</th>
+<th>管理成本</th>
+<th>推荐度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>X.509 证书</td>
+<td>管理员访问</td>
+<td>高 (PKI 体系)</td>
+<td>高 (证书轮换)</td>
+<td>仅管理员</td>
+</tr>
+<tr>
+<td>OIDC (Dex/Keycloak)</td>
+<td>开发人员日常使用</td>
+<td>高 (SSO + MFA)</td>
+<td>中 (需要 IdP)</td>
+<td>★★★★★</td>
+</tr>
+<tr>
+<td>ServiceAccount Token</td>
+<td>CI/CD 流水线</td>
+<td>中 (Token 泄露风险)</td>
+<td>低</td>
+<td>★★★★</td>
+</tr>
+<tr>
+<td>Bootstrap Token</td>
+<td>节点加入集群</td>
+<td>低 (一次性使用)</td>
+<td>低</td>
+<td>★★★</td>
+</tr>
+</tbody>
 </table>
 <p><strong>RBAC 最小权限原则</strong>：云知声为训练平台定义了以下角色：</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#75715e"># 训练 Job 操作员角色</span>
@@ -7708,40 +7796,40 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 </h4>
 <p>云知声在 CI/CD 流水线中集成了 <strong>自动镜像扫描</strong>：</p>
 <table>
-  <thead>
-      <tr>
-          <th>阶段</th>
-          <th>扫描工具</th>
-          <th>扫描内容</th>
-          <th>阻断策略</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>构建时</td>
-          <td>Trivy</td>
-          <td>CVE 漏洞、敏感信息泄露</td>
-          <td>CRITICAL → 阻断</td>
-      </tr>
-      <tr>
-          <td>推送时</td>
-          <td>Harbor 内置扫描</td>
-          <td>CVE 漏洞、许可证合规</td>
-          <td>HIGH+CRITICAL → 阻断</td>
-      </tr>
-      <tr>
-          <td>部署前</td>
-          <td>K8s Admission Controller</td>
-          <td>镜像签名验证</td>
-          <td>未签名 → 阻断</td>
-      </tr>
-      <tr>
-          <td>运行时</td>
-          <td>Falco</td>
-          <td>运行时异常行为</td>
-          <td>可疑行为 → 告警 + 隔离</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>阶段</th>
+<th>扫描工具</th>
+<th>扫描内容</th>
+<th>阻断策略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>构建时</td>
+<td>Trivy</td>
+<td>CVE 漏洞、敏感信息泄露</td>
+<td>CRITICAL → 阻断</td>
+</tr>
+<tr>
+<td>推送时</td>
+<td>Harbor 内置扫描</td>
+<td>CVE 漏洞、许可证合规</td>
+<td>HIGH+CRITICAL → 阻断</td>
+</tr>
+<tr>
+<td>部署前</td>
+<td>K8s Admission Controller</td>
+<td>镜像签名验证</td>
+<td>未签名 → 阻断</td>
+</tr>
+<tr>
+<td>运行时</td>
+<td>Falco</td>
+<td>运行时异常行为</td>
+<td>可疑行为 → 告警 + 隔离</td>
+</tr>
+</tbody>
 </table>
 <h4 id="1132-镜像签名与验证">
   11.3.2 镜像签名与验证
@@ -7805,40 +7893,40 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
   <a class="anchor" href="#1141-%e4%bc%a0%e8%be%93%e5%8a%a0%e5%af%86">#</a>
 </h4>
 <table>
-  <thead>
-      <tr>
-          <th>通信类型</th>
-          <th>加密方案</th>
-          <th>说明</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>K8s API Server</td>
-          <td>TLS (HTTPS)</td>
-          <td>强制启用，禁止 HTTP 明文访问</td>
-      </tr>
-      <tr>
-          <td>节点间通信</td>
-          <td>WireGuard / IPsec</td>
-          <td>在不可信网络（如跨机房）上使用</td>
-      </tr>
-      <tr>
-          <td>推理 API</td>
-          <td>TLS + mTLS</td>
-          <td>双向认证，防止未授权调用</td>
-      </tr>
-      <tr>
-          <td>对象存储访问</td>
-          <td>HTTPS / S3 SSE</td>
-          <td>数据上传下载全程加密</td>
-      </tr>
-      <tr>
-          <td>NCCL 通信</td>
-          <td>无加密（性能优先）</td>
-          <td>RDMA 网络通常部署在可信内网</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>通信类型</th>
+<th>加密方案</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>K8s API Server</td>
+<td>TLS (HTTPS)</td>
+<td>强制启用，禁止 HTTP 明文访问</td>
+</tr>
+<tr>
+<td>节点间通信</td>
+<td>WireGuard / IPsec</td>
+<td>在不可信网络（如跨机房）上使用</td>
+</tr>
+<tr>
+<td>推理 API</td>
+<td>TLS + mTLS</td>
+<td>双向认证，防止未授权调用</td>
+</tr>
+<tr>
+<td>对象存储访问</td>
+<td>HTTPS / S3 SSE</td>
+<td>数据上传下载全程加密</td>
+</tr>
+<tr>
+<td>NCCL 通信</td>
+<td>无加密（性能优先）</td>
+<td>RDMA 网络通常部署在可信内网</td>
+</tr>
+</tbody>
 </table>
 <p><strong>NCCL 通信是否加密</strong>的权衡：NCCL 使用 RDMA（InfiniBand/RoCE）进行 GPU 间通信，在可信内网环境下（物理隔离的机房网络）通常不加密，因为：</p>
 <ul>
@@ -7852,46 +7940,46 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
   <a class="anchor" href="#1142-%e9%9d%99%e6%80%81%e5%8a%a0%e5%af%86">#</a>
 </h4>
 <table>
-  <thead>
-      <tr>
-          <th>存储类型</th>
-          <th>加密方案</th>
-          <th>密钥管理</th>
-          <th>说明</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>系统盘</td>
-          <td>LUKS (dm-crypt)</td>
-          <td>本地密钥文件 / KMS</td>
-          <td>节点启动时自动解密</td>
-      </tr>
-      <tr>
-          <td>数据盘 (CEPH)</td>
-          <td>CEPH 原生加密</td>
-          <td>CEPH Keyring</td>
-          <td>CEPH 17.0+ 支持静态加密</td>
-      </tr>
-      <tr>
-          <td>对象存储 (S3/MinIO)</td>
-          <td>SSE-S3 / SSE-KMS</td>
-          <td>KMS (Vault)</td>
-          <td>服务端加密</td>
-      </tr>
-      <tr>
-          <td>K8s Secrets</td>
-          <td>etcd 加密</td>
-          <td>KMS Provider</td>
-          <td>etcd 3.13+ 支持 KMS v2</td>
-      </tr>
-      <tr>
-          <td>训练 Checkpoint</td>
-          <td>应用层加密</td>
-          <td>KMS</td>
-          <td>在保存前加密，加载时解密</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>存储类型</th>
+<th>加密方案</th>
+<th>密钥管理</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>系统盘</td>
+<td>LUKS (dm-crypt)</td>
+<td>本地密钥文件 / KMS</td>
+<td>节点启动时自动解密</td>
+</tr>
+<tr>
+<td>数据盘 (CEPH)</td>
+<td>CEPH 原生加密</td>
+<td>CEPH Keyring</td>
+<td>CEPH 17.0+ 支持静态加密</td>
+</tr>
+<tr>
+<td>对象存储 (S3/MinIO)</td>
+<td>SSE-S3 / SSE-KMS</td>
+<td>KMS (Vault)</td>
+<td>服务端加密</td>
+</tr>
+<tr>
+<td>K8s Secrets</td>
+<td>etcd 加密</td>
+<td>KMS Provider</td>
+<td>etcd 3.13+ 支持 KMS v2</td>
+</tr>
+<tr>
+<td>训练 Checkpoint</td>
+<td>应用层加密</td>
+<td>KMS</td>
+<td>在保存前加密，加载时解密</td>
+</tr>
+</tbody>
 </table>
 <p><strong>etcd 加密配置</strong>（防止通过 etcd 数据文件泄露 Secret）：</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#75715e"># API Server 启动参数</span>
@@ -7943,34 +8031,34 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
   <a class="anchor" href="#%e6%9c%ac%e7%ab%a0%e6%80%bb%e7%bb%93">#</a>
 </h2>
 <table>
-  <thead>
-      <tr>
-          <th>维度</th>
-          <th>核心原则</th>
-          <th>关键实践</th>
-          <th>云知声经验</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>稳定性</td>
-          <td>冗余 + 隔离 + 自愈</td>
-          <td>三网分离、GPU 热替换、自动建集群</td>
-          <td>小规模验证先行是减少训练中断最有效的方法</td>
-      </tr>
-      <tr>
-          <td>可观测性</td>
-          <td>多维监控、自动发现、分级告警</td>
-          <td>Prometheus + AlertManager + Loki + Grafana</td>
-          <td>告警抑制规则是避免告警风暴的关键</td>
-      </tr>
-      <tr>
-          <td>安全</td>
-          <td>纵深防御、最小权限</td>
-          <td>RBAC + 镜像扫描 + SSH 密钥管理 + 数据加密</td>
-          <td>ED25519 密钥 + K8s Secret 管理是 SSH 免密的最安全方案</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>维度</th>
+<th>核心原则</th>
+<th>关键实践</th>
+<th>云知声经验</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>稳定性</td>
+<td>冗余 + 隔离 + 自愈</td>
+<td>三网分离、GPU 热替换、自动建集群</td>
+<td>小规模验证先行是减少训练中断最有效的方法</td>
+</tr>
+<tr>
+<td>可观测性</td>
+<td>多维监控、自动发现、分级告警</td>
+<td>Prometheus + AlertManager + Loki + Grafana</td>
+<td>告警抑制规则是避免告警风暴的关键</td>
+</tr>
+<tr>
+<td>安全</td>
+<td>纵深防御、最小权限</td>
+<td>RBAC + 镜像扫描 + SSH 密钥管理 + 数据加密</td>
+<td>ED25519 密钥 + K8s Secret 管理是 SSH 免密的最安全方案</td>
+</tr>
+</tbody>
 </table>
 <p>这三者不是孤立的：稳定性依赖可观测性来发现问题，安全为稳定性提供防护，可观测性为安全提供审计能力。在 100 节点的 MaaS 平台中，这三者的协同构成了平台可靠运行的基石。</p>
 <hr>
@@ -7994,40 +8082,40 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
   <a class="anchor" href="#1211-%e6%a0%b8%e5%bf%83%e9%aa%8c%e8%af%81%e9%a1%b9">#</a>
 </h4>
 <table>
-  <thead>
-      <tr>
-          <th>验证项</th>
-          <th>具体内容</th>
-          <th>验收标准</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>容器化 GPU 算力</td>
-          <td>NVIDIA GPU Operator 安装，DevicePlugin + CDI 生效</td>
-          <td><code>kubectl exec</code> 进入 Pod 可见 GPU，<code>nvidia-smi</code> 正常</td>
-      </tr>
-      <tr>
-          <td>NVLink/NVSwitch 拓扑</td>
-          <td>8 卡服务器内拓扑验证</td>
-          <td><code>nvidia-smi topo -m</code> 显示 NVLink 连通，P2P 可达</td>
-      </tr>
-      <tr>
-          <td>RDMA 网络</td>
-          <td>IB/RoCE 驱动加载，ibv_devinfo 验证</td>
-          <td>RDMA 设备可见，<code>ib_write_bw</code> 带宽 &gt;90% 线速</td>
-      </tr>
-      <tr>
-          <td>分布式训练基线</td>
-          <td>DeepSpeed ZeRO-3 + 多机多卡训练小模型</td>
-          <td>线性加速比 &gt;80%，无 NCCL timeout</td>
-      </tr>
-      <tr>
-          <td>K8s 调度</td>
-          <td>GPU Binpack + Gang Scheduling 基本功能</td>
-          <td>多 Pod 同时调度成功，Binpack 策略生效</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>验证项</th>
+<th>具体内容</th>
+<th>验收标准</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>容器化 GPU 算力</td>
+<td>NVIDIA GPU Operator 安装，DevicePlugin + CDI 生效</td>
+<td><code>kubectl exec</code> 进入 Pod 可见 GPU，<code>nvidia-smi</code> 正常</td>
+</tr>
+<tr>
+<td>NVLink/NVSwitch 拓扑</td>
+<td>8 卡服务器内拓扑验证</td>
+<td><code>nvidia-smi topo -m</code> 显示 NVLink 连通，P2P 可达</td>
+</tr>
+<tr>
+<td>RDMA 网络</td>
+<td>IB/RoCE 驱动加载，ibv_devinfo 验证</td>
+<td>RDMA 设备可见，<code>ib_write_bw</code> 带宽 &gt;90% 线速</td>
+</tr>
+<tr>
+<td>分布式训练基线</td>
+<td>DeepSpeed ZeRO-3 + 多机多卡训练小模型</td>
+<td>线性加速比 &gt;80%，无 NCCL timeout</td>
+</tr>
+<tr>
+<td>K8s 调度</td>
+<td>GPU Binpack + Gang Scheduling 基本功能</td>
+<td>多 Pod 同时调度成功，Binpack 策略生效</td>
+</tr>
+</tbody>
 </table>
 <h4 id="1212-poc-参考拓扑">
   12.1.2 PoC 参考拓扑
@@ -8079,7 +8167,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 <li><strong>操作系统基线</strong>：所有节点安装 Ubuntu 22.04 LTS / Rocky Linux 9.x，内核 ≥ 5.15，驱动 ≥ 535.104</li>
 </ul>
 <blockquote>
-<p><strong>云知声教训</strong>：PoC 阶段<strong>不要为了赶进度跳过网络验证</strong>。我们曾在一台服务器上跳过 <code>ib_write_bw</code> 测试，上线后发现是光纤头污染导致 200G 端口只跑到 80G。这个 PoC 阶段花 30 分钟就能发现的问题，在生产环境定位花了 3 天。</p></blockquote>
+<p><strong>云知声教训</strong>：PoC 阶段<strong>不要为了赶进度跳过网络验证</strong>。我们曾在一台服务器上跳过 <code>ib_write_bw</code> 测试，上线后发现是光纤头污染导致 200G 端口只跑到 80G。这个 PoC 阶段花 30 分钟就能发现的问题，在生产环境定位花了 3 天。</p>
+</blockquote>
 <h4 id="1214-poc-准出条件">
   12.1.4 PoC 准出条件
   <a class="anchor" href="#1214-poc-%e5%87%86%e5%87%ba%e6%9d%a1%e4%bb%b6">#</a>
@@ -8126,38 +8215,38 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 </h4>
 <p>阶段二必须完整跑通三级缓存链路：</p>
 <table>
-  <thead>
-      <tr>
-          <th>层级</th>
-          <th>存储介质</th>
-          <th>IOPS 目标</th>
-          <th>延迟目标</th>
-          <th>容量估算</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>L1 (GPU 本地)</td>
-          <td>NVMe SSD（每台 2-4 TB）</td>
-          <td>&gt;500K</td>
-          <td>&lt;100μs</td>
-          <td>20 节点 × 4TB = 80TB</td>
-      </tr>
-      <tr>
-          <td>L2 (训练集群共享)</td>
-          <td>Ceph NVMe OSD</td>
-          <td>&gt;200K</td>
-          <td>&lt;1ms</td>
-          <td>300TB-500TB</td>
-      </tr>
-      <tr>
-          <td>L3 (冷热归档)</td>
-          <td>Ceph HDD OSD + 对象存储</td>
-          <td>&gt;10K</td>
-          <td>&lt;10ms</td>
-          <td>&gt;1PB</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>层级</th>
+<th>存储介质</th>
+<th>IOPS 目标</th>
+<th>延迟目标</th>
+<th>容量估算</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>L1 (GPU 本地)</td>
+<td>NVMe SSD（每台 2-4 TB）</td>
+<td>&gt;500K</td>
+<td>&lt;100μs</td>
+<td>20 节点 × 4TB = 80TB</td>
+</tr>
+<tr>
+<td>L2 (训练集群共享)</td>
+<td>Ceph NVMe OSD</td>
+<td>&gt;200K</td>
+<td>&lt;1ms</td>
+<td>300TB-500TB</td>
+</tr>
+<tr>
+<td>L3 (冷热归档)</td>
+<td>Ceph HDD OSD + 对象存储</td>
+<td>&gt;10K</td>
+<td>&lt;10ms</td>
+<td>&gt;1PB</td>
+</tr>
+</tbody>
 </table>
 <p><strong>验证方法</strong>：</p>
 <ol>
@@ -8208,52 +8297,52 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
   <a class="anchor" href="#1224-%e9%98%b6%e6%ae%b5%e4%ba%8c%e9%87%8c%e7%a8%8b%e7%a2%91">#</a>
 </h4>
 <table>
-  <thead>
-      <tr>
-          <th>里程碑</th>
-          <th>目标</th>
-          <th>时间预估</th>
-          <th>依赖</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>M2.1</td>
-          <td>四集群 K8s 部署完成</td>
-          <td>第 3-4 周</td>
-          <td>PoC 报告评审通过</td>
-      </tr>
-      <tr>
-          <td>M2.2</td>
-          <td>GPU Operator 全量部署</td>
-          <td>第 5 周</td>
-          <td>硬件上架 + 网络调通</td>
-      </tr>
-      <tr>
-          <td>M2.3</td>
-          <td>三级缓存跑通 + 压测通过</td>
-          <td>第 6-7 周</td>
-          <td>Ceph 集群就绪</td>
-      </tr>
-      <tr>
-          <td>M2.4</td>
-          <td>Gang Scheduling + Binpack 验证</td>
-          <td>第 7-8 周</td>
-          <td>调度器部署完成</td>
-      </tr>
-      <tr>
-          <td>M2.5</td>
-          <td>端到端训练任务跑通</td>
-          <td>第 8-9 周</td>
-          <td>全链路就绪</td>
-      </tr>
-      <tr>
-          <td>M2.6</td>
-          <td>阶段二评审</td>
-          <td>第 9 周</td>
-          <td>以上全部完成</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>里程碑</th>
+<th>目标</th>
+<th>时间预估</th>
+<th>依赖</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>M2.1</td>
+<td>四集群 K8s 部署完成</td>
+<td>第 3-4 周</td>
+<td>PoC 报告评审通过</td>
+</tr>
+<tr>
+<td>M2.2</td>
+<td>GPU Operator 全量部署</td>
+<td>第 5 周</td>
+<td>硬件上架 + 网络调通</td>
+</tr>
+<tr>
+<td>M2.3</td>
+<td>三级缓存跑通 + 压测通过</td>
+<td>第 6-7 周</td>
+<td>Ceph 集群就绪</td>
+</tr>
+<tr>
+<td>M2.4</td>
+<td>Gang Scheduling + Binpack 验证</td>
+<td>第 7-8 周</td>
+<td>调度器部署完成</td>
+</tr>
+<tr>
+<td>M2.5</td>
+<td>端到端训练任务跑通</td>
+<td>第 8-9 周</td>
+<td>全链路就绪</td>
+</tr>
+<tr>
+<td>M2.6</td>
+<td>阶段二评审</td>
+<td>第 9 周</td>
+<td>以上全部完成</td>
+</tr>
+</tbody>
 </table>
 <hr>
 <h3 id="123-阶段三全量部署100-节点superpod--压测调优">
@@ -8343,66 +8432,67 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 <li>对 bisection bandwidth 要求高</li>
 </ul>
 <blockquote>
-<p><strong>结论</strong>：DP/TP/PP 对网络的要求不同维度。TP 最敏感延迟，DP 最敏感吞吐，PP 最敏感跨域带宽。<strong>一套网络无法同时优化三个维度</strong>，因此 SuperPOD 采用 IB 200G + Adaptive Routing 作为折中方案。</p></blockquote>
+<p><strong>结论</strong>：DP/TP/PP 对网络的要求不同维度。TP 最敏感延迟，DP 最敏感吞吐，PP 最敏感跨域带宽。<strong>一套网络无法同时优化三个维度</strong>，因此 SuperPOD 采用 IB 200G + Adaptive Routing 作为折中方案。</p>
+</blockquote>
 <h4 id="1233-压测方案">
   12.3.3 压测方案
   <a class="anchor" href="#1233-%e5%8e%8b%e6%b5%8b%e6%96%b9%e6%a1%88">#</a>
 </h4>
 <p>阶段三的压测不是一次性活动，而是一系列逐步加量的测试：</p>
 <table>
-  <thead>
-      <tr>
-          <th>压测场景</th>
-          <th>模型</th>
-          <th>卡数</th>
-          <th>目标</th>
-          <th>通过标准</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>基线</td>
-          <td>BERT-base</td>
-          <td>8</td>
-          <td>单 Node 基线</td>
-          <td>MFU ≥ 50%</td>
-      </tr>
-      <tr>
-          <td>线性扩展</td>
-          <td>BERT-large</td>
-          <td>64 (8 Node)</td>
-          <td>8 Node 线性比</td>
-          <td>加速比 ≥ 85%</td>
-      </tr>
-      <tr>
-          <td>全量</td>
-          <td>LLaMA-7B</td>
-          <td>800 (100 Node)</td>
-          <td>全量训练</td>
-          <td>MFU ≥ 40%，无 NCCL error</td>
-      </tr>
-      <tr>
-          <td>混合负载</td>
-          <td>LLaMA-7B + Qwen 推理</td>
-          <td>600 训练 + 200 推理</td>
-          <td>资源隔离验证</td>
-          <td>推理 P99 延迟 &lt; 500ms</td>
-      </tr>
-      <tr>
-          <td>故障注入</td>
-          <td>LLaMA-7B + Kill 1 Node</td>
-          <td>800</td>
-          <td>容错恢复</td>
-          <td>自动剔除故障节点，训练 resume</td>
-      </tr>
-      <tr>
-          <td>存储压力</td>
-          <td>100 并发读 L1 缓存</td>
-          <td>100 Node</td>
-          <td>三级缓存</td>
-          <td>L2 fallback 延迟 &lt; 15%</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>压测场景</th>
+<th>模型</th>
+<th>卡数</th>
+<th>目标</th>
+<th>通过标准</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>基线</td>
+<td>BERT-base</td>
+<td>8</td>
+<td>单 Node 基线</td>
+<td>MFU ≥ 50%</td>
+</tr>
+<tr>
+<td>线性扩展</td>
+<td>BERT-large</td>
+<td>64 (8 Node)</td>
+<td>8 Node 线性比</td>
+<td>加速比 ≥ 85%</td>
+</tr>
+<tr>
+<td>全量</td>
+<td>LLaMA-7B</td>
+<td>800 (100 Node)</td>
+<td>全量训练</td>
+<td>MFU ≥ 40%，无 NCCL error</td>
+</tr>
+<tr>
+<td>混合负载</td>
+<td>LLaMA-7B + Qwen 推理</td>
+<td>600 训练 + 200 推理</td>
+<td>资源隔离验证</td>
+<td>推理 P99 延迟 &lt; 500ms</td>
+</tr>
+<tr>
+<td>故障注入</td>
+<td>LLaMA-7B + Kill 1 Node</td>
+<td>800</td>
+<td>容错恢复</td>
+<td>自动剔除故障节点，训练 resume</td>
+</tr>
+<tr>
+<td>存储压力</td>
+<td>100 并发读 L1 缓存</td>
+<td>100 Node</td>
+<td>三级缓存</td>
+<td>L2 fallback 延迟 &lt; 15%</td>
+</tr>
+</tbody>
 </table>
 <p><strong>MFU（Model FLOPs Utilization）</strong> 是衡量分布式训练效率的核心指标：</p>
 <pre tabindex="0"><code>MFU = 实际达到的 TFLOPs / (理论峰值 TFLOPs × 并行效率)
@@ -8413,62 +8503,64 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 <li>如果 LLaMA-7B 训练实测 100,000 TFLOPs，MFU = 40%</li>
 </ul>
 <blockquote>
-<p><strong>云知声经验</strong>：MFU 低于 35% 时，需要重新审视并行策略和网络拓扑。我们的 200 卡集群初版部署 MFU 只有 28%，排查后发现是 IB 交换机固件版本不兼容导致 NCCL 回退到 TCP。固件升级后 MFU 升至 42%。</p></blockquote>
+<p><strong>云知声经验</strong>：MFU 低于 35% 时，需要重新审视并行策略和网络拓扑。我们的 200 卡集群初版部署 MFU 只有 28%，排查后发现是 IB 交换机固件版本不兼容导致 NCCL 回退到 TCP。固件升级后 MFU 升至 42%。</p>
+</blockquote>
 <h4 id="1234-k8s-集群规模优化">
   12.3.4 K8s 集群规模优化
   <a class="anchor" href="#1234-k8s-%e9%9b%86%e7%be%a4%e8%a7%84%e6%a8%a1%e4%bc%98%e5%8c%96">#</a>
 </h4>
 <p>100 台 GPU 服务器意味着 100 个 K8s Node，对 etcd 和 API Server 都有压力：</p>
 <table>
-  <thead>
-      <tr>
-          <th>组件</th>
-          <th>PoC (10 Node)</th>
-          <th>小规模 (30 Node)</th>
-          <th>全量 (100+ Node)</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>etcd</td>
-          <td>单实例</td>
-          <td>3 实例</td>
-          <td>3 实例（独立 SSD）</td>
-      </tr>
-      <tr>
-          <td>API Server</td>
-          <td>1 副本</td>
-          <td>2 副本 + LB</td>
-          <td>3 副本 + LB</td>
-      </tr>
-      <tr>
-          <td>Controller Manager</td>
-          <td>1 副本</td>
-          <td>2 副本</td>
-          <td>2 副本</td>
-      </tr>
-      <tr>
-          <td>Scheduler</td>
-          <td>1 副本</td>
-          <td>2 副本</td>
-          <td>2 副本</td>
-      </tr>
-      <tr>
-          <td>kubelet 心跳间隔</td>
-          <td>10s</td>
-          <td>10s</td>
-          <td>30s（降低 API 压力）</td>
-      </tr>
-      <tr>
-          <td>Node Monitor Grace Period</td>
-          <td>40s</td>
-          <td>40s</td>
-          <td>120s（容忍短暂网络抖动）</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>组件</th>
+<th>PoC (10 Node)</th>
+<th>小规模 (30 Node)</th>
+<th>全量 (100+ Node)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>etcd</td>
+<td>单实例</td>
+<td>3 实例</td>
+<td>3 实例（独立 SSD）</td>
+</tr>
+<tr>
+<td>API Server</td>
+<td>1 副本</td>
+<td>2 副本 + LB</td>
+<td>3 副本 + LB</td>
+</tr>
+<tr>
+<td>Controller Manager</td>
+<td>1 副本</td>
+<td>2 副本</td>
+<td>2 副本</td>
+</tr>
+<tr>
+<td>Scheduler</td>
+<td>1 副本</td>
+<td>2 副本</td>
+<td>2 副本</td>
+</tr>
+<tr>
+<td>kubelet 心跳间隔</td>
+<td>10s</td>
+<td>10s</td>
+<td>30s（降低 API 压力）</td>
+</tr>
+<tr>
+<td>Node Monitor Grace Period</td>
+<td>40s</td>
+<td>40s</td>
+<td>120s（容忍短暂网络抖动）</td>
+</tr>
+</tbody>
 </table>
 <blockquote>
-<p><strong>注意</strong>：etcd 必须使用独立 NVMe SSD（不要用系统盘），IOPS 要求 &gt; 10K。云知声曾将 etcd 放在 Ceph RBD 上，网络波动时 etcd 响应延迟飙升到 500ms，导致大量 kubelet 心跳超时，集群出现级联故障。</p></blockquote>
+<p><strong>注意</strong>：etcd 必须使用独立 NVMe SSD（不要用系统盘），IOPS 要求 &gt; 10K。云知声曾将 etcd 放在 Ceph RBD 上，网络波动时 etcd 响应延迟飙升到 500ms，导致大量 kubelet 心跳超时，集群出现级联故障。</p>
+</blockquote>
 <hr>
 <h3 id="124-里程碑与风险预案">
   12.4 里程碑与风险预案
@@ -8511,58 +8603,58 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
   <a class="anchor" href="#1242-%e9%a3%8e%e9%99%a9%e7%9f%a9%e9%98%b5">#</a>
 </h4>
 <table>
-  <thead>
-      <tr>
-          <th>风险</th>
-          <th>概率</th>
-          <th>影响</th>
-          <th>预案</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>GPU 交期延迟</td>
-          <td>中</td>
-          <td>高</td>
-          <td>PoC 阶段先用已有机器验证，生产 GPU 到货后并行部署</td>
-      </tr>
-      <tr>
-          <td>IB 交换机兼容性问题</td>
-          <td>中</td>
-          <td>高</td>
-          <td>PoC 阶段完成固件兼容性测试；预备 RoCE 降级方案</td>
-      </tr>
-      <tr>
-          <td>Ceph 数据迁移导致性能下降</td>
-          <td>中</td>
-          <td>中</td>
-          <td>扩容窗口安排在夜间；限制单 OSD 迁移速率</td>
-      </tr>
-      <tr>
-          <td>训练 job 长时间故障无法恢复</td>
-          <td>低</td>
-          <td>高</td>
-          <td>Checkpoint 间隔 ≤ 30 分钟；自动 resume 脚本预置</td>
-      </tr>
-      <tr>
-          <td>网络分区导致脑裂</td>
-          <td>低</td>
-          <td>极高</td>
-          <td>etcd 独立机房部署；NetworkPolicy 隔离管理面</td>
-      </tr>
-      <tr>
-          <td>驱动/CUDA 版本冲突</td>
-          <td>中</td>
-          <td>中</td>
-          <td>GPU Operator 统一管理版本；灰度升级</td>
-      </tr>
-      <tr>
-          <td>电力容量不足</td>
-          <td>低</td>
-          <td>高</td>
-          <td>A800 单机 6kW × 100 = 600kW；提前与机房确认 PDU 容量</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>风险</th>
+<th>概率</th>
+<th>影响</th>
+<th>预案</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GPU 交期延迟</td>
+<td>中</td>
+<td>高</td>
+<td>PoC 阶段先用已有机器验证，生产 GPU 到货后并行部署</td>
+</tr>
+<tr>
+<td>IB 交换机兼容性问题</td>
+<td>中</td>
+<td>高</td>
+<td>PoC 阶段完成固件兼容性测试；预备 RoCE 降级方案</td>
+</tr>
+<tr>
+<td>Ceph 数据迁移导致性能下降</td>
+<td>中</td>
+<td>中</td>
+<td>扩容窗口安排在夜间；限制单 OSD 迁移速率</td>
+</tr>
+<tr>
+<td>训练 job 长时间故障无法恢复</td>
+<td>低</td>
+<td>高</td>
+<td>Checkpoint 间隔 ≤ 30 分钟；自动 resume 脚本预置</td>
+</tr>
+<tr>
+<td>网络分区导致脑裂</td>
+<td>低</td>
+<td>极高</td>
+<td>etcd 独立机房部署；NetworkPolicy 隔离管理面</td>
+</tr>
+<tr>
+<td>驱动/CUDA 版本冲突</td>
+<td>中</td>
+<td>中</td>
+<td>GPU Operator 统一管理版本；灰度升级</td>
+</tr>
+<tr>
+<td>电力容量不足</td>
+<td>低</td>
+<td>高</td>
+<td>A800 单机 6kW × 100 = 600kW；提前与机房确认 PDU 容量</td>
+</tr>
+</tbody>
 </table>
 <h4 id="1243-回滚策略">
   12.4.3 回滚策略
@@ -8608,7 +8700,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 <li>训练框架层面启用 GPU 间直接通信（如 DeepSpeed 的 <code>--deepspeed_config</code> 中设置 <code>comms_backend=nccl</code>）</li>
 </ol>
 <blockquote>
-<p><strong>云知声教训</strong>：我们曾在一个微调任务中发现训练速度只有预期的 1/8。排查 2 天后发现是 Docker 容器未正确挂载 <code>/dev/nvidia-fs*</code> 设备，导致 NCCL 回退到 PCIe 路径。修复后速度恢复 8 倍。</p></blockquote>
+<p><strong>云知声教训</strong>：我们曾在一个微调任务中发现训练速度只有预期的 1/8。排查 2 天后发现是 Docker 容器未正确挂载 <code>/dev/nvidia-fs*</code> 设备，导致 NCCL 回退到 PCIe 路径。修复后速度恢复 8 倍。</p>
+</blockquote>
 <h4 id="1312-gpudirect-rdma-必须开启">
   13.1.2 GPUDirect RDMA 必须开启
   <a class="anchor" href="#1312-gpudirect-rdma-%e5%bf%85%e9%a1%bb%e5%bc%80%e5%90%af">#</a>
@@ -8648,7 +8741,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 <li>部署后使用 <code>ibnetdiscover</code> 验证拓扑连通性</li>
 </ol>
 <blockquote>
-<p><strong>云知声教训</strong>：第一次部署时，我们手动配置了 13 对 Leaf 交换机的 LFT。上线一周后，一对 Leaf 的 LFT 被自动更新覆盖（交换机启用了 Auto-LFT），导致 16 台服务器的 RDMA 带宽降了一半。后来改用 UFM 集中管理，问题彻底消除。</p></blockquote>
+<p><strong>云知声教训</strong>：第一次部署时，我们手动配置了 13 对 Leaf 交换机的 LFT。上线一周后，一对 Leaf 的 LFT 被自动更新覆盖（交换机启用了 Auto-LFT），导致 16 台服务器的 RDMA 带宽降了一半。后来改用 UFM 集中管理，问题彻底消除。</p>
+</blockquote>
 <h4 id="1314-mtu-不一致导致-rdma-性能暴跌">
   13.1.4 MTU 不一致导致 RDMA 性能暴跌
   <a class="anchor" href="#1314-mtu-%e4%b8%8d%e4%b8%80%e8%87%b4%e5%af%bc%e8%87%b4-rdma-%e6%80%a7%e8%83%bd%e6%9a%b4%e8%b7%8c">#</a>
@@ -8691,45 +8785,46 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 </span></span><span style="display:flex;"><span>ip rule add from &lt;mgmt_subnet&gt;/24 table mgmt
 </span></span><span style="display:flex;"><span>ip route add default via &lt;mgmt_gateway&gt; dev &lt;mgmt_nic&gt; table mgmt
 </span></span></code></pre></div><blockquote>
-<p><strong>云知声教训</strong>：曾发生过计算网（IB）通过 IPoIB 配置了 IP 地址，但未配置策略路由，导致 GPU 间通信流量走了管理网（1G）。现象是训练速度只有预期的 1/200。</p></blockquote>
+<p><strong>云知声教训</strong>：曾发生过计算网（IB）通过 IPoIB 配置了 IP 地址，但未配置策略路由，导致 GPU 间通信流量走了管理网（1G）。现象是训练速度只有预期的 1/200。</p>
+</blockquote>
 <h4 id="1316-dptppp-对网络要求不同一套网络无法满足">
   13.1.6 DP/TP/PP 对网络要求不同，一套网络无法满足
   <a class="anchor" href="#1316-dptppp-%e5%af%b9%e7%bd%91%e7%bb%9c%e8%a6%81%e6%b1%82%e4%b8%8d%e5%90%8c%e4%b8%80%e5%a5%97%e7%bd%91%e7%bb%9c%e6%97%a0%e6%b3%95%e6%bb%a1%e8%b6%b3">#</a>
 </h4>
 <p><strong>问题</strong>：三种并行策略的通信模式差异巨大：</p>
 <table>
-  <thead>
-      <tr>
-          <th>并行策略</th>
-          <th>通信模式</th>
-          <th>通信量</th>
-          <th>延迟敏感度</th>
-          <th>网络需求</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>DP</td>
-          <td>All-Reduce（梯度聚合）</td>
-          <td>大（模型全量参数）</td>
-          <td>中</td>
-          <td>高吞吐</td>
-      </tr>
-      <tr>
-          <td>TP</td>
-          <td>All-Reduce（每层激活值）</td>
-          <td>小（逐层）</td>
-          <td>极高</td>
-          <td>低延迟</td>
-      </tr>
-      <tr>
-          <td>PP</td>
-          <td>Send/Recv（stage 间）</td>
-          <td>中（微批次激活值）</td>
-          <td>中</td>
-          <td>跨域带宽</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>并行策略</th>
+<th>通信模式</th>
+<th>通信量</th>
+<th>延迟敏感度</th>
+<th>网络需求</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DP</td>
+<td>All-Reduce（梯度聚合）</td>
+<td>大（模型全量参数）</td>
+<td>中</td>
+<td>高吞吐</td>
+</tr>
+<tr>
+<td>TP</td>
+<td>All-Reduce（每层激活值）</td>
+<td>小（逐层）</td>
+<td>极高</td>
+<td>低延迟</td>
+</tr>
+<tr>
+<td>PP</td>
+<td>Send/Recv（stage 间）</td>
+<td>中（微批次激活值）</td>
+<td>中</td>
+<td>跨域带宽</td>
+</tr>
+</tbody>
 </table>
 <p><strong>根因</strong>：TP 需要 μs 级延迟（适合 NVLink/NVSwitch 内通信），DP 需要 GB/s 级吞吐（适合 IB 200G），PP 需要跨域高带宽（适合 Spine-Leaf 非阻塞拓扑）。</p>
 <p><strong>解决方案</strong>：</p>
@@ -8740,7 +8835,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 <li>3D 并行时，优先保证 TP 域内 NVLink，DP 走 IB，PP 走 Spine</li>
 </ol>
 <blockquote>
-<p><strong>设计原则</strong>：<strong>通信距离与通信频率成反比</strong>。TP 最频繁，必须最近（单机内）；DP 次频繁，可以跨机；PP 最不频繁，可以跨域。</p></blockquote>
+<p><strong>设计原则</strong>：<strong>通信距离与通信频率成反比</strong>。TP 最频繁，必须最近（单机内）；DP 次频繁，可以跨机；PP 最不频繁，可以跨域。</p>
+</blockquote>
 <h4 id="1317-networkpolicy-规则爆炸">
   13.1.7 NetworkPolicy 规则爆炸
   <a class="anchor" href="#1317-networkpolicy-%e8%a7%84%e5%88%99%e7%88%86%e7%82%b8">#</a>
@@ -8798,7 +8894,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 <li><strong>数据局部性优化</strong>：将训练数据集按 shard 分配到对应节点的 L1，减少跨节点读取</li>
 </ol>
 <blockquote>
-<p><strong>云知声教训</strong>：一次 7B 模型训练中，因为更换了训练数据集但未预热 L1 缓存，前 2 小时训练速度只有正常值的 8%。后来我们将&quot;数据集变更 → 自动预热&quot;写入 CI/CD 流水线，问题彻底解决。</p></blockquote>
+<p><strong>云知声教训</strong>：一次 7B 模型训练中，因为更换了训练数据集但未预热 L1 缓存，前 2 小时训练速度只有正常值的 8%。后来我们将&quot;数据集变更 → 自动预热&quot;写入 CI/CD 流水线，问题彻底解决。</p>
+</blockquote>
 <h4 id="1322-posix-3-副本扩容时的数据迁移风险">
   13.2.2 POSIX 3 副本扩容时的数据迁移风险
   <a class="anchor" href="#1322-posix-3-%e5%89%af%e6%9c%ac%e6%89%a9%e5%ae%b9%e6%97%b6%e7%9a%84%e6%95%b0%e6%8d%ae%e8%bf%81%e7%a7%bb%e9%a3%8e%e9%99%a9">#</a>
@@ -8822,7 +8919,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 <li>分批扩容（每次加 2-3 个 OSD，而非一次性加 10 个）</li>
 </ol>
 <blockquote>
-<p><strong>云知声教训</strong>：我们曾一次性新增 6 个 OSD，触发了 2TB 数据迁移。回填占满了 25G 存储网络，导致训练读取延迟从 1ms 飙升到 200ms，3 个训练任务因 IO timeout 失败。后来改为每次加 2 个 OSD + 限流，问题不再发生。</p></blockquote>
+<p><strong>云知声教训</strong>：我们曾一次性新增 6 个 OSD，触发了 2TB 数据迁移。回填占满了 25G 存储网络，导致训练读取延迟从 1ms 飙升到 200ms，3 个训练任务因 IO timeout 失败。后来改为每次加 2 个 OSD + 限流，问题不再发生。</p>
+</blockquote>
 <h4 id="1323-数据多次流转导致训练延迟必须建数据湖底座">
   13.2.3 数据多次流转导致训练延迟（必须建数据湖底座）
   <a class="anchor" href="#1323-%e6%95%b0%e6%8d%ae%e5%a4%9a%e6%ac%a1%e6%b5%81%e8%bd%ac%e5%af%bc%e8%87%b4%e8%ae%ad%e7%bb%83%e5%bb%b6%e8%bf%9f%e5%bf%85%e9%a1%bb%e5%bb%ba%e6%95%b0%e6%8d%ae%e6%b9%96%e5%ba%95%e5%ba%a7">#</a>
@@ -8870,7 +8968,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 <li><strong>血缘追踪</strong>：记录每个训练结果对应的数据集版本、预处理参数、模型版本</li>
 </ol>
 <blockquote>
-<p><strong>云知声教训</strong>：在数据湖建成前，一个训练任务需要 4 次数据拷贝（HDFS → NFS → 本地 → 缓存），每次拷贝平均耗时 2 小时。数据湖建成后，只需一次写入 + 缓存预热，端到端时间从 8 小时降到 40 分钟。</p></blockquote>
+<p><strong>云知声教训</strong>：在数据湖建成前，一个训练任务需要 4 次数据拷贝（HDFS → NFS → 本地 → 缓存），每次拷贝平均耗时 2 小时。数据湖建成后，只需一次写入 + 缓存预热，端到端时间从 8 小时降到 40 分钟。</p>
+</blockquote>
 <hr>
 <h3 id="133-gpu--调度相关">
   13.3 GPU &amp; 调度相关
@@ -8910,7 +9009,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 <li>使用 GPU Operator 的 MIG（Multi-Instance GPU）模式处理小任务，避免碎片</li>
 </ol>
 <blockquote>
-<p><strong>云知声教训</strong>：我们曾在一个 32 卡集群中发现，4 个 8 卡训练 Pod 被分散到 4 台服务器（每台 2 卡）。训练速度只有集中部署的 35%。启用 Volcano Binpack 后，4 个 Pod 被正确调度到 4 台完整的服务器，速度恢复。</p></blockquote>
+<p><strong>云知声教训</strong>：我们曾在一个 32 卡集群中发现，4 个 8 卡训练 Pod 被分散到 4 台服务器（每台 2 卡）。训练速度只有集中部署的 35%。启用 Volcano Binpack 后，4 个 Pod 被正确调度到 4 台完整的服务器，速度恢复。</p>
+</blockquote>
 <h4 id="1332-gang-scheduling-死锁资源不足时全体阻塞">
   13.3.2 Gang Scheduling 死锁（资源不足时全体阻塞）
   <a class="anchor" href="#1332-gang-scheduling-%e6%ad%bb%e9%94%81%e8%b5%84%e6%ba%90%e4%b8%8d%e8%b6%b3%e6%97%b6%e5%85%a8%e4%bd%93%e9%98%bb%e5%a1%9e">#</a>
@@ -8933,7 +9033,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 <li><strong>队列管理</strong>：使用 Kueue 的 ClusterQueue 机制，按优先级分配资源</li>
 </ol>
 <blockquote>
-<p><strong>云知声教训</strong>：最严重的一次死锁持续了 6 小时——一个 32 卡 Job 因为差了 8 张卡无法调度，而集群中有 4 个 4 卡的小 Job 占着碎片资源。后来我们配置了 15 分钟超时 + 自动抢占，类似问题再未发生。</p></blockquote>
+<p><strong>云知声教训</strong>：最严重的一次死锁持续了 6 小时——一个 32 卡 Job 因为差了 8 张卡无法调度，而集群中有 4 个 4 卡的小 Job 占着碎片资源。后来我们配置了 15 分钟超时 + 自动抢占，类似问题再未发生。</p>
+</blockquote>
 <h4 id="1333-驱动cuda-版本地狱--必须-operator-化统一管理">
   13.3.3 驱动/CUDA 版本地狱 → 必须 Operator 化统一管理
   <a class="anchor" href="#1333-%e9%a9%b1%e5%8a%a8cuda-%e7%89%88%e6%9c%ac%e5%9c%b0%e7%8b%b1--%e5%bf%85%e9%a1%bb-operator-%e5%8c%96%e7%bb%9f%e4%b8%80%e7%ae%a1%e7%90%86">#</a>
@@ -8964,7 +9065,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 <li>驱动升级使用灰度策略（每次升级 10% 节点，验证通过后再全量）</li>
 </ol>
 <blockquote>
-<p><strong>云知声教训</strong>：我们曾经在一次驱动升级中，一次性更新了全部 30 台服务器的驱动。结果发现新驱动与当时运行的一个训练框架不兼容，导致 30 个训练 Pod 全部崩溃。后来改为每次升级 3 台，观察 2 小时无异常后再继续，再未发生过大规模故障。</p></blockquote>
+<p><strong>云知声教训</strong>：我们曾经在一次驱动升级中，一次性更新了全部 30 台服务器的驱动。结果发现新驱动与当时运行的一个训练框架不兼容，导致 30 个训练 Pod 全部崩溃。后来改为每次升级 3 台，观察 2 小时无异常后再继续，再未发生过大规模故障。</p>
+</blockquote>
 <h4 id="1334-训练长占--推理饥饿必须分池管理">
   13.3.4 训练长占 → 推理饥饿（必须分池管理）
   <a class="anchor" href="#1334-%e8%ae%ad%e7%bb%83%e9%95%bf%e5%8d%a0--%e6%8e%a8%e7%90%86%e9%a5%a5%e9%a5%bf%e5%bf%85%e9%a1%bb%e5%88%86%e6%b1%a0%e7%ae%a1%e7%90%86">#</a>
@@ -8972,35 +9074,35 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 <p><strong>问题</strong>：训练任务通常长时间占用 GPU（数小时到数天），推理任务需要快速响应（&lt; 500ms）。如果训练和推理混用同一批 GPU，推理请求会因为 GPU 被训练占用而无法调度。</p>
 <p><strong>根因</strong>：训练和推理的资源需求模式完全不同：</p>
 <table>
-  <thead>
-      <tr>
-          <th>维度</th>
-          <th>训练</th>
-          <th>推理</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>资源占用时间</td>
-          <td>小时到天</td>
-          <td>毫秒到秒</td>
-      </tr>
-      <tr>
-          <td>GPU 利用率要求</td>
-          <td>越高越好（MFU）</td>
-          <td>够用就行（满足 SLO）</td>
-      </tr>
-      <tr>
-          <td>调度策略</td>
-          <td>Binpack（集中部署）</td>
-          <td>Spread（分散部署）</td>
-      </tr>
-      <tr>
-          <td>弹性要求</td>
-          <td>低（固定资源）</td>
-          <td>高（随时扩缩容）</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>维度</th>
+<th>训练</th>
+<th>推理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>资源占用时间</td>
+<td>小时到天</td>
+<td>毫秒到秒</td>
+</tr>
+<tr>
+<td>GPU 利用率要求</td>
+<td>越高越好（MFU）</td>
+<td>够用就行（满足 SLO）</td>
+</tr>
+<tr>
+<td>调度策略</td>
+<td>Binpack（集中部署）</td>
+<td>Spread（分散部署）</td>
+</tr>
+<tr>
+<td>弹性要求</td>
+<td>低（固定资源）</td>
+<td>高（随时扩缩容）</td>
+</tr>
+</tbody>
 </table>
 <p><strong>解决方案</strong>：</p>
 <ol>
@@ -9010,7 +9112,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 <li><strong>GPU 时分复用</strong>：对于小规模场景，使用 NVIDIA Time-Slicing 在同一 GPU 上分时运行训练和推理（不推荐用于生产规模）</li>
 </ol>
 <blockquote>
-<p><strong>云知声教训</strong>：分池前，白天推理高峰期经常因为 GPU 被训练占用而超时。分池后（训练集群 60 台，推理集群 20 台，管理集群 4 台），推理 P99 延迟从 2000ms 降到 300ms，训练 MFU 从 38% 提升到 42%。</p></blockquote>
+<p><strong>云知声教训</strong>：分池前，白天推理高峰期经常因为 GPU 被训练占用而超时。分池后（训练集群 60 台，推理集群 20 台，管理集群 4 台），推理 P99 延迟从 2000ms 降到 300ms，训练 MFU 从 38% 提升到 42%。</p>
+</blockquote>
 <hr>
 <h3 id="134-训练相关">
   13.4 训练相关
@@ -9053,7 +9156,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 <li><strong>自动回滚</strong>：从最后一个有效 checkpoint 恢复，自动降低学习率</li>
 </ol>
 <blockquote>
-<p><strong>云知声教训</strong>：一次 7B 模型训练中，由于脏数据导致梯度跑飞，训练继续跑了 18 小时（消耗了 28,800 GPU 小时）才被发现。后来我们在训练框架中加入了 loss 异常自动暂停功能，类似问题在 3 分钟内就能发现并处理。</p></blockquote>
+<p><strong>云知声教训</strong>：一次 7B 模型训练中，由于脏数据导致梯度跑飞，训练继续跑了 18 小时（消耗了 28,800 GPU 小时）才被发现。后来我们在训练框架中加入了 loss 异常自动暂停功能，类似问题在 3 分钟内就能发现并处理。</p>
+</blockquote>
 <h4 id="1342-checkpoint-间隔过长--故障恢复成本巨大">
   13.4.2 Checkpoint 间隔过长 → 故障恢复成本巨大
   <a class="anchor" href="#1342-checkpoint-%e9%97%b4%e9%9a%94%e8%bf%87%e9%95%bf--%e6%95%85%e9%9a%9c%e6%81%a2%e5%a4%8d%e6%88%90%e6%9c%ac%e5%b7%a8%e5%a4%a7">#</a>
@@ -9061,45 +9165,45 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 <p><strong>问题</strong>：Checkpoint 间隔设置为 2 小时（为了减少 IO 开销），但训练过程中节点故障，导致最近的 checkpoint 是 118 分钟前的。恢复训练意味着重新执行 118 分钟的计算。</p>
 <p><strong>根因分析</strong>：Checkpoint 间隔需要在&quot;IO 开销&quot;和&quot;故障恢复成本&quot;之间权衡：</p>
 <table>
-  <thead>
-      <tr>
-          <th>Checkpoint 间隔</th>
-          <th>单次 IO 时间</th>
-          <th>每小时 IO 占比</th>
-          <th>最大恢复成本</th>
-          <th>推荐场景</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>10 分钟</td>
-          <td>2-5 分钟</td>
-          <td>20-50%</td>
-          <td>10 分钟</td>
-          <td>小规模 + 高可靠要求</td>
-      </tr>
-      <tr>
-          <td>30 分钟</td>
-          <td>2-5 分钟</td>
-          <td>7-17%</td>
-          <td>30 分钟</td>
-          <td><strong>生产推荐</strong></td>
-      </tr>
-      <tr>
-          <td>60 分钟</td>
-          <td>2-5 分钟</td>
-          <td>3-8%</td>
-          <td>60 分钟</td>
-          <td>大规模 + IO 敏感</td>
-      </tr>
-      <tr>
-          <td>120 分钟</td>
-          <td>2-5 分钟</td>
-          <td>2-4%</td>
-          <td>120 分钟</td>
-          <td>不推荐</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>Checkpoint 间隔</th>
+<th>单次 IO 时间</th>
+<th>每小时 IO 占比</th>
+<th>最大恢复成本</th>
+<th>推荐场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>10 分钟</td>
+<td>2-5 分钟</td>
+<td>20-50%</td>
+<td>10 分钟</td>
+<td>小规模 + 高可靠要求</td>
+</tr>
+<tr>
+<td>30 分钟</td>
+<td>2-5 分钟</td>
+<td>7-17%</td>
+<td>30 分钟</td>
+<td><strong>生产推荐</strong></td>
+</tr>
+<tr>
+<td>60 分钟</td>
+<td>2-5 分钟</td>
+<td>3-8%</td>
+<td>60 分钟</td>
+<td>大规模 + IO 敏感</td>
+</tr>
+<tr>
+<td>120 分钟</td>
+<td>2-5 分钟</td>
+<td>2-4%</td>
+<td>120 分钟</td>
+<td>不推荐</td>
+</tr>
+</tbody>
 </table>
 <p><strong>解决方案</strong>：</p>
 <ol>
@@ -9115,7 +9219,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 <li><strong>自动恢复</strong>：故障后自动从最近的有效 checkpoint 恢复</li>
 </ol>
 <blockquote>
-<p><strong>云知声教训</strong>：我们将 checkpoint 间隔从 60 分钟调整为 30 分钟 + 异步写入后，IO 开销增加不到 5%，但一次节点故障的恢复时间从 95 分钟降到 28 分钟。ROI 非常明确。</p></blockquote>
+<p><strong>云知声教训</strong>：我们将 checkpoint 间隔从 60 分钟调整为 30 分钟 + 异步写入后，IO 开销增加不到 5%，但一次节点故障的恢复时间从 95 分钟降到 28 分钟。ROI 非常明确。</p>
+</blockquote>
 <h4 id="1343-deepspeed-多机多卡-ssh-免密配置复杂度">
   13.4.3 DeepSpeed 多机多卡 SSH 免密配置复杂度
   <a class="anchor" href="#1343-deepspeed-%e5%a4%9a%e6%9c%ba%e5%a4%9a%e5%8d%a1-ssh-%e5%85%8d%e5%af%86%e9%85%8d%e7%bd%ae%e5%a4%8d%e6%9d%82%e5%ba%a6">#</a>
@@ -9152,7 +9257,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 <li><strong>容器化启动</strong>：在 K8s 环境中，使用 PyTorch <code>torchrun</code> 替代 DeepSpeed 原生启动，利用 K8s 的服务发现机制</li>
 </ol>
 <blockquote>
-<p><strong>云知声教训</strong>：我们最初的 DeepSpeed 部署依赖手动 SSH 配置，100 台服务器花了 2 天配置。后来切换到 K8s MPI Operator + <code>torchrun</code>，配置时间降到 30 分钟，且不再出现 SSH 相关故障。</p></blockquote>
+<p><strong>云知声教训</strong>：我们最初的 DeepSpeed 部署依赖手动 SSH 配置，100 台服务器花了 2 天配置。后来切换到 K8s MPI Operator + <code>torchrun</code>，配置时间降到 30 分钟，且不再出现 SSH 相关故障。</p>
+</blockquote>
 <h4 id="1344-未经小规模验证直接大规模训练的风险">
   13.4.4 未经小规模验证直接大规模训练的风险
   <a class="anchor" href="#1344-%e6%9c%aa%e7%bb%8f%e5%b0%8f%e8%a7%84%e6%a8%a1%e9%aa%8c%e8%af%81%e7%9b%b4%e6%8e%a5%e5%a4%a7%e8%a7%84%e6%a8%a1%e8%ae%ad%e7%bb%83%e7%9a%84%e9%a3%8e%e9%99%a9">#</a>
@@ -9178,7 +9284,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 <li><strong>保留小规模环境</strong>：即使进入大规模训练，也要保留一个 8 卡/64 卡环境用于调试和验证</li>
 </ol>
 <blockquote>
-<p><strong>云知声教训</strong>：我们曾试图跳过 64 卡验证直接上 256 卡训练，结果 NCCL timeout 导致训练在跑了 3 小时后崩溃。排查发现是一个 Leaf 交换机的 IB 配置有问题。如果在 64 卡阶段就验证，这个问题会更容易定位（影响范围更小）。从那以后，我们严格执行渐进式验证流程。</p></blockquote>
+<p><strong>云知声教训</strong>：我们曾试图跳过 64 卡验证直接上 256 卡训练，结果 NCCL timeout 导致训练在跑了 3 小时后崩溃。排查发现是一个 Leaf 交换机的 IB 配置有问题。如果在 64 卡阶段就验证，这个问题会更容易定位（影响范围更小）。从那以后，我们严格执行渐进式验证流程。</p>
+</blockquote>
 <hr>
 <h3 id="135-运维相关">
   13.5 运维相关
@@ -9191,64 +9298,64 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 <p><strong>问题</strong>：100 台 GPU 服务器，每台 8 张 GPU，总计 800 张 GPU。人工巡检不可能覆盖所有节点的健康状态。</p>
 <p><strong>需要监控的硬件维度</strong>：</p>
 <table>
-  <thead>
-      <tr>
-          <th>维度</th>
-          <th>监控指标</th>
-          <th>告警阈值</th>
-          <th>采集频率</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>GPU 温度</td>
-          <td><code>DCGM_FI_DEV_GPU_TEMP</code></td>
-          <td>&gt; 85°C</td>
-          <td>15s</td>
-      </tr>
-      <tr>
-          <td>GPU 功耗</td>
-          <td><code>DCGM_FI_DEV_POWER_USAGE</code></td>
-          <td>&gt; 额定 95%</td>
-          <td>15s</td>
-      </tr>
-      <tr>
-          <td>GPU ECC 错误</td>
-          <td><code>DCGM_FI_DEV_ECC_DBE_VOL_TOTAL</code></td>
-          <td>&gt; 0</td>
-          <td>15s</td>
-      </tr>
-      <tr>
-          <td>GPU XID 错误</td>
-          <td><code>nvidia-smi</code> XID</td>
-          <td>&gt; 0</td>
-          <td>实时</td>
-      </tr>
-      <tr>
-          <td>NVLink 状态</td>
-          <td><code>nvidia-smi nvlink -s</code></td>
-          <td>链路 Down</td>
-          <td>5min</td>
-      </tr>
-      <tr>
-          <td>内存使用</td>
-          <td><code>node_memory_MemAvailable</code></td>
-          <td>&lt; 10%</td>
-          <td>30s</td>
-      </tr>
-      <tr>
-          <td>磁盘健康</td>
-          <td><code>smartctl</code> / DCGM</td>
-          <td>异常</td>
-          <td>1h</td>
-      </tr>
-      <tr>
-          <td>网络丢包</td>
-          <td><code>ibportstate</code> / <code>ethtool</code></td>
-          <td>&gt; 0.01%</td>
-          <td>5min</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>维度</th>
+<th>监控指标</th>
+<th>告警阈值</th>
+<th>采集频率</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GPU 温度</td>
+<td><code>DCGM_FI_DEV_GPU_TEMP</code></td>
+<td>&gt; 85°C</td>
+<td>15s</td>
+</tr>
+<tr>
+<td>GPU 功耗</td>
+<td><code>DCGM_FI_DEV_POWER_USAGE</code></td>
+<td>&gt; 额定 95%</td>
+<td>15s</td>
+</tr>
+<tr>
+<td>GPU ECC 错误</td>
+<td><code>DCGM_FI_DEV_ECC_DBE_VOL_TOTAL</code></td>
+<td>&gt; 0</td>
+<td>15s</td>
+</tr>
+<tr>
+<td>GPU XID 错误</td>
+<td><code>nvidia-smi</code> XID</td>
+<td>&gt; 0</td>
+<td>实时</td>
+</tr>
+<tr>
+<td>NVLink 状态</td>
+<td><code>nvidia-smi nvlink -s</code></td>
+<td>链路 Down</td>
+<td>5min</td>
+</tr>
+<tr>
+<td>内存使用</td>
+<td><code>node_memory_MemAvailable</code></td>
+<td>&lt; 10%</td>
+<td>30s</td>
+</tr>
+<tr>
+<td>磁盘健康</td>
+<td><code>smartctl</code> / DCGM</td>
+<td>异常</td>
+<td>1h</td>
+</tr>
+<tr>
+<td>网络丢包</td>
+<td><code>ibportstate</code> / <code>ethtool</code></td>
+<td>&gt; 0.01%</td>
+<td>5min</td>
+</tr>
+</tbody>
 </table>
 <p><strong>解决方案</strong>：</p>
 <ol>
@@ -9269,7 +9376,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 <li>集成到告警系统（如钉钉/企业微信），异常自动通知运维人员</li>
 </ol>
 <blockquote>
-<p><strong>云知声教训</strong>：一次训练中，一台服务器的 GPU2 出现间歇性 XID 79 错误（GPU 掉卡），但监控未配置 XID 告警。这个 GPU 上的训练 Pod 持续跑了 4 小时才被发现，checkpoint 数据已经损坏。后来我们将 XID &gt; 0 设为 P1 告警，30 秒内即可通知到运维。</p></blockquote>
+<p><strong>云知声教训</strong>：一次训练中，一台服务器的 GPU2 出现间歇性 XID 79 错误（GPU 掉卡），但监控未配置 XID 告警。这个 GPU 上的训练 Pod 持续跑了 4 小时才被发现，checkpoint 数据已经损坏。后来我们将 XID &gt; 0 设为 P1 告警，30 秒内即可通知到运维。</p>
+</blockquote>
 <h4 id="1352-k8s-故障节点自动剔除与集群重建">
   13.5.2 K8s 故障节点自动剔除与集群重建
   <a class="anchor" href="#1352-k8s-%e6%95%85%e9%9a%9c%e8%8a%82%e7%82%b9%e8%87%aa%e5%8a%a8%e5%89%94%e9%99%a4%e4%b8%8e%e9%9b%86%e7%be%a4%e9%87%8d%e5%bb%ba">#</a>
@@ -9297,7 +9405,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 <li><strong>优雅退出</strong>：训练 Job 配置 <code>preStop</code> hook，在节点被剔除前保存 checkpoint</li>
 </ol>
 <blockquote>
-<p><strong>云知声教训</strong>：我们配置了 XID 错误 → 自动 Cordon → 自动排空 → 自动重建的完整流程。现在一台服务器从故障到重建完成约 15 分钟，而训练 Job 通过 checkpoint 自动恢复，中断时间 &lt; 5 分钟。</p></blockquote>
+<p><strong>云知声教训</strong>：我们配置了 XID 错误 → 自动 Cordon → 自动排空 → 自动重建的完整流程。现在一台服务器从故障到重建完成约 15 分钟，而训练 Job 通过 checkpoint 自动恢复，中断时间 &lt; 5 分钟。</p>
+</blockquote>
 <h4 id="1353-gpu-指标采样频率优化监控数据爆炸">
   13.5.3 GPU 指标采样频率优化（监控数据爆炸）
   <a class="anchor" href="#1353-gpu-%e6%8c%87%e6%a0%87%e9%87%87%e6%a0%b7%e9%a2%91%e7%8e%87%e4%bc%98%e5%8c%96%e7%9b%91%e6%8e%a7%e6%95%b0%e6%8d%ae%e7%88%86%e7%82%b8">#</a>
@@ -9309,40 +9418,40 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 <li>
 <p><strong>分层采集</strong>：</p>
 <table>
-  <thead>
-      <tr>
-          <th>指标类别</th>
-          <th>采集频率</th>
-          <th>用途</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>GPU 温度/功耗</td>
-          <td>15s</td>
-          <td>实时告警</td>
-      </tr>
-      <tr>
-          <td>GPU 利用率</td>
-          <td>30s</td>
-          <td>调度优化</td>
-      </tr>
-      <tr>
-          <td>显存使用</td>
-          <td>5min</td>
-          <td>容量规划</td>
-      </tr>
-      <tr>
-          <td>NVLink 状态</td>
-          <td>5min</td>
-          <td>健康巡检</td>
-      </tr>
-      <tr>
-          <td>ECC 错误</td>
-          <td>15s</td>
-          <td>故障告警</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>指标类别</th>
+<th>采集频率</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GPU 温度/功耗</td>
+<td>15s</td>
+<td>实时告警</td>
+</tr>
+<tr>
+<td>GPU 利用率</td>
+<td>30s</td>
+<td>调度优化</td>
+</tr>
+<tr>
+<td>显存使用</td>
+<td>5min</td>
+<td>容量规划</td>
+</tr>
+<tr>
+<td>NVLink 状态</td>
+<td>5min</td>
+<td>健康巡检</td>
+</tr>
+<tr>
+<td>ECC 错误</td>
+<td>15s</td>
+<td>故障告警</td>
+</tr>
+</tbody>
 </table>
 </li>
 <li>
@@ -9366,7 +9475,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 </li>
 </ol>
 <blockquote>
-<p><strong>云知声教训</strong>：最初我们所有指标都是 15s 采集，Prometheus 每天写入 7.4 亿条数据，存储用了 2TB。分层采集 + recording rules 后，热数据降到 50GB/天，长期存储用 Thanos 压缩后仅 200GB/月。</p></blockquote>
+<p><strong>云知声教训</strong>：最初我们所有指标都是 15s 采集，Prometheus 每天写入 7.4 亿条数据，存储用了 2TB。分层采集 + recording rules 后，热数据降到 50GB/天，长期存储用 Thanos 压缩后仅 200GB/月。</p>
+</blockquote>
 <hr>
 <h2 id="附录云知声实践要点映射表">
   附录：云知声实践要点映射表
@@ -9374,244 +9484,245 @@ DCGM_FI_PROF_PCIE_RX_BYTES    # PCIe 接收字节率
 </h2>
 <p>下表将云知声 MaaS 平台实战中的关键问题，映射到本文档的理论章节和具体解决方案。可作为快速索引使用。</p>
 <table>
-  <thead>
-      <tr>
-          <th>实战问题</th>
-          <th>所属类别</th>
-          <th>对应章节</th>
-          <th>核心解决方案</th>
-          <th>优先级</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>PCIe 带宽不足导致训练速度慢</td>
-          <td>网络</td>
-          <td>§13.1.1</td>
-          <td>NVLink/NVSwitch + NCCL P2P 配置</td>
-          <td>P0</td>
-      </tr>
-      <tr>
-          <td>RDMA 未开启导致通信瓶颈</td>
-          <td>网络</td>
-          <td>§13.1.2</td>
-          <td>GPUDirect RDMA + MOFED 驱动</td>
-          <td>P0</td>
-      </tr>
-      <tr>
-          <td>IB 交换机配置错误</td>
-          <td>网络</td>
-          <td>§13.1.3</td>
-          <td>UFM 集中管理 + LFT 校验</td>
-          <td>P0</td>
-      </tr>
-      <tr>
-          <td>MTU 不一致导致性能下降</td>
-          <td>网络</td>
-          <td>§13.1.4</td>
-          <td>全网统一 MTU 4092</td>
-          <td>P0</td>
-      </tr>
-      <tr>
-          <td>多网卡跨网路由错误</td>
-          <td>网络</td>
-          <td>§13.1.5</td>
-          <td>Policy-based routing 隔离</td>
-          <td>P1</td>
-      </tr>
-      <tr>
-          <td>DP/TP/PP 网络需求冲突</td>
-          <td>网络</td>
-          <td>§13.1.6</td>
-          <td>通信距离与频率反比原则</td>
-          <td>P1</td>
-      </tr>
-      <tr>
-          <td>NetworkPolicy 规则爆炸</td>
-          <td>网络</td>
-          <td>§13.1.7</td>
-          <td>Cilium eBPF + Namespace 聚合</td>
-          <td>P2</td>
-      </tr>
-      <tr>
-          <td>三级缓存命中率不足</td>
-          <td>存储</td>
-          <td>§13.2.1</td>
-          <td>预热策略 + 命中率监控 + 告警</td>
-          <td>P0</td>
-      </tr>
-      <tr>
-          <td>Ceph 扩容导致数据迁移</td>
-          <td>存储</td>
-          <td>§13.2.2</td>
-          <td>限流 + 分批扩容 + 维护窗口</td>
-          <td>P1</td>
-      </tr>
-      <tr>
-          <td>数据多次流转延迟高</td>
-          <td>存储</td>
-          <td>§13.2.3</td>
-          <td>数据湖底座 + WORM + 版本化</td>
-          <td>P0</td>
-      </tr>
-      <tr>
-          <td>GPU 调度碎片化</td>
-          <td>调度</td>
-          <td>§13.3.1</td>
-          <td>Binpack + 拓扑感知调度</td>
-          <td>P0</td>
-      </tr>
-      <tr>
-          <td>Gang Scheduling 死锁</td>
-          <td>调度</td>
-          <td>§13.3.2</td>
-          <td>资源预留 + 抢占 + 超时回退</td>
-          <td>P0</td>
-      </tr>
-      <tr>
-          <td>驱动/CUDA 版本冲突</td>
-          <td>调度</td>
-          <td>§13.3.3</td>
-          <td>GPU Operator 统一管理 + 灰度</td>
-          <td>P0</td>
-      </tr>
-      <tr>
-          <td>训练推理资源争抢</td>
-          <td>调度</td>
-          <td>§13.3.4</td>
-          <td>物理分池（训练/推理独立集群）</td>
-          <td>P0</td>
-      </tr>
-      <tr>
-          <td>梯度跑飞未及时发现</td>
-          <td>训练</td>
-          <td>§13.4.1</td>
-          <td>实时 loss 监控 + 自动暂停</td>
-          <td>P0</td>
-      </tr>
-      <tr>
-          <td>Checkpoint 间隔过长</td>
-          <td>训练</td>
-          <td>§13.4.2</td>
-          <td>30 分钟异步 + 分层 checkpoint</td>
-          <td>P0</td>
-      </tr>
-      <tr>
-          <td>DeepSpeed SSH 配置复杂</td>
-          <td>训练</td>
-          <td>§13.4.3</td>
-          <td>K8s MPI Operator / torchrun</td>
-          <td>P1</td>
-      </tr>
-      <tr>
-          <td>未经小规模验证直接大规模</td>
-          <td>训练</td>
-          <td>§13.4.4</td>
-          <td>渐进式扩规模验证（8→64→256→800）</td>
-          <td>P0</td>
-      </tr>
-      <tr>
-          <td>硬件巡检依赖人工</td>
-          <td>运维</td>
-          <td>§13.5.1</td>
-          <td>DCGM Exporter + 自动化巡检</td>
-          <td>P0</td>
-      </tr>
-      <tr>
-          <td>故障节点未及时剔除</td>
-          <td>运维</td>
-          <td>§13.5.2</td>
-          <td>加速检测 + Node Problem Detector</td>
-          <td>P0</td>
-      </tr>
-      <tr>
-          <td>GPU 监控数据爆炸</td>
-          <td>运维</td>
-          <td>§13.5.3</td>
-          <td>分层采集 + recording rules + Thanos</td>
-          <td>P1</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>实战问题</th>
+<th>所属类别</th>
+<th>对应章节</th>
+<th>核心解决方案</th>
+<th>优先级</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PCIe 带宽不足导致训练速度慢</td>
+<td>网络</td>
+<td>§13.1.1</td>
+<td>NVLink/NVSwitch + NCCL P2P 配置</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>RDMA 未开启导致通信瓶颈</td>
+<td>网络</td>
+<td>§13.1.2</td>
+<td>GPUDirect RDMA + MOFED 驱动</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>IB 交换机配置错误</td>
+<td>网络</td>
+<td>§13.1.3</td>
+<td>UFM 集中管理 + LFT 校验</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>MTU 不一致导致性能下降</td>
+<td>网络</td>
+<td>§13.1.4</td>
+<td>全网统一 MTU 4092</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>多网卡跨网路由错误</td>
+<td>网络</td>
+<td>§13.1.5</td>
+<td>Policy-based routing 隔离</td>
+<td>P1</td>
+</tr>
+<tr>
+<td>DP/TP/PP 网络需求冲突</td>
+<td>网络</td>
+<td>§13.1.6</td>
+<td>通信距离与频率反比原则</td>
+<td>P1</td>
+</tr>
+<tr>
+<td>NetworkPolicy 规则爆炸</td>
+<td>网络</td>
+<td>§13.1.7</td>
+<td>Cilium eBPF + Namespace 聚合</td>
+<td>P2</td>
+</tr>
+<tr>
+<td>三级缓存命中率不足</td>
+<td>存储</td>
+<td>§13.2.1</td>
+<td>预热策略 + 命中率监控 + 告警</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>Ceph 扩容导致数据迁移</td>
+<td>存储</td>
+<td>§13.2.2</td>
+<td>限流 + 分批扩容 + 维护窗口</td>
+<td>P1</td>
+</tr>
+<tr>
+<td>数据多次流转延迟高</td>
+<td>存储</td>
+<td>§13.2.3</td>
+<td>数据湖底座 + WORM + 版本化</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>GPU 调度碎片化</td>
+<td>调度</td>
+<td>§13.3.1</td>
+<td>Binpack + 拓扑感知调度</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>Gang Scheduling 死锁</td>
+<td>调度</td>
+<td>§13.3.2</td>
+<td>资源预留 + 抢占 + 超时回退</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>驱动/CUDA 版本冲突</td>
+<td>调度</td>
+<td>§13.3.3</td>
+<td>GPU Operator 统一管理 + 灰度</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>训练推理资源争抢</td>
+<td>调度</td>
+<td>§13.3.4</td>
+<td>物理分池（训练/推理独立集群）</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>梯度跑飞未及时发现</td>
+<td>训练</td>
+<td>§13.4.1</td>
+<td>实时 loss 监控 + 自动暂停</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>Checkpoint 间隔过长</td>
+<td>训练</td>
+<td>§13.4.2</td>
+<td>30 分钟异步 + 分层 checkpoint</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>DeepSpeed SSH 配置复杂</td>
+<td>训练</td>
+<td>§13.4.3</td>
+<td>K8s MPI Operator / torchrun</td>
+<td>P1</td>
+</tr>
+<tr>
+<td>未经小规模验证直接大规模</td>
+<td>训练</td>
+<td>§13.4.4</td>
+<td>渐进式扩规模验证（8→64→256→800）</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>硬件巡检依赖人工</td>
+<td>运维</td>
+<td>§13.5.1</td>
+<td>DCGM Exporter + 自动化巡检</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>故障节点未及时剔除</td>
+<td>运维</td>
+<td>§13.5.2</td>
+<td>加速检测 + Node Problem Detector</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>GPU 监控数据爆炸</td>
+<td>运维</td>
+<td>§13.5.3</td>
+<td>分层采集 + recording rules + Thanos</td>
+<td>P1</td>
+</tr>
+</tbody>
 </table>
 <h3 id="关键指标目标汇总">
   关键指标目标汇总
   <a class="anchor" href="#%e5%85%b3%e9%94%ae%e6%8c%87%e6%a0%87%e7%9b%ae%e6%a0%87%e6%b1%87%e6%80%bb">#</a>
 </h3>
 <table>
-  <thead>
-      <tr>
-          <th>指标</th>
-          <th>目标值</th>
-          <th>测量方法</th>
-          <th>对应章节</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>MFU（Model FLOPs Utilization）</td>
-          <td>≥ 40%（全量）</td>
-          <td>实际 TFLOPs / 理论峰值</td>
-          <td>§12.3.3</td>
-      </tr>
-      <tr>
-          <td>线性加速比（8→64 卡）</td>
-          <td>≥ 85%</td>
-          <td>加速比 = T(8卡)/T(64卡) × 8</td>
-          <td>§12.3.3</td>
-      </tr>
-      <tr>
-          <td>L1 缓存命中率</td>
-          <td>&gt; 80%</td>
-          <td>hit / (hit + miss)</td>
-          <td>§13.2.1</td>
-      </tr>
-      <tr>
-          <td>推理 P99 延迟（分池后）</td>
-          <td>&lt; 500ms</td>
-          <td>监控 metrics</td>
-          <td>§13.3.4</td>
-      </tr>
-      <tr>
-          <td>Checkpoint 间隔</td>
-          <td>30 分钟（异步）</td>
-          <td>训练配置</td>
-          <td>§13.4.2</td>
-      </tr>
-      <tr>
-          <td>故障恢复时间</td>
-          <td>&lt; 5 分钟</td>
-          <td>从 checkpoint resume 时间</td>
-          <td>§13.5.2</td>
-      </tr>
-      <tr>
-          <td>GPU XID 错误响应时间</td>
-          <td>&lt; 30 秒</td>
-          <td>告警延迟</td>
-          <td>§13.5.1</td>
-      </tr>
-      <tr>
-          <td>IB 网络带宽利用率</td>
-          <td>&gt; 90% 线速</td>
-          <td><code>ib_write_bw</code> 测试</td>
-          <td>§13.1.3</td>
-      </tr>
-      <tr>
-          <td>驱动升级灰度批次</td>
-          <td>≤ 10% 节点/批</td>
-          <td>运维流程</td>
-          <td>§13.3.3</td>
-      </tr>
-      <tr>
-          <td>Prometheus 热数据量（优化后）</td>
-          <td>&lt; 50GB/天</td>
-          <td>存储统计</td>
-          <td>§13.5.3</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>指标</th>
+<th>目标值</th>
+<th>测量方法</th>
+<th>对应章节</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MFU（Model FLOPs Utilization）</td>
+<td>≥ 40%（全量）</td>
+<td>实际 TFLOPs / 理论峰值</td>
+<td>§12.3.3</td>
+</tr>
+<tr>
+<td>线性加速比（8→64 卡）</td>
+<td>≥ 85%</td>
+<td>加速比 = T(8卡)/T(64卡) × 8</td>
+<td>§12.3.3</td>
+</tr>
+<tr>
+<td>L1 缓存命中率</td>
+<td>&gt; 80%</td>
+<td>hit / (hit + miss)</td>
+<td>§13.2.1</td>
+</tr>
+<tr>
+<td>推理 P99 延迟（分池后）</td>
+<td>&lt; 500ms</td>
+<td>监控 metrics</td>
+<td>§13.3.4</td>
+</tr>
+<tr>
+<td>Checkpoint 间隔</td>
+<td>30 分钟（异步）</td>
+<td>训练配置</td>
+<td>§13.4.2</td>
+</tr>
+<tr>
+<td>故障恢复时间</td>
+<td>&lt; 5 分钟</td>
+<td>从 checkpoint resume 时间</td>
+<td>§13.5.2</td>
+</tr>
+<tr>
+<td>GPU XID 错误响应时间</td>
+<td>&lt; 30 秒</td>
+<td>告警延迟</td>
+<td>§13.5.1</td>
+</tr>
+<tr>
+<td>IB 网络带宽利用率</td>
+<td>&gt; 90% 线速</td>
+<td><code>ib_write_bw</code> 测试</td>
+<td>§13.1.3</td>
+</tr>
+<tr>
+<td>驱动升级灰度批次</td>
+<td>≤ 10% 节点/批</td>
+<td>运维流程</td>
+<td>§13.3.3</td>
+</tr>
+<tr>
+<td>Prometheus 热数据量（优化后）</td>
+<td>&lt; 50GB/天</td>
+<td>存储统计</td>
+<td>§13.5.3</td>
+</tr>
+</tbody>
 </table>
 <hr>
 <blockquote>
-<p><strong>文档说明</strong>：本部分为 MaaS 平台系列文档的第四部分（最终部分），涵盖实施路径与实战教训。前三部分分别为：第一部分（需求分析 + 架构总览）、第二部分（GPU 算力管理 + 分布式训练）、第三部分（存储体系 + 网络架构）。全文档基于云知声 MaaS 平台 100+ GPU 节点规模落地实践编写，所有技术方案均有对应的实战验证。</p></blockquote>
+<p><strong>文档说明</strong>：本部分为 MaaS 平台系列文档的第四部分（最终部分），涵盖实施路径与实战教训。前三部分分别为：第一部分（需求分析 + 架构总览）、第二部分（GPU 算力管理 + 分布式训练）、第三部分（存储体系 + 网络架构）。全文档基于云知声 MaaS 平台 100+ GPU 节点规模落地实践编写，所有技术方案均有对应的实战验证。</p>
+</blockquote>
 <div class="footnotes" role="doc-endnotes">
 <hr>
 <ol>
