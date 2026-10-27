@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Cost-Based Routing on MLSys</title>
+    <link>http://localhost:8313/www6vMLSys/docs/AI-platform/litellm/cost-route/</link>
+    <description>Recent content in Cost-Based Routing on MLSys</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <atom:link href="http://localhost:8313/www6vMLSys/docs/AI-platform/litellm/cost-route/index.xml" rel="self" type="application/rss+xml" />
+  </channel>
+</rss>

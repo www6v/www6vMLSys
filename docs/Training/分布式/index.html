@@ -1,0 +1,2521 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head><script src="/www6vMLSys/livereload.js?mindelay=10&amp;v=2&amp;port=8313&amp;path=www6vMLSys/livereload" data-no-instant defer></script>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:url" content="http://localhost:8313/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/">
+  <meta property="og:site_name" content="MLSys">
+  <meta property="og:title" content="分布式">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="website">
+<title>分布式 | MLSys</title>
+<link rel="icon" href="/www6vMLSys/favicon.png" >
+<link rel="manifest" href="/www6vMLSys/manifest.json">
+<link rel="canonical" href="http://localhost:8313/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/">
+<link rel="stylesheet" href="/www6vMLSys/book.min.3257a7ce7c061eb5dfc72257c356229b1470dc77ce9b982ac220c02542f9f04f.css" integrity="sha256-MlenznwGHrXfxyJXw1YimxRw3HfOm5gqwiDAJUL58E8=" crossorigin="anonymous">
+  <script defer src="/www6vMLSys/fuse.min.js"></script>
+  <script defer src="/www6vMLSys/en.search.min.1d2f63d6dfb5f5216020e7cc61bc050e66c9780cdea4573a6647dc3df1653997.js" integrity="sha256-HS9j1t&#43;19SFgIOfMYbwFDmbJeAzepFc6ZkfcPfFlOZc=" crossorigin="anonymous"></script>
+<link rel="alternate" type="application/rss+xml" href="http://localhost:8313/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/index.xml" title="MLSys" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/www6vMLSys/"><span>MLSys</span>
+  </a>
+</h2>
+
+
+<div class="book-search hidden">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+<script>document.querySelector(".book-search").classList.remove("hidden")</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-ca753bea61cfd91548121e6515a1f2f4" class="toggle"  />
+    <label for="section-ca753bea61cfd91548121e6515a1f2f4" class="flex justify-between">
+      <a role="button" class="">Inference</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-56275ad8215eeefb1bf1f995049cdbbd" class="toggle"  />
+    <label for="section-56275ad8215eeefb1bf1f995049cdbbd" class="flex justify-between">
+      <a role="button" class="">框架</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/Framework/" class="">(原理)推理-框架</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/FrameworkPractice/" class="">(实战)推理-lmdeploy</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/TensorRT/" class="">(原理|实战) TensorRT-LLM &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/Ray/" class="">(原理)推理 Ray</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6/RayPractice/" class="">(实战)推理 Ray</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-b25ec840f495626dd46db52a7fb711d2" class="toggle"  />
+    <label for="section-b25ec840f495626dd46db52a7fb711d2" class="flex justify-between">
+      <a role="button" class="">框架vLLM</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLM/" class="">(原理) vLLM  &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMPractice/" class="">(实战) vLLM &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/SpeculativeDecodingvLLM/" class="">(实战)[vLLM]投机解码 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/KVCacheRadixAttention/" class="">(原理|实战) [vLLM]Prefix Cache &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMCode/" class="">(实现)[vLLM]整体架构 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMDist/" class="">(实现)[vLLM]分布式 *</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMPD/" class="">(实现)[vLLM]PD分离 *</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMSpeculativeDecode/" class="">(实现)[vLLM]投机解码 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMPrefixCaching/" class="">(实现)[vLLM]Prefix Caching &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference/%E6%A1%86%E6%9E%B6vLLM/vLLMv1/" class="">(实现)[vLLM]V1 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-c49a1f948a2a29674519803dad4116b8" class="toggle"  />
+    <label for="section-c49a1f948a2a29674519803dad4116b8" class="flex justify-between">
+      <a role="button" class="">Inference 优化</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-1e4669a90ea0583327d95f5f860a8386" class="toggle"  />
+    <label for="section-1e4669a90ea0583327d95f5f860a8386" class="flex justify-between">
+      <a role="button" class="">Overview</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/Overview/Inference/" class="">(总结)推理优化</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/Overview/InferenceSurvey/" class="">(综述)推理优化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/Overview/InferenceSurvey1/" class="">(综述)推理优化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-53f3eaea49773b0e42776c6ce778b93b" class="toggle"  />
+    <label for="section-53f3eaea49773b0e42776c6ce778b93b" class="flex justify-between">
+      <a role="button" class="">系统层优化</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3e5b6f9fbf62e0fffc5404e56844adf2" class="toggle"  />
+    <label for="section-3e5b6f9fbf62e0fffc5404e56844adf2" class="flex justify-between">
+      <a role="button" class="">FlashAttention</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/FlashAttention/FlashAttention/" class="">(原理)Flash Attention &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/FlashAttention/FlashAttention2/" class="">(原理)FlashAttention2 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/FlashAttention/FlashDecoding/" class="">(原理)Flash Decoding &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-02a3be02f2a1699c2a452dfefeba5643" class="toggle"  />
+    <label for="section-02a3be02f2a1699c2a452dfefeba5643" class="flex justify-between">
+      <a role="button" class="">SpeculativeDecoding</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/SpeculativeDecoding/" class="">Speculative Decoding &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/SpeculativeDecodingSurvey/" class="">(Survey)Speculative Decoding &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/Medusa/" class="">(原理|实现)Medusa &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/Eagle/" class="">EAGLE &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/SpeculativeDecoding/SpecInfer/" class="">SpecInfer &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-49a57bff13a447f35cb292401ed2efb6" class="toggle"  />
+    <label for="section-49a57bff13a447f35cb292401ed2efb6" class="flex justify-between">
+      <a role="button" class="">KVCache</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/KVCache/KVCache/" class="">(原理|实现) KV Cache &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/KVCache/KVCacheOptimize/" class="">(原理)KV Cache 优化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-44b7c610929babb5675a5fe77cf461c7" class="toggle"  />
+    <label for="section-44b7c610929babb5675a5fe77cf461c7" class="flex justify-between">
+      <a role="button" class="">Compress</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/KVCache/Compress/gptInferKVCacheQuantization/" class="">(原理)KV Cache 量化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-109d31f7dd3f283289891187ce6fb325" class="toggle"  />
+    <label for="section-109d31f7dd3f283289891187ce6fb325" class="flex justify-between">
+      <a role="button" class="">Batch</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/Batch/ContinuousBatching/" class="">Continuous Batching &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/Batch/ChunkedPrefill/" class="">Chunked Prefill &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-bdc55ac24e65babd2206d2d7c08ef5b1" class="toggle"  />
+    <label for="section-bdc55ac24e65babd2206d2d7c08ef5b1" class="flex justify-between">
+      <a role="button" class="">PD 分离</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/DistServe/" class="">DistServe &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/Mooncake/" class="">(原理|实现)Mooncake &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/MooncakeA1/" class="">(A1)Mooncake 架构 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/PD%E5%88%86%E7%A6%BB/" class="">(A1)PD分离 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E7%B3%BB%E7%BB%9F%E5%B1%82%E4%BC%98%E5%8C%96/PD-%E5%88%86%E7%A6%BB/Llumnix/" class="">(原理)Llumnix &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-6fbf829fdf373fb3e759121da48b06aa" class="toggle"  />
+    <label for="section-6fbf829fdf373fb3e759121da48b06aa" class="flex justify-between">
+      <a role="button" class="">模型层优化</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-563e0bb96fb22d9deb3856d366f84b48" class="toggle"  />
+    <label for="section-563e0bb96fb22d9deb3856d366f84b48" class="flex justify-between">
+      <a role="button" class="">量化</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-b3cd1a8e7ad58050b85c2ed726f567b8" class="toggle"  />
+    <label for="section-b3cd1a8e7ad58050b85c2ed726f567b8" class="flex justify-between">
+      <a role="button" class="">Overview</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/Overview/QuantizationSurvey/" class="">(Survey)Quantization &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/Overview/Quantization/" class="">(原理)量化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-45aaf711f6df4f3bcf55e1ea2298b040" class="toggle"  />
+    <label for="section-45aaf711f6df4f3bcf55e1ea2298b040" class="flex justify-between">
+      <a role="button" class="">PTQ</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/QuantizationWeight/" class="">(原理)PTQ-Weight Only &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-d490b47db1ab3ad18c35bfb0f08644f8" class="toggle"  />
+    <label for="section-d490b47db1ab3ad18c35bfb0f08644f8" class="flex justify-between">
+      <a role="button" class="">Weight Only</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/Weight-Only/QuantizationGPTQ/" class="">(原理|实战|实现)GPTQ &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/Weight-Only/QuantizationAWQ/" class="">(原理|实战)AWQ &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-52b3ad67e7a5e0ae9a4de74a21f395f9" class="toggle"  />
+    <label for="section-52b3ad67e7a5e0ae9a4de74a21f395f9" class="flex justify-between">
+      <a role="button" class="">Weight&amp;Activation</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/QuantizationInt8/gptQuantizationInt8/" class="">(原理|实战)LLM.int8() &#43;</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/QuantizationSmoothQuant/gptQuantizationSmoothQuant/" class="">(原理)SmoothQuant &#43;</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/QuantizationFP8/gptQuantizationFP8/" class="">(原理)FP8 &#43;</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-c7f0d1a2a1e47d5d4f7700eacdd3774b" class="toggle"  />
+    <label for="section-c7f0d1a2a1e47d5d4f7700eacdd3774b" class="flex justify-between">
+      <a role="button" class="">Practice</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/Practice/QuantizationPractice/" class="">(实战)量化 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-aa114d1f1f30af3c3c6b8fd39c9e1f77" class="toggle"  />
+    <label for="section-aa114d1f1f30af3c3c6b8fd39c9e1f77" class="flex justify-between">
+      <a role="button" class="">Sparse Attention</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/Sparse-Attention/KVCacheStreamingLLM/" class="">(原理)Streaming LLM &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-e080325482863b654903016eb9a20837" class="toggle"  />
+    <label for="section-e080325482863b654903016eb9a20837" class="flex justify-between">
+      <a role="button" class="">TTFT</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/TTFT/TTFT/" class="">LLM 首字延迟（TTFT）优化方案</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Inference-Opt/TTFT/TTFT1/" class="">LLM 首字延迟（TTFT）优化方案</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-4f1c3456446b92d9b2d1f2b9bb1b05e6" class="toggle" checked />
+    <label for="section-4f1c3456446b92d9b2d1f2b9bb1b05e6" class="flex justify-between">
+      <a role="button" class="">Training</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-f6f4a8b0cdc425afda768e9133431ce3" class="toggle" checked />
+    <label for="section-f6f4a8b0cdc425afda768e9133431ce3" class="flex justify-between">
+      <a role="button" class="active">分布式</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-67c5e4db9bcda0f0165b0fa6b1e030ff" class="toggle"  />
+    <label for="section-67c5e4db9bcda0f0165b0fa6b1e030ff" class="flex justify-between">
+      <a role="button" class="">Overview</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/Overview/TrainParallelism/" class="">(原理)分布式训练 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3f38e58dd85d95e4d7ade396cfeb495d" class="toggle"  />
+    <label for="section-3f38e58dd85d95e4d7ade396cfeb495d" class="flex justify-between">
+      <a role="button" class="">DP</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainZeroDeepspeed/" class="">(原理) Deepspeed Zero &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainDistributedPractice/" class="">(实战)DeepSpeed Training &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainDDP/" class="">(原理|实战)DDP &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/DP/TrainFSDP/" class="">(原理|实战)FSDP &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-fc9be9466c43655f42abfac06e8e7f5b" class="toggle"  />
+    <label for="section-fc9be9466c43655f42abfac06e8e7f5b" class="flex justify-between">
+      <a role="button" class="">TP</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/TP/TrainTensorParallelism/" class="">(原理)张量并行(TP) &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-929916b6b65d9816668c5984b6c83eb0" class="toggle"  />
+    <label for="section-929916b6b65d9816668c5984b6c83eb0" class="flex justify-between">
+      <a role="button" class="">PP</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/PP/TrainPipelineParallelism/" class="">(原理|实战)流水线并行(PP) &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-539209a0fb36a1742652f0fdfe883c51" class="toggle"  />
+    <label for="section-539209a0fb36a1742652f0fdfe883c51" class="flex justify-between">
+      <a role="button" class="">混合并行</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/%E6%B7%B7%E5%90%88%E5%B9%B6%E8%A1%8C/TrainMegatron/" class="">(原理)Megatron &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E5%88%86%E5%B8%83%E5%BC%8F/%E6%B7%B7%E5%90%88%E5%B9%B6%E8%A1%8C/TrainHybridParallel/" class="">(原理)混合并行 &#43;</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3328222dd7e291dd2b534e9cb32ae403" class="toggle"  />
+    <label for="section-3328222dd7e291dd2b534e9cb32ae403" class="flex justify-between">
+      <a role="button" class="">低精度</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/LowPrecision/gptLowPrecision/" class="">低精度训练 &#43;</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/Precision/gptPrecision/" class="">(原理|实战)混合精度 &#43;</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-64f7568d62bdd84bbb9ff68c3c3968ab" class="toggle"  />
+    <label for="section-64f7568d62bdd84bbb9ff68c3c3968ab" class="flex justify-between">
+      <a role="button" class="">AI平台</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI-platform/aiPlatform/" class="">(原理)AI平台</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI-platform/aiObserve/" class="">(阿里)AI 应用观测</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0f75d74a84073860b03457b414c34b6b" class="toggle"  />
+    <label for="section-0f75d74a84073860b03457b414c34b6b" class="flex justify-between">
+      <a role="button" class="">AI gateway</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI-platform/AI-gateway/gateway/" class="">(阿里) AI 网关</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-93e20d58f1fb6cc5a073cf4011e2dcc7" class="toggle"  />
+    <label for="section-93e20d58f1fb6cc5a073cf4011e2dcc7" class="flex justify-between">
+      <a role="button" class="">LiteLLM</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI-platform/litellm/routefallback/" class="">Route&amp;fallback</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI-platform/litellm/complexity-router/" class="">Complexity Router</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI-platform/litellm/cost-route/" class="">Cost-Based Routing</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI-platform/litellm/proxy-server/proxy-server/" class="">Proxy Server</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-750824b28a90b52389e814491768d475" class="toggle"  />
+    <label for="section-750824b28a90b52389e814491768d475" class="flex justify-between">
+      <a role="button" class="">对话混合架构</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI-platform/%E5%AF%B9%E8%AF%9D%E6%B7%B7%E5%90%88%E6%9E%B6%E6%9E%84/claw/" class="">Claw</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI-platform/%E5%AF%B9%E8%AF%9D%E6%B7%B7%E5%90%88%E6%9E%B6%E6%9E%84/hermes/" class="">Hermes</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-e69164d7218a7d658c7bcc410bc7098d" class="toggle"  />
+    <label for="section-e69164d7218a7d658c7bcc410bc7098d" class="flex justify-between">
+      <a role="button" class="">开放平台</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI-platform/%E5%BC%80%E6%94%BE%E5%B9%B3%E5%8F%B0/claw/" class="">Claw</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI-platform/%E5%BC%80%E6%94%BE%E5%B9%B3%E5%8F%B0/hermes/" class="">Hermes</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-f0028e0545488971abca38b73796434a" class="toggle"  />
+    <label for="section-f0028e0545488971abca38b73796434a" class="flex justify-between">
+      <a role="button" class="">端云混合架构</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI-platform/%E7%AB%AF%E4%BA%91%E6%B7%B7%E5%90%88%E6%9E%B6%E6%9E%84/claw&#43;/" class="">Claw[ ]</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI-platform/%E7%AB%AF%E4%BA%91%E6%B7%B7%E5%90%88%E6%9E%B6%E6%9E%84/hermes/" class="">Hermes</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/AI-platform/LLMOps/" class="">LLMOps</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-ecee83d567c3601d949b032cbef93ac8" class="toggle"  />
+    <label for="section-ecee83d567c3601d949b032cbef93ac8" class="flex justify-between">
+      <a role="button" class="">MaaS</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/MaaS/MaaS1/" class="">MaaS</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/MaaS/MaaS2/" class="">MaaS</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/MaaS/MaaS3/" class="">智算中心[A1]</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/MaaS/MaaS-observe/" class="">MaaS 监控</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/MaaS/MaaSali/" class="">智能体基础设施[阿里][A1]</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/MaaS/MaaS-command/" class="">Maa S Command</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-d5c9ab34c7a8ff83d6460ccd6f0a1f00" class="toggle"  />
+    <label for="section-d5c9ab34c7a8ff83d6460ccd6f0a1f00" class="flex justify-between">
+      <a role="button" class="">Infra</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Infra/LLamaFactory/" class="">LLama-Factory</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-d23f2e4a5c3d5f09801e3e06ad5a3230" class="toggle"  />
+    <label for="section-d23f2e4a5c3d5f09801e3e06ad5a3230" class="flex justify-between">
+      <a role="button" class="">GPU</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Infra/GPU/GPUk8s/" class="">(实战)K8s部署GPU</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Infra/GPU/GPU%E6%9E%B6%E6%9E%84A1/" class="">(A1)GPU 架构 *</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Infra/GPU/GPUMetrics/" class="">GPU 指标&amp;监控</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Infra/GPU/GPU/" class="">GPU 算力平台</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0713817bc2e0af776d4580a6c91cc9f4" class="toggle"  />
+    <label for="section-0713817bc2e0af776d4580a6c91cc9f4" class="flex justify-between">
+      <a role="button" class="">显存估算</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Infra/%E6%98%BE%E5%AD%98%E4%BC%B0%E7%AE%97/GPU-InferA1/" class="">(A1)推理显存估算 *</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMLSys/docs/Infra/%E6%98%BE%E5%AD%98%E4%BC%B0%E7%AE%97/GPUComputing/" class="">显存估算</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/www6vMLSys/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <h3>分布式</h3>
+
+  <label for="toc-control">
+    
+    <img src="/www6vMLSys/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents"></nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"></article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents"></nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
