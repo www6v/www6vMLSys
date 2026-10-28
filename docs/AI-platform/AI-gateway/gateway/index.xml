@@ -2,10 +2,10 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>(阿里) AI 网关 on MLSys</title>
-    <link>http://localhost:8313/www6vMLSys/docs/AI-platform/AI-gateway/gateway/</link>
+    <link>https://www6v.github.io/www6vMLSys/docs/AI-platform/AI-gateway/gateway/</link>
     <description>Recent content in (阿里) AI 网关 on MLSys</description>
     <generator>Hugo</generator>
     <language>en</language>
-    <atom:link href="http://localhost:8313/www6vMLSys/docs/AI-platform/AI-gateway/gateway/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://www6v.github.io/www6vMLSys/docs/AI-platform/AI-gateway/gateway/index.xml" rel="self" type="application/rss+xml" />
   </channel>
 </rss>

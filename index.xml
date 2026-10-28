@@ -2,52 +2,52 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>MLSys</title>
-    <link>http://localhost:8313/www6vMLSys/</link>
+    <link>https://www6v.github.io/www6vMLSys/</link>
     <description>Recent content on MLSys</description>
     <generator>Hugo</generator>
     <language>en</language>
     <lastBuildDate>Thu, 01 Feb 2024 22:29:42 +0000</lastBuildDate>
-    <atom:link href="http://localhost:8313/www6vMLSys/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://www6v.github.io/www6vMLSys/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>(原理|实战)LLM.int8() &#43;</title>
-      <link>http://localhost:8313/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/QuantizationInt8/gptQuantizationInt8/</link>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/QuantizationInt8/gptQuantizationInt8/</link>
       <pubDate>Thu, 12 Oct 2023 14:33:20 +0000</pubDate>
-      <guid>http://localhost:8313/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/QuantizationInt8/gptQuantizationInt8/</guid>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/QuantizationInt8/gptQuantizationInt8/</guid>
       <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;llmint8&#34;&gt;&#xA;  LLM.int8()&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#llmint8&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/LLM-int8-11dbfe21108480d0b6adc341aed9ec3d?pvs=4&#34;&gt;(原理|实战)LLM.int8()&lt;/a&gt;&lt;/p&gt;</description>
     </item>
     <item>
       <title>低精度训练 &#43;</title>
-      <link>http://localhost:8313/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/LowPrecision/gptLowPrecision/</link>
+      <link>https://www6v.github.io/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/LowPrecision/gptLowPrecision/</link>
       <pubDate>Wed, 16 Aug 2023 11:50:58 +0000</pubDate>
-      <guid>http://localhost:8313/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/LowPrecision/gptLowPrecision/</guid>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/LowPrecision/gptLowPrecision/</guid>
       <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;低精度训练&#34;&gt;&#xA;  低精度训练&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e4%bd%8e%e7%b2%be%e5%ba%a6%e8%ae%ad%e7%bb%83&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/cb067e2d0bc545d898cd43dd1091c8b3?pvs=4&#34;&gt;低精度训练&lt;/a&gt;&lt;/p&gt;</description>
     </item>
     <item>
       <title>(原理|实战)混合精度 &#43;</title>
-      <link>http://localhost:8313/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/Precision/gptPrecision/</link>
+      <link>https://www6v.github.io/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/Precision/gptPrecision/</link>
       <pubDate>Thu, 01 Feb 2024 22:29:42 +0000</pubDate>
-      <guid>http://localhost:8313/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/Precision/gptPrecision/</guid>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Training/%E4%BD%8E%E7%B2%BE%E5%BA%A6/Precision/gptPrecision/</guid>
       <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;混合精度&#34;&gt;&#xA;  混合精度&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e6%b7%b7%e5%90%88%e7%b2%be%e5%ba%a6&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/d27bdf000e7c42eabd288f9d036ea5e7?pvs=4&#34;&gt;(原理|实战)混合精度&lt;/a&gt;&lt;/p&gt;</description>
     </item>
     <item>
       <title>(原理)SmoothQuant &#43;</title>
-      <link>http://localhost:8313/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/QuantizationSmoothQuant/gptQuantizationSmoothQuant/</link>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/QuantizationSmoothQuant/gptQuantizationSmoothQuant/</link>
       <pubDate>Sat, 14 Oct 2023 13:33:21 +0000</pubDate>
-      <guid>http://localhost:8313/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/QuantizationSmoothQuant/gptQuantizationSmoothQuant/</guid>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/QuantizationSmoothQuant/gptQuantizationSmoothQuant/</guid>
       <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;smoothquant&#34;&gt;&#xA;  SmoothQuant&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#smoothquant&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/SmoothQuant-11dbfe21108480fc83f8ea2a495092b7?pvs=4&#34;&gt;(原理)SmoothQuant&lt;/a&gt;&lt;/p&gt;</description>
     </item>
     <item>
       <title>(原理)FP8 &#43;</title>
-      <link>http://localhost:8313/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/QuantizationFP8/gptQuantizationFP8/</link>
+      <link>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/QuantizationFP8/gptQuantizationFP8/</link>
       <pubDate>Sat, 14 Oct 2023 13:33:46 +0000</pubDate>
-      <guid>http://localhost:8313/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/QuantizationFP8/gptQuantizationFP8/</guid>
+      <guid>https://www6v.github.io/www6vMLSys/docs/Inference-Opt/%E6%A8%A1%E5%9E%8B%E5%B1%82%E4%BC%98%E5%8C%96/%E9%87%8F%E5%8C%96/PTQ/WeightActivation/QuantizationFP8/gptQuantizationFP8/</guid>
       <description>&lt;p&gt;&lt;/p&gt;&#xA;&lt;!-- more --&gt;&#xA;&lt;h1 id=&#34;fp8&#34;&gt;&#xA;  FP8&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#fp8&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://candied-skunk-1ca.notion.site/FP8-12c3b58d744e43299dad0badc397f592?pvs=4&#34;&gt;(原理)FP8&lt;/a&gt;&lt;/p&gt;</description>
     </item>
     <item>
       <title>Proxy Server</title>
-      <link>http://localhost:8313/www6vMLSys/docs/AI-platform/litellm/proxy-server/proxy-server/</link>
+      <link>https://www6v.github.io/www6vMLSys/docs/AI-platform/litellm/proxy-server/proxy-server/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>http://localhost:8313/www6vMLSys/docs/AI-platform/litellm/proxy-server/proxy-server/</guid>
+      <guid>https://www6v.github.io/www6vMLSys/docs/AI-platform/litellm/proxy-server/proxy-server/</guid>
       <description>&lt;h1 id=&#34;litellm-proxy-server&#34;&gt;&#xA;  LiteLLM Proxy Server&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#litellm-proxy-server&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://github.com/www6v/gateway-ext/blob/master/litellm/proxy-server/proxy-server.md&#34;&gt;LiteLLM Proxy Server&lt;/a&gt;&lt;/p&gt;&#xA;&lt;h1 id=&#34;参考&#34;&gt;&#xA;  参考&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e5%8f%82%e8%80%83&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://cloud.tencent.com/developer/article/2522990&#34;&gt;快速上手 LiteLLM：打造高效、稳定、面向生产的 LLM 应用程序&lt;/a&gt;&lt;/p&gt;&#xA;&lt;h3 id=&#34;code&#34;&gt;&#xA;  code&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#code&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://deepwiki.com/BerriAI/litellm/3-litellm-proxy&#34;&gt;https://deepwiki.com/BerriAI/litellm/3-litellm-proxy&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://deepwiki.com/BerriAI/litellm/3.4-routing-and-load-balancing&#34;&gt;https://deepwiki.com/BerriAI/litellm/3.4-routing-and-load-balancing&lt;/a&gt;&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://github.com/BerriAI/litellm&#34;&gt;https://github.com/BerriAI/litellm&lt;/a&gt;&lt;br&gt;&#xA;&lt;a href=&#34;https://github.com/BerriAI/litellm/blob/c946ae85/litellm/router.py&#34;&gt;https://github.com/BerriAI/litellm/blob/c946ae85/litellm/router.py&lt;/a&gt;&lt;br&gt;&#xA;&lt;a href=&#34;https://github.com/BerriAI/litellm/blob/c946ae85/litellm/types/router.py&#34;&gt;https://github.com/BerriAI/litellm/blob/c946ae85/litellm/types/router.py&lt;/a&gt;&lt;br&gt;&#xA;&lt;a href=&#34;https://github.com/BerriAI/litellm/blob/c946ae85/litellm/proxy/proxy_server.py&#34;&gt;https://github.com/BerriAI/litellm/blob/c946ae85/litellm/proxy/proxy_server.py&lt;/a&gt;&lt;/p&gt;&#xA;&lt;h3 id=&#34;doc&#34;&gt;&#xA;  doc&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#doc&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://docs.litellm.ai/docs/&#34;&gt;https://docs.litellm.ai/docs/&lt;/a&gt;&lt;br&gt;&#xA;&lt;a href=&#34;https://docs.litellm.ai/docs/routing&#34;&gt;https://docs.litellm.ai/docs/routing&lt;/a&gt;&lt;/p&gt;</description>
     </item>
   </channel>

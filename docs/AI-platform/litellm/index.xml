@@ -2,16 +2,16 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>LiteLLM on MLSys</title>
-    <link>http://localhost:8313/www6vMLSys/docs/AI-platform/litellm/</link>
+    <link>https://www6v.github.io/www6vMLSys/docs/AI-platform/litellm/</link>
     <description>Recent content in LiteLLM on MLSys</description>
     <generator>Hugo</generator>
     <language>en</language>
-    <atom:link href="http://localhost:8313/www6vMLSys/docs/AI-platform/litellm/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://www6v.github.io/www6vMLSys/docs/AI-platform/litellm/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Proxy Server</title>
-      <link>http://localhost:8313/www6vMLSys/docs/AI-platform/litellm/proxy-server/proxy-server/</link>
+      <link>https://www6v.github.io/www6vMLSys/docs/AI-platform/litellm/proxy-server/proxy-server/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>http://localhost:8313/www6vMLSys/docs/AI-platform/litellm/proxy-server/proxy-server/</guid>
+      <guid>https://www6v.github.io/www6vMLSys/docs/AI-platform/litellm/proxy-server/proxy-server/</guid>
       <description>&lt;h1 id=&#34;litellm-proxy-server&#34;&gt;&#xA;  LiteLLM Proxy Server&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#litellm-proxy-server&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://github.com/www6v/gateway-ext/blob/master/litellm/proxy-server/proxy-server.md&#34;&gt;LiteLLM Proxy Server&lt;/a&gt;&lt;/p&gt;&#xA;&lt;h1 id=&#34;参考&#34;&gt;&#xA;  参考&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#%e5%8f%82%e8%80%83&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h1&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://cloud.tencent.com/developer/article/2522990&#34;&gt;快速上手 LiteLLM：打造高效、稳定、面向生产的 LLM 应用程序&lt;/a&gt;&lt;/p&gt;&#xA;&lt;h3 id=&#34;code&#34;&gt;&#xA;  code&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#code&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://deepwiki.com/BerriAI/litellm/3-litellm-proxy&#34;&gt;https://deepwiki.com/BerriAI/litellm/3-litellm-proxy&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://deepwiki.com/BerriAI/litellm/3.4-routing-and-load-balancing&#34;&gt;https://deepwiki.com/BerriAI/litellm/3.4-routing-and-load-balancing&lt;/a&gt;&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://github.com/BerriAI/litellm&#34;&gt;https://github.com/BerriAI/litellm&lt;/a&gt;&lt;br&gt;&#xA;&lt;a href=&#34;https://github.com/BerriAI/litellm/blob/c946ae85/litellm/router.py&#34;&gt;https://github.com/BerriAI/litellm/blob/c946ae85/litellm/router.py&lt;/a&gt;&lt;br&gt;&#xA;&lt;a href=&#34;https://github.com/BerriAI/litellm/blob/c946ae85/litellm/types/router.py&#34;&gt;https://github.com/BerriAI/litellm/blob/c946ae85/litellm/types/router.py&lt;/a&gt;&lt;br&gt;&#xA;&lt;a href=&#34;https://github.com/BerriAI/litellm/blob/c946ae85/litellm/proxy/proxy_server.py&#34;&gt;https://github.com/BerriAI/litellm/blob/c946ae85/litellm/proxy/proxy_server.py&lt;/a&gt;&lt;/p&gt;&#xA;&lt;h3 id=&#34;doc&#34;&gt;&#xA;  doc&#xA;  &lt;a class=&#34;anchor&#34; href=&#34;#doc&#34;&gt;#&lt;/a&gt;&#xA;&lt;/h3&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://docs.litellm.ai/docs/&#34;&gt;https://docs.litellm.ai/docs/&lt;/a&gt;&lt;br&gt;&#xA;&lt;a href=&#34;https://docs.litellm.ai/docs/routing&#34;&gt;https://docs.litellm.ai/docs/routing&lt;/a&gt;&lt;/p&gt;</description>
     </item>
   </channel>
